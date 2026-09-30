@@ -1,0 +1,49 @@
+name: reading_tracker
+description: 个人阅读管理 App — 多平台书架导入、本地优先存储、AI 阅读分析
+publish_to: 'none'
+version: 0.2.0+2
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 本地存储（本地优先架构，无账号也能用）
+  sqflite: ^2.3.3
+  # 2.3.5+ 起要求 Dart SDK >=3.7.0，而 Flutter 3.24.5 自带 Dart 3.5.4，
+  # 锁在 2.3.4+4 以兼容旧 SDK；若本机 Flutter 较新可放宽为 ^2.3.6
+  sqflite_common_ffi: '2.3.4+4'
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.3
+
+  # 导入能力
+  image_picker: ^1.1.2
+  google_mlkit_text_recognition: ^0.13.0   # 端侧 OCR，离线、免费、中英文
+  # OCR 前的图像增强（放大 / 灰度 / 提对比）。纯 Dart，无平台通道
+  image: ^4.2.0
+  csv: ^6.0.0
+  file_picker: ^9.0.0
+
+  # 网络与 AI
+  dio: ^5.7.0
+
+  # UI
+  flutter_riverpod: ^2.6.1
+  intl: ^0.20.2
+  fl_chart: ^0.69.2
+  cached_network_image: ^3.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    # 首批示例书库（38 本合成数据，分类与简介覆盖率 100%）
+    # 首次启动自动灌库，让用户打开即见形态完整的书架而非空列表
+    - assets/seed/library.json

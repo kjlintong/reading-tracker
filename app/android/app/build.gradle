@@ -1,0 +1,52 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "cn.reading.reading_tracker"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "cn.reading.reading_tracker"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            // 暂用 debug 签名：自用可直接安装；上架前需换成正式 keystore
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+dependencies {
+    // google_mlkit_text_recognition 的 TextRecognizer.initialize() 会引用中/日/韩/天城文
+    // 四种语言的 Options 类，而 Pub 包只依赖了拉丁语系（text-recognition）。
+    // debug 构建不做代码压缩，所以引用不到也看不出来；
+    // release 的 R8 做全程序分析时会报 "Missing class ... ChineseTextRecognizerOptions"
+    // 并直接让 :app:minifyReleaseWithR8 失败。这里显式补上缺失的语种包。
+    implementation 'com.google.mlkit:text-recognition-chinese:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-devanagari:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-japanese:16.0.0'
+    implementation 'com.google.mlkit:text-recognition-korean:16.0.0'
+}
+
+flutter {
+    source = "../.."
+}

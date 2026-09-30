@@ -1,0 +1,77 @@
+# ── 密钥与本地配置 ──────────────────────────────────────────────
+# 真实密钥只放本机，仓库里只保留 .env.example 作模板
+.env
+*.env
+.env.*
+!.env.example
+
+# ── Flutter / Dart ──────────────────────────────────────────────
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+**/doc/api/
+**/ephemeral/
+**/ios/Flutter/.last_build_id
+*.class
+*.log
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+app.*.symbols
+app.*.map.json
+
+# ── IDE ─────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# ── 构建产物 ────────────────────────────────────────────────────
+app/build/
+app/.android/
+app/.ios/
+app/.dart_tool/
+app/android/.gradle/
+app/android/.cxx/
+app/android/local.properties
+app/android/key.properties
+app/android/app/debug/
+app/android/app/profile/
+app/android/app/release/
+app/windows/flutter/ephemeral/
+app/windows/CMakeSettings.json
+app/ios/Flutter/Flutter.framework.dSYM/
+app/ios/Pods/
+app/ios/.symlinks/
+
+# ── 个人隐私数据（真实导出，绝不入库）────────────────────────────
+# Notion 导出的原始 md / csv 包含个人读书笔记与书架全貌
+tools/notion-export/
+# 真实微信读书拉取结果（含私人书单、阅读时长分布）
+tools/samples/weread-shelf-raw-live.json
+tools/samples/weread-full.json
+tools/samples/weread-shelf.json
+tools/samples/my-library.json
+# 上述数据的合并 / 补全产物，同样含真实书单
+tools/samples/library-*.json
+# 大字体文件不入库，首次跑截图脚本前从本机字体目录复制
+app/test/fixtures/simhei.ttf
+app/test/failures/
+
+# ── 第三方与临时物 ──────────────────────────────────────────────
+tools/tmp-skill/
+node_modules/
+*.zip
+*.apk
+*.aab
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
