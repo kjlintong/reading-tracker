@@ -24,7 +24,8 @@ class AppDatabase {
   ///     books 增加 isBorrowed 列，借阅拆成独立标记
   /// v4：新增 reading_plans 表（阅读计划 + 提醒）
   /// v5：reading_plans 增加 lastDoneOn（每日型计划的「今天已完成」打点）
-  static const _version = 5;
+  /// v6：reading_plans 增加 checkins（每日型计划的逐日打卡记录，用于连续天数）
+  static const _version = 6;
 
   Database? _db;
   Database get db => _db!;
@@ -166,6 +167,7 @@ class AppDatabase {
         done INTEGER DEFAULT 0,
         doneAt TEXT,
         lastDoneOn TEXT,
+        checkins TEXT,
         createdAt TEXT
       )
     ''');
@@ -213,6 +215,12 @@ class AppDatabase {
       // 用户下次打开就能重新勾——这正是我们想要的行为，不需要回填数据。
       await db.execute(
           'ALTER TABLE reading_plans ADD COLUMN lastDoneOn TEXT');
+    }
+    if (oldV < 6) {
+      // 每日型计划的逐日打卡记录，用于「连续打卡 N 天」。
+      // 存量行填 NULL：还没开始打卡，连续天数为 0，无需回填。
+      await db.execute(
+          'ALTER TABLE reading_plans ADD COLUMN checkins TEXT');
     }
   }
 
@@ -947,6 +955,11 @@ class BookRepository {
   /// 历史报告，最新在前
   Future<List<Map<String, dynamic>>> reports({int limit = 20}) async {
     return await _db.query('llm_reports', orderBy: 'generatedAt DESC', limit: limit);
+  }
+
+  /// 删除某周期的全部历史报告（同周期只保留最新一份，删除即清空该周期）。
+  Future<void> deleteReport(String period) async {
+    await _db.delete('llm_reports', where: 'period = ?', whereArgs: [period]);
   }
 
   Future<Map<String, dynamic>?> latestReportOf(String period) async {

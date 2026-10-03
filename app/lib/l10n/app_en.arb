@@ -15,6 +15,8 @@
   "appIntroPage": "About this app",
   "developerHomepage": "Developer website",
   "privacyPolicy": "Privacy Policy",
+  "reportDeleteConfirm": "Delete this report? This can't be undone.",
+  "reportDelete": "Delete",
   "appVersionLabel": "Version {version}",
   "goodreadsImport": "Goodreads / Library CSV import",
   "goodreadsImportDesc": "Import a library CSV exported from Goodreads and similar services (title, author, rating, shelf status).",
@@ -532,18 +534,18 @@
   "s_a46a5664": "Test connection",
   "s_e4f7e107": "Show key",
   "s_b13be56e": "Hide key",
-  "s_9ac01f6b": "Both Test and Fetch save what you've entered first; whatever is tested is what gets stored.",
+  "s_9ac01f6b": "Test and Fetch both save your entries first.",
   "s_0001747c": "Screenshot recognition",
   "s_3f5cbdbf": "Determines how well photo and screenshot imports are recognized.",
   "s_9130a4ed": "Image enhancement preprocessing",
-  "s_b79fc99c": "Before recognition, the image is upscaled to 1200px wide, converted to grayscale and given more contrast. Small titles are recognized noticeably better.",
+  "s_b79fc99c": "Enlarges and sharpens the image first, so small titles are recognized better.",
   "s_9695a603": "Use the LLM to clean up recognition results",
-  "s_267118b5": "Hand the OCR text to the LLM to pick out the real titles and complete truncated ones. Needs an LLM key and consumes tokens.",
+  "s_267118b5": "Let the LLM clean up the recognized titles. Needs an LLM key and uses tokens.",
   "s_6d7e1f9f": "Recognition mode",
   "s_ed144a76": "Auto (multimodal first, falls back to on-device)",
   "s_c7bab837": "Multimodal LLM reads the image directly",
   "s_d8f3da2a": "On-device OCR (offline, free)",
-  "s_f22e4cd2": "On-device OCR returns coordinates, so in a multi-column shelf it can attribute \"0.8%\" to the right book — but it can't read vertical titles, cover lettering or truncated titles. A multimodal model understands the layout, at the cost of needing a network and sometimes inventing titles. The two fail in different ways, so the \"Auto\" default (using both) is the most reliable.",
+  "s_f22e4cd2": "On-device OCR works offline but may miss titles; the multimodal model reads the layout but needs a network and may invent one. \"Auto\" uses both.",
   "s_67677b3d": "Data",
   "s_d596ba9b": "Export the whole database as JSON to move to another device. A fresh install starts with an empty shelf; add books from the Import tab to get going.",
   "s_39239742": "One-tap export / restore",
@@ -3202,6 +3204,14 @@
   "@planOverdue": {
     "placeholders": {
       "days": {
+        "type": "int"
+      }
+    }
+  },
+  "planStreak": "{n}-day check-in streak",
+  "@planStreak": {
+    "placeholders": {
+      "n": {
         "type": "int"
       }
     }

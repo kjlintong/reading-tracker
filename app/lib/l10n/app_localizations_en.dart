@@ -52,6 +52,12 @@ class SEn extends S {
   String get privacyPolicy => 'Privacy Policy';
 
   @override
+  String get reportDeleteConfirm => 'Delete this report? This can\'t be undone.';
+
+  @override
+  String get reportDelete => 'Delete';
+
+  @override
   String appVersionLabel({required String version}) {
     return 'Version $version';
   }
@@ -1863,7 +1869,7 @@ class SEn extends S {
   String get s_b13be56e => 'Hide key';
 
   @override
-  String get s_9ac01f6b => 'Both Test and Fetch save what you\'ve entered first; whatever is tested is what gets stored.';
+  String get s_9ac01f6b => 'Test and Fetch both save your entries first.';
 
   @override
   String get s_0001747c => 'Screenshot recognition';
@@ -1875,13 +1881,13 @@ class SEn extends S {
   String get s_9130a4ed => 'Image enhancement preprocessing';
 
   @override
-  String get s_b79fc99c => 'Before recognition, the image is upscaled to 1200px wide, converted to grayscale and given more contrast. Small titles are recognized noticeably better.';
+  String get s_b79fc99c => 'Enlarges and sharpens the image first, so small titles are recognized better.';
 
   @override
   String get s_9695a603 => 'Use the LLM to clean up recognition results';
 
   @override
-  String get s_267118b5 => 'Hand the OCR text to the LLM to pick out the real titles and complete truncated ones. Needs an LLM key and consumes tokens.';
+  String get s_267118b5 => 'Let the LLM clean up the recognized titles. Needs an LLM key and uses tokens.';
 
   @override
   String get s_6d7e1f9f => 'Recognition mode';
@@ -1896,7 +1902,7 @@ class SEn extends S {
   String get s_d8f3da2a => 'On-device OCR (offline, free)';
 
   @override
-  String get s_f22e4cd2 => 'On-device OCR returns coordinates, so in a multi-column shelf it can attribute \"0.8%\" to the right book — but it can\'t read vertical titles, cover lettering or truncated titles. A multimodal model understands the layout, at the cost of needing a network and sometimes inventing titles. The two fail in different ways, so the \"Auto\" default (using both) is the most reliable.';
+  String get s_f22e4cd2 => 'On-device OCR works offline but may miss titles; the multimodal model reads the layout but needs a network and may invent one. \"Auto\" uses both.';
 
   @override
   String get s_67677b3d => 'Data';
@@ -2420,6 +2426,11 @@ class SEn extends S {
   @override
   String planOverdue({required int days}) {
     return 'Overdue by $days days';
+  }
+
+  @override
+  String planStreak({required int n}) {
+    return '$n-day check-in streak';
   }
 
   @override

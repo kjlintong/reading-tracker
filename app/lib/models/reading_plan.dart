@@ -67,6 +67,12 @@ class ReadingPlan {
   /// 是昨天/更早 = 又是一轮新的开始。永远不置 null 之外的「完成态」。
   final String? lastDoneOn;
 
+  /// 每日型计划的逐日打卡记录（yyyy-MM-dd 逗号分隔）。
+  ///
+  /// 只对 [PlanKind.dailyMinutes] 有意义。用于「连续打卡 N 天」统计，
+  /// 也保证「当天完成 → 次日自动回到待完成」这个周期语义有据可查。
+  final String? checkins;
+
   /// 计划创建时间，用于排序与「这个计划立了多久」的统计。
   final String createdAt;
 
@@ -82,6 +88,7 @@ class ReadingPlan {
     this.done = false,
     this.doneAt,
     this.lastDoneOn,
+    this.checkins,
   });
 
   /// 今天是否已经打过卡（仅每日型有意义）。
@@ -93,6 +100,31 @@ class ReadingPlan {
     if (lastDoneOn == null) return false;
     final n = now ?? DateTime.now();
     return lastDoneOn == _isoDate(n);
+  }
+
+  /// 已打卡的日期集合（yyyy-MM-dd）。
+  Set<String> get markedDates {
+    if (checkins == null || checkins!.isEmpty) return const {};
+    return checkins!.split(',').where((e) => e.isNotEmpty).toSet();
+  }
+
+  /// 连续打卡天数。从今天往前数连续出现的日期；
+  /// 今天还没打但不算中断——只要昨天打了，今天仍算续上。
+  int get streak {
+    final set = markedDates;
+    if (set.isEmpty) return 0;
+    var cursor = DateTime.now();
+    cursor = DateTime(cursor.year, cursor.month, cursor.day);
+    if (!set.contains(_isoDate(cursor))) {
+      cursor = cursor.subtract(const Duration(days: 1));
+      if (!set.contains(_isoDate(cursor))) return 0;
+    }
+    var count = 0;
+    while (set.contains(_isoDate(cursor))) {
+      count++;
+      cursor = cursor.subtract(const Duration(days: 1));
+    }
+    return count;
   }
 
   static String _isoDate(DateTime d) =>
@@ -115,6 +147,7 @@ class ReadingPlan {
         'done': done ? 1 : 0,
         'doneAt': doneAt,
         'lastDoneOn': lastDoneOn,
+        'checkins': checkins,
         'createdAt': createdAt,
       };
 
@@ -129,6 +162,7 @@ class ReadingPlan {
         done: (m['done'] as int? ?? 0) == 1,
         doneAt: m['doneAt'] as String?,
         lastDoneOn: m['lastDoneOn'] as String?,
+        checkins: m['checkins'] as String?,
         createdAt: m['createdAt'] as String? ?? '',
       );
 
@@ -149,6 +183,8 @@ class ReadingPlan {
     bool clearDueDate = false,
     bool clearDoneAt = false,
     bool clearLastDoneOn = false,
+    String? checkins,
+    bool clearCheckins = false,
   }) =>
       ReadingPlan(
         id: id,
@@ -163,6 +199,7 @@ class ReadingPlan {
         done: done ?? this.done,
         doneAt: clearDoneAt ? null : (doneAt ?? this.doneAt),
         lastDoneOn: clearLastDoneOn ? null : (lastDoneOn ?? this.lastDoneOn),
+        checkins: clearCheckins ? null : (checkins ?? this.checkins),
       );
 
   /// 倒计时天数（仅 [PlanKind.finishBook] 有意义）。负数表示已逾期。

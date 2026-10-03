@@ -112,8 +112,24 @@ class _NotesPageState extends ConsumerState<NotesPage> {
       color: cs.surface,
       child: SafeArea(
         bottom: false,
-        child: Column(
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: 24),
           children: [
+            // 阅读计划放在最顶上。计划是**前瞻性**的——
+            // 「我今天要读什么」进门第一眼就该看见；笔记是回顾性的，
+            // 翻起来没有时效压力，放在后面多滚一下无所谓。
+            const Padding(
+              padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
+              child: PlanSection(),
+            ),
+            // 用一条分隔线划出边界——两块内容形态差别大（卡片 vs 流），
+            // 没有界线会读成「计划卡片也是笔记」。
+            const Padding(
+              padding: EdgeInsets.fromLTRB(12, 16, 12, 8),
+              child: Divider(height: 1),
+            ),
+            // 笔记的概览、视图切换与筛选跟着笔记一起滚，
+            // 不再钉在页面顶部（计划移到最顶后，它们应属于笔记区）。
             _Header(
               noteCount: _items.length,
               bookCount: _distinctBookCount(),
@@ -123,36 +139,17 @@ class _NotesPageState extends ConsumerState<NotesPage> {
               filterBooks: _filterBooks,
               onPickBook: _pickBook,
             ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.only(bottom: 24),
-                children: [
-                  // 阅读计划放在最顶上。理由：计划是**前瞻性**的——
-                  // 「我今天要读什么」进门第一眼就该看见；笔记是回顾性的，
-                  // 翻起来没有时效压力，放在后面多滚一下无所谓。
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(12, 12, 12, 0),
-                    child: PlanSection(),
-                  ),
-                  // 用一条分隔线划出边界——两块内容形态差别大（卡片 vs 流），
-                  // 没有界线会读成「计划卡片也是笔记」。
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(12, 16, 12, 8),
-                    child: Divider(height: 1),
-                  ),
+            const SizedBox(height: 4),
 
-                  if (_items.isEmpty)
-                    _Empty(
-                      filtered: _bookId != null,
-                      onClearFilter: () => _pickBook(null),
-                    )
-                  else if (_view == NotesView.time)
-                    _TimeList(items: _items, onTap: _openBook)
-                  else
-                    _BookGroups(items: _items, onTap: _openBook),
-                ],
-              ),
-            ),
+            if (_items.isEmpty)
+              _Empty(
+                filtered: _bookId != null,
+                onClearFilter: () => _pickBook(null),
+              )
+            else if (_view == NotesView.time)
+              _TimeList(items: _items, onTap: _openBook)
+            else
+              _BookGroups(items: _items, onTap: _openBook),
           ],
         ),
       ),
@@ -164,11 +161,10 @@ class _NotesPageState extends ConsumerState<NotesPage> {
   int _distinctBookCount() => _items.map((e) => e.note.bookId).toSet().length;
 }
 
-/// 顶部固定区：概览 + 视图切换 + 按书筛选。
+/// 笔记概览区：概览 + 视图切换 + 按书筛选。
 ///
-/// 为什么把这三样钉在顶部而不是跟着列表滚：
-/// 切换视图和筛选是「换一种看法」，不是「翻下一页」。滚走之后想换回来
-/// 还得一路滑回顶端，等于惩罚了探索。
+/// 现在放在笔记列表上方、随列表一起滚：计划移到最顶之后，
+/// 这一块应属于「笔记」部分，而不是钉在整页顶部压住计划。
 class _Header extends StatelessWidget {
   const _Header({
     required this.noteCount,
@@ -202,10 +198,7 @@ class _Header extends StatelessWidget {
       color: cs.surface,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: cs.outlineVariant)),
-        ),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

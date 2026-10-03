@@ -185,6 +185,18 @@ abstract class S {
   /// **'Privacy Policy'**
   String get privacyPolicy;
 
+  /// No description provided for @reportDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this report? This can\'t be undone.'**
+  String get reportDeleteConfirm;
+
+  /// No description provided for @reportDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get reportDelete;
+
   /// Shows the app version number
   ///
   /// In en, this message translates to:
@@ -3290,7 +3302,7 @@ abstract class S {
   /// auto-extracted
   ///
   /// In en, this message translates to:
-  /// **'Both Test and Fetch save what you\'ve entered first; whatever is tested is what gets stored.'**
+  /// **'Test and Fetch both save your entries first.'**
   String get s_9ac01f6b;
 
   /// auto-extracted
@@ -3314,7 +3326,7 @@ abstract class S {
   /// auto-extracted
   ///
   /// In en, this message translates to:
-  /// **'Before recognition, the image is upscaled to 1200px wide, converted to grayscale and given more contrast. Small titles are recognized noticeably better.'**
+  /// **'Enlarges and sharpens the image first, so small titles are recognized better.'**
   String get s_b79fc99c;
 
   /// auto-extracted
@@ -3326,7 +3338,7 @@ abstract class S {
   /// auto-extracted
   ///
   /// In en, this message translates to:
-  /// **'Hand the OCR text to the LLM to pick out the real titles and complete truncated ones. Needs an LLM key and consumes tokens.'**
+  /// **'Let the LLM clean up the recognized titles. Needs an LLM key and uses tokens.'**
   String get s_267118b5;
 
   /// auto-extracted
@@ -3356,7 +3368,7 @@ abstract class S {
   /// auto-extracted
   ///
   /// In en, this message translates to:
-  /// **'On-device OCR returns coordinates, so in a multi-column shelf it can attribute \"0.8%\" to the right book — but it can\'t read vertical titles, cover lettering or truncated titles. A multimodal model understands the layout, at the cost of needing a network and sometimes inventing titles. The two fail in different ways, so the \"Auto\" default (using both) is the most reliable.'**
+  /// **'On-device OCR works offline but may miss titles; the multimodal model reads the layout but needs a network and may invent one. \"Auto\" uses both.'**
   String get s_f22e4cd2;
 
   /// auto-extracted
@@ -4270,6 +4282,12 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Overdue by {days} days'**
   String planOverdue({required int days});
+
+  /// No description provided for @planStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'{n}-day check-in streak'**
+  String planStreak({required int n});
 
   /// No description provided for @planDueToday.
   ///

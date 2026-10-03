@@ -311,6 +311,30 @@ class _AiReportPanelState extends ConsumerState<AiReportPanel> {
     );
   }
 
+  /// 删除一份历史报告。先确认，避免误触；删除后刷新列表。
+  Future<void> _deleteReport(Map<String, dynamic> r) async {
+    final period = r['period'] as String? ?? '';
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        content: Text(appLoc.reportDeleteConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(appLoc.reportDelete),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(repoProvider).deleteReport(period);
+    await _loadHistory();
+  }
+
   /// 打开报告正文页。生成完成与点历史条目都走这里，
   /// 保证「看报告」这件事只有一个出口、一种版式。
   void _showReport({
@@ -408,7 +432,17 @@ class _AiReportPanelState extends ConsumerState<AiReportPanel> {
                         ),
                     ],
                   ),
-                  trailing: const Icon(Icons.chevron_right, size: 18),
+                  trailing: PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert, size: 18),
+                    padding: EdgeInsets.zero,
+                    onSelected: (v) {
+                      if (v == 'delete') _deleteReport(r);
+                    },
+                    itemBuilder: (_) => [
+                      PopupMenuItem(
+                          value: 'delete', child: Text(appLoc.reportDelete)),
+                    ],
+                  ),
                   onTap: () => _openHistory(r),
                 ),
               );

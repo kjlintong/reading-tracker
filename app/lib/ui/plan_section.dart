@@ -99,10 +99,22 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
     final reminders = ref.read(planReminderProvider);
 
     if (p.kind == PlanKind.dailyMinutes) {
+      final today = ReadingPlan.todayIso();
       if (p.doneToday()) {
-        await repo.upsertPlan(p.copyWith(clearLastDoneOn: true));
+        // 取消今天的打卡：清掉 lastDoneOn，并从 checkins 集合里移除今天。
+        final set = p.markedDates..remove(today);
+        await repo.upsertPlan(p.copyWith(
+          clearLastDoneOn: true,
+          clearCheckins: set.isEmpty,
+          checkins: set.isEmpty ? null : set.join(','),
+        ));
       } else {
-        await repo.upsertPlan(p.copyWith(lastDoneOn: ReadingPlan.todayIso()));
+        // 打卡今天：写入 lastDoneOn，并把今天加进 checkins 集合——连续天数由此计算。
+        final set = p.markedDates..add(today);
+        await repo.upsertPlan(p.copyWith(
+          lastDoneOn: today,
+          checkins: set.join(','),
+        ));
       }
       // 提醒不动：周期任务的提醒每天都该回来。
     } else {
@@ -345,6 +357,11 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
                 const SizedBox(height: 5),
                 Text(appLoc.planDailyCycleHint,
                     style: TextStyle(fontSize: 10.5, color: cs.onSurfaceVariant)),
+                if (p.streak > 0) ...[
+                  const SizedBox(height: 3),
+                  Text(appLoc.planStreak(n: p.streak),
+                      style: TextStyle(fontSize: 11, color: cs.primary)),
+                ],
               ],
             ] else
               Padding(

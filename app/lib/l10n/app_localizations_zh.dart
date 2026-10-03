@@ -52,6 +52,12 @@ class SZh extends S {
   String get privacyPolicy => '隐私政策';
 
   @override
+  String get reportDeleteConfirm => '确定删除这份报告？删除后无法恢复。';
+
+  @override
+  String get reportDelete => '删除';
+
+  @override
   String appVersionLabel({required String version}) {
     return '版本 $version';
   }
@@ -1863,7 +1869,7 @@ class SZh extends S {
   String get s_b13be56e => '隐藏密钥';
 
   @override
-  String get s_9ac01f6b => '测试与拉取都会先保存当前填写的内容，测到什么就存什么。';
+  String get s_9ac01f6b => '测试与拉取都会先保存你填写的内容。';
 
   @override
   String get s_0001747c => '截图识别';
@@ -1875,13 +1881,13 @@ class SZh extends S {
   String get s_9130a4ed => '图像增强预处理';
 
   @override
-  String get s_b79fc99c => '识别前放大到 1200px 宽并转灰度、提对比度。小字书名识别率明显更高。';
+  String get s_b79fc99c => '先放大并增强图像，小字书名识别更准。';
 
   @override
   String get s_9695a603 => '用大模型整理识别结果';
 
   @override
-  String get s_267118b5 => '把 OCR 文本交给大模型挑出真正的书名并补全被截断的标题。需要配置大模型 Key，会消耗 token。';
+  String get s_267118b5 => '用大模型整理识别出的书名。需要配置大模型 Key 并消耗 token。';
 
   @override
   String get s_6d7e1f9f => '识别方式';
@@ -1896,7 +1902,7 @@ class SZh extends S {
   String get s_d8f3da2a => '端侧 OCR（离线、免费）';
 
   @override
-  String get s_f22e4cd2 => '端侧 OCR 拿得到坐标，多列书架里能把「0.8%」归到正确的书；但竖排书名、封面美术字、被截断的标题它读不出来。多模态模型能理解版面，代价是依赖网络且会编书名。两者失败模式不同，默认「自动」叠加使用最稳。';
+  String get s_f22e4cd2 => '端侧 OCR 离线可用但可能漏读；多模态模型能理解版面，但需联网且可能编书名。「自动」两者结合最稳。';
 
   @override
   String get s_67677b3d => '数据';
@@ -2420,6 +2426,11 @@ class SZh extends S {
   @override
   String planOverdue({required int days}) {
     return '已逾期 $days 天';
+  }
+
+  @override
+  String planStreak({required int n}) {
+    return '连续打卡 $n 天';
   }
 
   @override

@@ -35,9 +35,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   /// 文本框自动保存的防抖。停下打字才落库，避免每敲一个字都写一次库。
   Timer? _saveDebounce;
 
-  /// 最近一次操作结果：true 成功 / false 失败，null 表示还没操作过
-  bool? _resultOk;
-  String? _resultText;
+  /// 微信读书（第三方渠道）验证结果
+  bool? _wereadOk;
+  String? _wereadText;
+
+  /// 大模型连通性测试结果（测试 / 拉取模型共用）
+  bool? _llmOk;
+  String? _llmText;
+
   String? _busy;
 
   @override
@@ -118,8 +123,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       _llmBase.text = p.baseUrl;
       _llmModel.text = p.model;
       _llmKey.clear();
-      _resultOk = null;
-      _resultText = null;
+      _wereadOk = null;
+      _wereadText = null;
+      _llmOk = null;
+      _llmText = null;
     });
     _save();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -130,8 +137,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _pullModels() async {
     setState(() {
       _busy = appLoc.s_533f5118;
-      _resultOk = null;
-      _resultText = null;
+      _llmOk = null;
+      _llmText = null;
     });
     try {
       final models = await _formClient().listModels();
@@ -141,14 +148,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       if (picked != null) {
         setState(() {
           _llmModel.text = picked.id;
-          _resultOk = true;
-          _resultText = appLoc.s_648219b9(id: picked.id);
+          _llmOk = true;
+          _llmText = appLoc.s_648219b9(id: picked.id);
         });
       } else {
-        setState(() => _resultText = appLoc.s_baf95794(length: models.length));
+        setState(() => _llmText = appLoc.s_baf95794(length: models.length));
       }
     } catch (e) {
-      if (mounted) setState(() => _resultText = _readable(e));
+      if (mounted) setState(() => _llmText = _readable(e));
     } finally {
       if (mounted) setState(() => _busy = null);
     }
@@ -157,8 +164,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _testLlm() async {
     setState(() {
       _busy = appLoc.s_e37cab47;
-      _resultOk = null;
-      _resultText = null;
+      _llmOk = null;
+      _llmText = null;
     });
     // 先落库再测：测通了什么，存下来的就是什么
     await _save(toast: false);
@@ -166,11 +173,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       final ping = await _formClient().testConnection();
       if (!mounted) return;
       setState(() {
-        _resultOk = true;
-        _resultText = appLoc.s_c17c1a05(model: ping.model, latencyMs: ping.latencyMs, reply: ping.reply);
+        _llmOk = true;
+        _llmText = appLoc.s_c17c1a05(model: ping.model, latencyMs: ping.latencyMs, reply: ping.reply);
       });
     } catch (e) {
-      if (mounted) setState(() => _resultText = _readable(e));
+      if (mounted) setState(() => _llmText = _readable(e));
     } finally {
       if (mounted) setState(() => _busy = null);
     }
@@ -179,20 +186,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _testWeread() async {
     setState(() {
       _busy = appLoc.s_5df0d12b;
-      _resultOk = null;
-      _resultText = null;
+      _wereadOk = null;
+      _wereadText = null;
     });
     await _save(toast: false);
     try {
       final n = await ref.read(wereadGatewayProvider).ping();
       if (mounted) {
         setState(() {
-          _resultOk = true;
-          _resultText = appLoc.s_bd245b07(n: n);
+          _wereadOk = true;
+          _wereadText = appLoc.s_bd245b07(n: n);
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _resultText = _readable(e));
+      if (mounted) setState(() => _wereadText = _readable(e));
     } finally {
       if (mounted) setState(() => _busy = null);
     }
@@ -448,9 +455,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       ),
                     ],
                   ),
-                  if (_resultText != null) ...[
+                  if (_wereadText != null) ...[
                     const SizedBox(height: 10),
-                    _ResultBanner(ok: _resultOk, text: _resultText!),
+                    _ResultBanner(ok: _wereadOk, text: _wereadText!),
                   ],
                 ],
               ),
@@ -479,8 +486,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     onSelectionChanged: (s) {
                       setState(() {
                         _protocol = s.first;
-                        _resultOk = null;
-                        _resultText = null;
+                        _wereadOk = null;
+                        _wereadText = null;
+                        _llmOk = null;
+                        _llmText = null;
                       });
                       _save();
                     },
@@ -570,9 +579,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     style: TextStyle(fontSize: 11, color: Colors.grey),
                   ),
 
-                  if (_resultText != null) ...[
+                  if (_llmText != null) ...[
                     const SizedBox(height: 10),
-                    _ResultBanner(ok: _resultOk, text: _resultText!),
+                    _ResultBanner(ok: _llmOk, text: _llmText!),
                   ],
                 ],
               ),
@@ -612,13 +621,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 4),
                   DropdownButtonFormField<String>(
                     value: visionMode,
+                    isExpanded: true,
                     isDense: true,
                     decoration: const InputDecoration(
                         isDense: true, border: OutlineInputBorder()),
                     items:  [
-                      DropdownMenuItem(value: 'auto', child: Text(appLoc.s_ed144a76)),
-                      DropdownMenuItem(value: 'vision', child: Text(appLoc.s_c7bab837)),
-                      DropdownMenuItem(value: 'device', child: Text(appLoc.s_d8f3da2a)),
+                      DropdownMenuItem(
+                          value: 'auto',
+                          child: Text(appLoc.s_ed144a76,
+                              overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(
+                          value: 'vision',
+                          child: Text(appLoc.s_c7bab837,
+                              overflow: TextOverflow.ellipsis)),
+                      DropdownMenuItem(
+                          value: 'device',
+                          child: Text(appLoc.s_d8f3da2a,
+                              overflow: TextOverflow.ellipsis)),
                     ],
                     onChanged: (v) async {
                       if (v == null) return;
@@ -676,13 +695,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     spacing: 10,
                     runSpacing: 10,
                     children: [
-                      // 应用介绍页放**第一位**：它是这一块里唯一「介绍这个应用本身」
-                      // 的链接，另两个分别指向开发者和法律文本。用户点进「关于」
-                      // 的动机，绝大多数是想知道这应用是干什么的。
+                      // 应用介绍页：它是这一块里唯一「介绍这个应用本身」的链接。
+                      // 按界面语言选介绍页：中文页与英文页是两份独立页面，
+                      // 这里直接给对的那一份，不让英文用户先落在一屏中文上。
                       OutlinedButton.icon(
-                        // 按界面语言选介绍页：中文页与英文页是两份独立页面
-                        // （各自内的导航里也有互跳），这里直接给对的那一份，
-                        // 不让英文用户先落在一屏中文上再自己找语言开关。
                         onPressed: () => _openExternal(
                           Localizations.localeOf(context).languageCode == 'zh'
                               ? AppInfo.appPage
@@ -690,11 +706,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         ),
                         icon: const Icon(Icons.menu_book_outlined, size: 18),
                         label: Text(l10n.appIntroPage),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => _openExternal(AppInfo.homepage),
-                        icon: const Icon(Icons.language_outlined, size: 18),
-                        label: Text(l10n.developerHomepage),
                       ),
                       OutlinedButton.icon(
                         // 中文设备看中文版政策，其余看英文版；
@@ -712,11 +723,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     '${AppInfo.name} · '
                     '${l10n.appVersionLabel(version: AppInfo.versionLabel)}',
                     style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    AppInfo.email,
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
                   ),
                 ],
               ),
