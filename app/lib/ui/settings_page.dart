@@ -671,17 +671,30 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 title: l10n.supportDev,
                 subtitle: l10n.supportDevDesc,
                 children: [
-                  // 打赏链接是内置常量而不是输入框：本应用的变现方式就是
-                  // 「免费 + 打赏」，链接必须开箱即用。早先做成可编辑字段时，
-                  // 全新安装点这个按钮只会提示「请先填写链接」，等于入口失效。
-                  FilledButton.tonalIcon(
-                    onPressed: () => _openExternal(AppInfo.tipUrl),
-                    icon: const Icon(Icons.favorite_outline, size: 18),
-                    label: Text(l10n.openTipPage),
+                  // 打赏入口内置两个：国内（爱发电）+ 国外（Ko-fi）。
+                  // 国内链接留空则不显示，便于没有国内渠道时只保留 Ko-fi。
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      if (AppInfo.tipUrlDomestic.isNotEmpty)
+                        OutlinedButton.icon(
+                          onPressed: () => _openExternal(AppInfo.tipUrlDomestic),
+                          icon: const Icon(Icons.favorite_outline, size: 18),
+                          label: Text(l10n.openTipDomestic),
+                        ),
+                      OutlinedButton.icon(
+                        onPressed: () => _openExternal(AppInfo.tipUrl),
+                        icon: const Icon(Icons.favorite_border, size: 18),
+                        label: Text(l10n.openTipForeign),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    AppInfo.tipUrl,
+                    AppInfo.tipUrlDomestic.isNotEmpty
+                        ? '${AppInfo.tipUrlDomestic}\n${AppInfo.tipUrl}'
+                        : AppInfo.tipUrl,
                     style: TextStyle(fontSize: 11, color: Colors.grey),
                   ),
                 ],

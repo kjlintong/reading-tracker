@@ -43,10 +43,14 @@ class AppInfo {
   /// 介绍页的英文版，供英文界面直接打开。中文页与它是双向互跳的。
   static const String appPageEn = 'https://kjlintong.github.io/readnest/en.html';
 
-  /// 打赏页。免费 + 打赏是既定的变现方式，因此**内置**而不是让用户自己填——
+  /// 打赏页（国外）。免费 + 打赏是既定的变现方式，因此**内置**而不是让用户自己填——
   /// 早期版本把打赏链接做成可编辑字段，导致全新安装点按钮只会提示「请先填写链接」，
   /// 等于打赏入口根本不可用。
   static const String tipUrl = 'https://ko-fi.com/ryanlin65969';
+
+  /// 打赏页（国内）。留空则不显示国内入口，便于没有国内渠道时只保留 Ko-fi。
+  /// TODO: 替换成你自己的爱发电（afdian.com）主页。
+  static const String tipUrlDomestic = 'https://afdian.com/';
 
   /// 隐私政策。两个地址都由 `store/web/` 生成，必须与商店后台填写的一致。
   static const String privacyPolicyZh = 'https://kjlintong.github.io/privacy.html';

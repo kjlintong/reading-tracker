@@ -1044,6 +1044,7 @@ class LlmClient {
     Map<String, dynamic> data, {
     ReportStyle? style,
     String? customPrompt,
+    String? languageCode,
   }) async {
     final s = style ?? reportStyles.first;
     final hasList = (data['bookList'] as List?)?.isNotEmpty ?? false;
@@ -1065,7 +1066,18 @@ class LlmClient {
         ..writeln()
         ..writeln(extra);
     }
+    // 语言锁死：报告正文必须与该周期生成时 App 的界面语言一致，
+    // 否则会出现「中文界面却冒出英文段落 / 中英混排」。这条是用户实测的高频反馈。
+    final lang = languageCode ?? appLoc.localeName;
+    final langRule = lang.toLowerCase().startsWith('zh')
+        ? '【语言】整篇报告（所有小标题、正文与总结）必须用简体中文撰写。'
+            '外文书名可保留原文，但叙述语言必须是简体中文，严禁中英混排。'
+        : '【Language】Write the entire report (all headings, body, and summary) '
+            'in English. Foreign book titles may stay in their original script, '
+            'but the narrative must be English only — never mix Chinese and English.';
     userPrompt
+      ..writeln()
+      ..writeln(langRule)
       ..writeln()
       ..writeln(kReportFormatRules)
       ..writeln()

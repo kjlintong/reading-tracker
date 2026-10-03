@@ -957,9 +957,13 @@ class BookRepository {
     return await _db.query('llm_reports', orderBy: 'generatedAt DESC', limit: limit);
   }
 
-  /// 删除某周期的全部历史报告（同周期只保留最新一份，删除即清空该周期）。
-  Future<void> deleteReport(String period) async {
-    await _db.delete('llm_reports', where: 'period = ?', whereArgs: [period]);
+  /// 删除单条历史报告。
+  ///
+  /// 按主键 [id] 删，而不是按 period：历史列表里同一周期可能有多份
+  /// 生成记录（每次生成都插一条新行、period 相同），按 period 删会把
+  /// 同一周期的其他生成一并清掉，表现为「删一个全没了」。
+  Future<void> deleteReport(String id) async {
+    await _db.delete('llm_reports', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<Map<String, dynamic>?> latestReportOf(String period) async {

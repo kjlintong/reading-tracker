@@ -155,6 +155,18 @@ abstract class S {
   /// **'Buy me a coffee · Ko-fi'**
   String get openTipPage;
 
+  /// No description provided for @openTipDomestic.
+  ///
+  /// In en, this message translates to:
+  /// **'Domestic support · Afdian'**
+  String get openTipDomestic;
+
+  /// No description provided for @openTipForeign.
+  ///
+  /// In en, this message translates to:
+  /// **'International support · Ko-fi'**
+  String get openTipForeign;
+
   /// Settings section title for app/developer information
   ///
   /// In en, this message translates to:

@@ -37,6 +37,12 @@ class SEn extends S {
   String get openTipPage => 'Buy me a coffee · Ko-fi';
 
   @override
+  String get openTipDomestic => 'Domestic support · Afdian';
+
+  @override
+  String get openTipForeign => 'International support · Ko-fi';
+
+  @override
   String get about => 'About';
 
   @override

@@ -313,7 +313,7 @@ class _AiReportPanelState extends ConsumerState<AiReportPanel> {
 
   /// 删除一份历史报告。先确认，避免误触；删除后刷新列表。
   Future<void> _deleteReport(Map<String, dynamic> r) async {
-    final period = r['period'] as String? ?? '';
+    final id = r['id'] as String? ?? '';
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -331,7 +331,7 @@ class _AiReportPanelState extends ConsumerState<AiReportPanel> {
       ),
     );
     if (ok != true) return;
-    await ref.read(repoProvider).deleteReport(period);
+    await ref.read(repoProvider).deleteReport(id);
     await _loadHistory();
   }
 
