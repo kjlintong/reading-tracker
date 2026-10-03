@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import '../models/enums.dart';
+import '../l10n/app_loc.dart';
 import 'ocr_line.dart';
 import 'shelf_ocr_parser.dart';
 
@@ -190,7 +191,7 @@ class ShelfLayoutParser {
           cur != null &&
           !cur.ended &&
           gap <= unit * 2.8) {
-        cur.author ??= text.replaceAll(RegExp(r'\s*(著|编著|译|著译)$'), '');
+        cur.author ??= text.replaceAll(RegExp(appLoc.s_7675d229), '');
         lastBottom = row.bottom;
         continue;
       }
@@ -202,7 +203,7 @@ class ShelfLayoutParser {
           !cur.hasMeta &&
           cur.titleLines < 2 &&
           gap <= unit * 1.8 &&
-          !RegExp(r'[，。；、？！：）」』]$').hasMatch(cur.text) &&
+          !RegExp(appLoc.s_285bb37e).hasMatch(cur.text) &&
           _sameScript(cur.lastLineText, text) &&
           cur.lastLineText.length <= 12 &&
           text.length <= 10;
@@ -234,11 +235,11 @@ class ShelfLayoutParser {
   static bool _likelyContinuation(String prev, String frag) {
     // 显式作者标记：著 / 译 / 编著，以及「[美] 某某」这类译名前缀。
     // 这些出现时无论上一行多长都是作者，绝不并进书名。
-    if (RegExp(r'(著|编著|译|著译)$').hasMatch(frag)) return false;
+    if (RegExp(appLoc.s_8f936d11).hasMatch(frag)) return false;
     if (RegExp(r'^\[[^\]]{1,8}\]').hasMatch(frag)) return false;
     if (prev.isEmpty) return false;
-    if (RegExp(r'[（《·“]$').hasMatch(prev)) return true;
-    if (RegExp(r'[）》」』”]$').hasMatch(prev)) return false;
+    if (RegExp(appLoc.s_d0c345ec).hasMatch(prev)) return true;
+    if (RegExp(appLoc.s_2d3c83a7).hasMatch(prev)) return false;
     return prev.length >= 6;
   }
 
@@ -269,7 +270,7 @@ class ShelfLayoutParser {
     String? author;
     for (final l in byHeight.skip(1).take(7)) {
       if (ShelfOcrParser.looksLikeAuthor(l.text)) {
-        author = l.text.replaceAll(RegExp(r'\s*(著|编著|译|著译)$'), '');
+        author = l.text.replaceAll(RegExp(appLoc.s_7675d229), '');
         break;
       }
     }
@@ -292,7 +293,7 @@ class ShelfLayoutParser {
         title: text,
         score: score.clamp(0.0, 1.0),
         author: i == 0 ? author : null,
-        reason: i == 0 ? '封面最大字号' : '封面次级文字',
+        reason: i == 0 ? appLoc.s_0686f279 : appLoc.s_5514105a,
         truncated: ShelfOcrParser.isTruncated(text),
         rawText: text,
       ));
@@ -313,7 +314,7 @@ class ShelfLayoutParser {
     final best = <String, TitleCandidate>{};
     for (final c in input) {
       final key = c.title
-          .replaceAll(RegExp(r'[\s《》「」『』]'), '')
+          .replaceAll(RegExp(appLoc.s_cbb756f7), '')
           .toLowerCase();
       if (key.isEmpty) continue;
       final prev = best[key];
@@ -385,30 +386,30 @@ class _Item {
 
     if (RegExp(r'[\u4e00-\u9fa5]').hasMatch(title)) {
       score += 0.12;
-      reasons.add('含中文');
+      reasons.add(appLoc.s_174faffb);
     }
     if (hasMeta) {
       score += 0.1;
-      reasons.add('带进度或状态');
+      reasons.add(appLoc.s_b13a1237);
     }
     if (author != null && author!.isNotEmpty) {
       score += 0.08;
-      reasons.add('带作者');
+      reasons.add(appLoc.s_24745e9d);
     }
     if (title.length >= 2 && title.length <= 24) {
       score += 0.06;
-      reasons.add('长度合理');
+      reasons.add(appLoc.s_0cedc3f4);
     } else if (title.length < 2) {
       score -= 0.35;
-      reasons.add('过短');
+      reasons.add(appLoc.s_5bdfa6ae);
     } else if (title.length > 32) {
       score -= 0.3;
-      reasons.add('过长');
+      reasons.add(appLoc.s_58171266);
     }
     // 左对齐到所在列 = 这是格子的正文块，而不是封面里的美术字
     if (columnLeft != null && (rows.first.left - columnLeft).abs() <= 12) {
       score += 0.05;
-      reasons.add('列左对齐');
+      reasons.add(appLoc.s_1e8c236b);
     }
     // 无中文但有拉丁字母：封面上最常见的美术字（"SMALL GARDEN HANDBOOK"），
     // 并不是印在封面下方的书名。降权而非直接丢弃——真有英文原版书
@@ -419,15 +420,15 @@ class _Item {
       final letters = title.replaceAll(RegExp(r'[^A-Za-z]'), '');
       if (letters.length >= 5 && letters == letters.toUpperCase()) {
         score -= 0.3;
-        reasons.add('封面美术字');
+        reasons.add(appLoc.s_89ac54fb);
       } else if (title.length <= 3) {
         score -= 0.2;
-        reasons.add('过短英文');
+        reasons.add(appLoc.s_132a750b);
       }
     }
-    if (RegExp(r'[，。；、？！]$').hasMatch(title)) {
+    if (RegExp(appLoc.s_6af25a96).hasMatch(title)) {
       score -= 0.15;
-      reasons.add('句末标点');
+      reasons.add(appLoc.s_a335b25f);
     }
 
     return TitleCandidate(

@@ -1,10 +1,17 @@
+import 'dart:async';
+import '../app_info.dart';
+import '../l10n/app_loc.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../ai/ai_client.dart';
 import '../ai/llm_protocol.dart';
-import '../data/seed_import.dart';
+import '../l10n/app_localizations.dart';
 import '../providers.dart';
+import 'backup_page.dart';
+import 'theme.dart';
 
 /// 设置页。
 ///
@@ -24,7 +31,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   late LlmProtocol _protocol;
 
   bool _obscure = true;
-  String? _hint;
+
+  /// 文本框自动保存的防抖。停下打字才落库，避免每敲一个字都写一次库。
+  Timer? _saveDebounce;
 
   /// 最近一次操作结果：true 成功 / false 失败，null 表示还没操作过
   bool? _resultOk;
@@ -43,6 +52,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   void dispose() {
+    _saveDebounce?.cancel();
     _wereadKey.dispose();
     _llmKey.dispose();
     _llmBase.dispose();
@@ -50,17 +60,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     super.dispose();
   }
 
-  Future<void> _save({bool toast = true}) async {
+  /// 文本框改动后自动保存（防抖）。用户不用再手动点「保存配置」。
+  void _scheduleSave() {
+    _saveDebounce?.cancel();
+    _saveDebounce = Timer(const Duration(milliseconds: 700), _save);
+  }
+
+  /// 把当前所有填写内容落到本地库。
+  ///
+  /// 自动保存走这里（[toast]=false 静默），「测试 / 拉取」前也会显式调一次，
+  /// 保证「测到什么就存什么」这条口径不因改成自动保存而失效。
+  Future<void> _save({bool toast = false}) async {
     await saveSetting(ref, 'weread_key', _wereadKey.text.trim());
     await saveSetting(ref, 'llm_key', _llmKey.text.trim());
     await saveSetting(ref, 'llm_base_url', _llmBase.text.trim());
     await saveSetting(ref, 'llm_model', _llmModel.text.trim());
     await saveSetting(ref, 'llm_protocol', _protocol.name);
-    if (!mounted) return;
-    setState(() => _hint = '已保存到本地数据库');
-    if (toast) {
+    if (toast && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('配置已保存到本地')),
+         SnackBar(content: Text(appLoc.s_72cca1f6)),
       );
     }
   }
@@ -75,6 +93,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         protocol: _protocol,
       );
 
+  /// 打开应用外部的链接：打赏页、开发者主页、隐私政策。
+  ///
+  /// 这些地址全部是 [AppInfo] 里的编译期常量，不存在用户输入，
+  /// 因此不需要再做「是不是合法 URL」的格式校验——唯一可能的失败
+  /// 是设备上没有可用的浏览器，那时给一句可读的提示即可。
+  Future<void> _openExternal(String url) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final ok = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!ok) throw StateError('no app available to open $url');
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text(_readable(e))));
+    }
+  }
+
   void _applyPreset(LlmPreset p) {
     setState(() {
       _protocol = p.protocol;
@@ -84,14 +121,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       _resultOk = null;
       _resultText = null;
     });
+    _save();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('已填入 ${p.name}，还需要填 API Key')),
+      SnackBar(content: Text(appLoc.s_b6477017(name: p.name))),
     );
   }
 
   Future<void> _pullModels() async {
     setState(() {
-      _busy = '正在拉取模型列表…';
+      _busy = appLoc.s_533f5118;
       _resultOk = null;
       _resultText = null;
     });
@@ -104,10 +142,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         setState(() {
           _llmModel.text = picked.id;
           _resultOk = true;
-          _resultText = '已选择模型：${picked.id}';
+          _resultText = appLoc.s_648219b9(id: picked.id);
         });
       } else {
-        setState(() => _resultText = '共 ${models.length} 个可用模型（未选择）');
+        setState(() => _resultText = appLoc.s_baf95794(length: models.length));
       }
     } catch (e) {
       if (mounted) setState(() => _resultText = _readable(e));
@@ -118,7 +156,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _testLlm() async {
     setState(() {
-      _busy = '正在测试连通性…';
+      _busy = appLoc.s_e37cab47;
       _resultOk = null;
       _resultText = null;
     });
@@ -129,8 +167,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       if (!mounted) return;
       setState(() {
         _resultOk = true;
-        _resultText = '连通正常 · ${ping.model}\n'
-            '耗时 ${ping.latencyMs} ms，模型回复「${ping.reply}」';
+        _resultText = appLoc.s_c17c1a05(model: ping.model, latencyMs: ping.latencyMs, reply: ping.reply);
       });
     } catch (e) {
       if (mounted) setState(() => _resultText = _readable(e));
@@ -141,7 +178,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _testWeread() async {
     setState(() {
-      _busy = '正在验证微信读书 Key…';
+      _busy = appLoc.s_5df0d12b;
       _resultOk = null;
       _resultText = null;
     });
@@ -151,7 +188,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       if (mounted) {
         setState(() {
           _resultOk = true;
-          _resultText = 'Key 有效，书架当前 $n 本';
+          _resultText = appLoc.s_bd245b07(n: n);
         });
       }
     } catch (e) {
@@ -171,11 +208,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       return switch (e.type) {
         DioExceptionType.connectionTimeout ||
         DioExceptionType.connectionError =>
-          '连不上 $host\n检查网络、Base URL 是否写全（含 /v1），以及该服务是否需要代理',
-        DioExceptionType.receiveTimeout => '对端响应超时（180 秒）',
+          appLoc.s_73f89115(host: host),
+        DioExceptionType.receiveTimeout => appLoc.s_9038e16e,
         DioExceptionType.badResponse =>
-          '服务返回 ${e.response?.statusCode}：${_bodyOf(e)}',
-        _ => '请求失败：${e.message ?? e.type.name}',
+          appLoc.s_e0710bf5(statusCode: e.response?.statusCode, e: _bodyOf(e)),
+        _ => appLoc.s_24d6c7ae(name: e.message ?? e.type.name),
       };
     }
     return e.toString();
@@ -216,8 +253,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                     child: TextField(
                       autofocus: false,
-                      decoration: const InputDecoration(
-                        hintText: '搜索模型',
+                      decoration:  InputDecoration(
+                        hintText: appLoc.s_4d3eb2b3,
                         prefixIcon: Icon(Icons.search, size: 20),
                         isDense: true,
                         border: OutlineInputBorder(),
@@ -229,10 +266,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
-                        Text('共 ${models.length} 个',
+                        Text(appLoc.s_17d94005(length: models.length),
                             style: const TextStyle(fontSize: 12, color: Colors.grey)),
                         const Spacer(),
-                        const Text('点选即写入模型名',
+                         Text(appLoc.s_a48ae43a,
                             style: TextStyle(fontSize: 12, color: Colors.grey)),
                       ],
                     ),
@@ -270,41 +307,120 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  Future<void> _reseed() async {
-    final repo = ref.read(repoProvider);
-    final n = await SeedImporter(repo).forceImport();
-    if (mounted) {
-      setState(() => _hint = '已重新导入种子书库 $n 本');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('已重新导入 $n 本')));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = S.of(context);
     final presets = llmPresets;
     final ocrEnhance = ref.watch(ocrEnhanceProvider);
     final ocrUseLlm = ref.watch(ocrUseLlmProvider);
+    final visionMode = ref.watch(ocrVisionModeProvider);
+    final themeId = ref.watch(appThemeProvider);
+    final brightness = ref.watch(appBrightnessProvider);
+    final locale = ref.watch(appLocaleProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
+      appBar: AppBar(title:  Text(appLoc.s_b5c7b82d)),
       body: Stack(
         children: [
           ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              /* ---------------------- 外观 ---------------------- */
+              // 外观与语言排在配置类项目前面：它们是「看一眼就想调」的，
+              // 而 API Key 是装完基本不再碰的一次性配置。
               _Section(
-                title: '微信读书',
-                subtitle:
-                    '用于同步书架与阅读进度。扫码打开 weread.qq.com/r/weread-skills 可获取。',
+                title: l10n.settingsAppearance,
+                subtitle: l10n.settingsAppearanceDesc,
+                children: [
+                  Text(l10n.settingsTheme,
+                      style: const TextStyle(fontSize: 14)),
+                  const SizedBox(height: 8),
+                  _ThemePicker(
+                    value: themeId,
+                    onChanged: (id) async {
+                      await saveSetting(ref, 'app_theme', id);
+                      if (mounted) setState(() {});
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  Text(l10n.settingsBrightness,
+                      style: const TextStyle(fontSize: 14)),
+                  const SizedBox(height: 8),
+                  SegmentedButton<AppBrightness>(
+                    segments: [
+                      for (final b in AppBrightness.values)
+                        ButtonSegment(
+                          value: b,
+                          label: Text(b.label),
+                          icon: Icon(b.icon, size: 16),
+                        ),
+                    ],
+                    selected: {brightness},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (s) async {
+                      await saveSetting(ref, 'app_brightness', s.first.id);
+                      if (mounted) setState(() {});
+                    },
+                  ),
+                ],
+              ),
+
+              /* ---------------------- 语言 ---------------------- */
+              _Section(
+                title: l10n.settingsLanguage,
+                subtitle: l10n.settingsLanguageDesc,
+                children: [
+                  // 选项从 supportedLocales 动态生成：将来往 l10n/ 里放一个
+                  // app_de.arb，德语就自动出现在这里，无需改本页代码。
+                  RadioListTile<String?>(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    value: null,
+                    groupValue: locale?.languageCode,
+                    onChanged: (_) async {
+                      await saveSetting(ref, 'app_locale', '');
+                      if (mounted) setState(() {});
+                    },
+                    title: Text(l10n.settingsLanguageSystem,
+                        style: const TextStyle(fontSize: 14)),
+                  ),
+                  for (final l in S.supportedLocales)
+                    RadioListTile<String?>(
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      value: l.languageCode,
+                      groupValue: locale?.languageCode,
+                      onChanged: (_) async {
+                        await saveSetting(ref, 'app_locale', l.languageCode);
+                        if (mounted) setState(() {});
+                      },
+                      title: Text(languageName(l.languageCode),
+                          style: const TextStyle(fontSize: 14)),
+                    ),
+                ],
+              ),
+
+              /* ------------------- 第三方渠道（高级） ------------------- */
+              // 从「设置第一屏的微信读书专属 Key」降级成通用渠道分组：
+              //  1) 不同平台的对接方式千差万别（微信读书走官方 Skill 网关，
+              //     国际平台多靠 CSV 导出），把它们塞进同一个「Key 输入框」
+              //     的模型本身就是错的；
+              //  2) 首位放一个国内平台，对国际用户是噪音。
+              // 导入页仍是这些渠道的实际使用入口，这里只负责凭据。
+              _Section(
+                title: l10n.settingsChannels,
+                subtitle: l10n.settingsChannelsDesc,
                 children: [
                   TextField(
                     controller: _wereadKey,
                     obscureText: _obscure,
+                    onChanged: (_) => _scheduleSave(),
                     decoration: const InputDecoration(
-                      labelText: 'API Key',
+                      labelText: 'WeRead API Key',
                       hintText: 'wrk-xxxxxxxx',
+                      helperText:
+                          '在微信读书 App「我 → 设置 → 微信读书 Skill」获取',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -312,22 +428,44 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   OutlinedButton.icon(
                     onPressed: _busy != null ? null : _testWeread,
                     icon: const Icon(Icons.wifi_tethering, size: 18),
-                    label: const Text('验证 Key'),
+                    label:  Text(appLoc.s_e44e9f26),
                   ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Icon(Icons.add_circle_outline,
+                          size: 15,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          l10n.settingsChannelAddHint,
+                          style: TextStyle(
+                              fontSize: 11,
+                              color:
+                                  Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_resultText != null) ...[
+                    const SizedBox(height: 10),
+                    _ResultBanner(ok: _resultOk, text: _resultText!),
+                  ],
                 ],
               ),
 
               _Section(
-                title: '大模型',
-                subtitle: '用于元数据兜底补全、截图识别整理与阅读报告。',
+                title: appLoc.s_75bf6943,
+                subtitle: appLoc.s_9e8f6691,
                 children: [
                   // 协议选择放在最前面：它决定后面 Base URL 和请求体的形状，
                   // 先选协议再填地址，比填完发现不对再回头改要省事
                   SegmentedButton<LlmProtocol>(
-                    segments: const [
+                    segments:  [
                       ButtonSegment(
                         value: LlmProtocol.openai,
-                        label: Text('OpenAI 兼容'),
+                        label: Text(appLoc.s_2ad3b6ba),
                         icon: Icon(Icons.memory, size: 16),
                       ),
                       ButtonSegment(
@@ -338,36 +476,45 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ],
                     selected: {_protocol},
                     showSelectedIcon: false,
-                    onSelectionChanged: (s) => setState(() {
-                      _protocol = s.first;
-                      _resultOk = null;
-                      _resultText = null;
-                    }),
+                    onSelectionChanged: (s) {
+                      setState(() {
+                        _protocol = s.first;
+                        _resultOk = null;
+                        _resultText = null;
+                      });
+                      _save();
+                    },
                   ),
                   const SizedBox(height: 8),
                   Text(_protocol.hint,
                       style: const TextStyle(fontSize: 11, color: Colors.grey)),
                   const SizedBox(height: 12),
 
-                  const Text('服务商预设', style: TextStyle(fontSize: 12)),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: presets
-                        .map((p) => ActionChip(
-                              label: Text(p.name, style: const TextStyle(fontSize: 12)),
-                              visualDensity: VisualDensity.compact,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              onPressed: () => _applyPreset(p),
-                            ))
-                        .toList(),
+                  // 预设收成一个下拉：10 个 ActionChip 铺一排又长又乱，
+                  // 下拉点开才展开，选完自动收起，也顺手把 Base URL / 模型填好。
+                  DropdownButtonFormField<LlmPreset>(
+                    value: null,
+                    isDense: true,
+                    decoration:  InputDecoration(
+                      labelText: appLoc.s_cc3c9556,
+                      hintText: appLoc.s_9021b9f9,
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      for (final p in presets)
+                        DropdownMenuItem(value: p, child: Text(p.name)),
+                    ],
+                    // 值恒为 null：选一次即应用，再点开还是完整列表
+                    onChanged: (p) {
+                      if (p != null) _applyPreset(p);
+                    },
                   ),
                   const SizedBox(height: 12),
 
                   TextField(
                     controller: _llmBase,
+                    onChanged: (_) => _scheduleSave(),
                     decoration: const InputDecoration(
                       labelText: 'Base URL',
                       border: OutlineInputBorder(),
@@ -377,6 +524,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   TextField(
                     controller: _llmKey,
                     obscureText: _obscure,
+                    onChanged: (_) => _scheduleSave(),
                     decoration: InputDecoration(
                       labelText: 'API Key',
                       hintText: _protocol == LlmProtocol.anthropic
@@ -388,9 +536,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   const SizedBox(height: 10),
                   TextField(
                     controller: _llmModel,
-                    decoration: const InputDecoration(
-                      labelText: '模型名称',
-                      helperText: '建议点「拉取模型」从账号实际可用的列表里选',
+                    onChanged: (_) => _scheduleSave(),
+                    decoration:  InputDecoration(
+                      labelText: appLoc.s_1fd51aaa,
+                      helperText: appLoc.s_209e1f28,
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -402,22 +551,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       FilledButton.tonalIcon(
                         onPressed: _busy != null ? null : _pullModels,
                         icon: const Icon(Icons.cloud_download_outlined, size: 18),
-                        label: const Text('拉取模型'),
+                        label:  Text(appLoc.s_ab135d7c),
                       ),
                       FilledButton.tonalIcon(
                         onPressed: _busy != null ? null : _testLlm,
                         icon: const Icon(Icons.bolt_outlined, size: 18),
-                        label: const Text('测试连通性'),
+                        label:  Text(appLoc.s_a46a5664),
                       ),
                       OutlinedButton(
                         onPressed: () => setState(() => _obscure = !_obscure),
-                        child: Text(_obscure ? '显示密钥' : '隐藏密钥'),
+                        child: Text(_obscure ? appLoc.s_e4f7e107 : appLoc.s_b13be56e),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    '测试与拉取都会先保存当前填写的内容，测到什么就存什么。',
+                   Text(
+                    appLoc.s_9ac01f6b,
                     style: TextStyle(fontSize: 11, color: Colors.grey),
                   ),
 
@@ -429,8 +578,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
 
               _Section(
-                title: '截图识别',
-                subtitle: '决定拍照/截图导入的识别效果。',
+                title: appLoc.s_0001747c,
+                subtitle: appLoc.s_3f5cbdbf,
                 children: [
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
@@ -439,9 +588,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       await saveSetting(ref, 'ocr_enhance', '$v');
                       if (mounted) setState(() {});
                     },
-                    title: const Text('图像增强预处理', style: TextStyle(fontSize: 14)),
-                    subtitle: const Text(
-                      '识别前放大到 1200px 宽并转灰度、提对比度。小字书名识别率明显更高。',
+                    title:  Text(appLoc.s_9130a4ed, style: TextStyle(fontSize: 14)),
+                    subtitle:  Text(
+                      appLoc.s_b79fc99c,
                       style: TextStyle(fontSize: 11),
                     ),
                   ),
@@ -452,43 +601,143 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       await saveSetting(ref, 'ocr_use_llm', '$v');
                       if (mounted) setState(() {});
                     },
-                    title: const Text('用大模型整理识别结果', style: TextStyle(fontSize: 14)),
-                    subtitle: const Text(
-                      '把 OCR 文本交给大模型挑出真正的书名并补全被截断的标题。需要配置大模型 Key，会消耗 token。',
+                    title:  Text(appLoc.s_9695a603, style: TextStyle(fontSize: 14)),
+                    subtitle:  Text(
+                      appLoc.s_267118b5,
                       style: TextStyle(fontSize: 11),
                     ),
+                  ),
+                  const SizedBox(height: 6),
+                   Text(appLoc.s_6d7e1f9f, style: TextStyle(fontSize: 14)),
+                  const SizedBox(height: 4),
+                  DropdownButtonFormField<String>(
+                    value: visionMode,
+                    isDense: true,
+                    decoration: const InputDecoration(
+                        isDense: true, border: OutlineInputBorder()),
+                    items:  [
+                      DropdownMenuItem(value: 'auto', child: Text(appLoc.s_ed144a76)),
+                      DropdownMenuItem(value: 'vision', child: Text(appLoc.s_c7bab837)),
+                      DropdownMenuItem(value: 'device', child: Text(appLoc.s_d8f3da2a)),
+                    ],
+                    onChanged: (v) async {
+                      if (v == null) return;
+                      await saveSetting(ref, 'ocr_vision_mode', v);
+                      if (mounted) setState(() {});
+                    },
+                  ),
+                  const SizedBox(height: 6),
+                   Text(
+                    appLoc.s_f22e4cd2,
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
                   ),
                 ],
               ),
 
               _Section(
-                title: '数据',
-                subtitle: '种子书库为首次启动自动导入的 38 本示例书（合成数据，不含任何真实书单）。',
+                title: appLoc.s_67677b3d,
+                subtitle: appLoc.s_d596ba9b,
                 children: [
                   OutlinedButton.icon(
-                    onPressed: _reseed,
-                    icon: const Icon(Icons.restart_alt),
-                    label: const Text('重新导入种子书库'),
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const BackupPage()),
+                    ),
+                    icon: const Icon(Icons.ios_share_outlined),
+                    label:  Text(appLoc.s_39239742),
                   ),
                 ],
               ),
 
-              if (_hint != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(_hint!, style: TextStyle(color: cs.primary)),
-                ),
+              _Section(
+                title: l10n.supportDev,
+                subtitle: l10n.supportDevDesc,
+                children: [
+                  // 打赏链接是内置常量而不是输入框：本应用的变现方式就是
+                  // 「免费 + 打赏」，链接必须开箱即用。早先做成可编辑字段时，
+                  // 全新安装点这个按钮只会提示「请先填写链接」，等于入口失效。
+                  FilledButton.tonalIcon(
+                    onPressed: () => _openExternal(AppInfo.tipUrl),
+                    icon: const Icon(Icons.favorite_outline, size: 18),
+                    label: Text(l10n.openTipPage),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppInfo.tipUrl,
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
 
-              const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: _save,
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('保存配置'),
+              _Section(
+                title: l10n.about,
+                subtitle: l10n.aboutDesc,
+                children: [
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      // 应用介绍页放**第一位**：它是这一块里唯一「介绍这个应用本身」
+                      // 的链接，另两个分别指向开发者和法律文本。用户点进「关于」
+                      // 的动机，绝大多数是想知道这应用是干什么的。
+                      OutlinedButton.icon(
+                        // 按界面语言选介绍页：中文页与英文页是两份独立页面
+                        // （各自内的导航里也有互跳），这里直接给对的那一份，
+                        // 不让英文用户先落在一屏中文上再自己找语言开关。
+                        onPressed: () => _openExternal(
+                          Localizations.localeOf(context).languageCode == 'zh'
+                              ? AppInfo.appPage
+                              : AppInfo.appPageEn,
+                        ),
+                        icon: const Icon(Icons.menu_book_outlined, size: 18),
+                        label: Text(l10n.appIntroPage),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () => _openExternal(AppInfo.homepage),
+                        icon: const Icon(Icons.language_outlined, size: 18),
+                        label: Text(l10n.developerHomepage),
+                      ),
+                      OutlinedButton.icon(
+                        // 中文设备看中文版政策，其余看英文版；
+                        // 两个地址都由 store/web/ 生成，与商店后台填写的一致。
+                        onPressed: () => _openExternal(
+                          AppInfo.privacyPolicyFor(Localizations.localeOf(context)),
+                        ),
+                        icon: const Icon(Icons.privacy_tip_outlined, size: 18),
+                        label: Text(l10n.privacyPolicy),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '${AppInfo.name} · '
+                    '${l10n.appVersionLabel(version: AppInfo.versionLabel)}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppInfo.email,
+                    style: TextStyle(fontSize: 11, color: Colors.grey),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.check_circle_outline, size: 15, color: cs.primary),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      appLoc.s_3c21597a,
+                      style: TextStyle(fontSize: 12, color: cs.primary),
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 24),
-              const Text(
-                '密钥仅保存在本机数据库中，不会随应用分发或上传。',
+               Text(
+                appLoc.s_68885a92,
                 style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
@@ -591,3 +840,65 @@ class _Section extends StatelessWidget {
     );
   }
 }
+
+/// 皮肤选择器：横向一排圆形色块，选中的带勾与描边。
+///
+/// 用色块而不是下拉列表：换肤是「看」出来的，让用户直接看到候选颜色
+/// 比读一串名字直观得多。色块里的颜色取该皮肤的浅色种子色——
+/// 它决定了整界面的主色，所见即所得。
+class _ThemePicker extends StatelessWidget {
+  final String value;
+  final ValueChanged<String> onChanged;
+
+  const _ThemePicker({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: [
+        for (final t in appThemes)
+          Tooltip(
+            message: t.label,
+            child: InkWell(
+              onTap: () => onChanged(t.id),
+              borderRadius: BorderRadius.circular(28),
+              child: Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: t.lightSeed,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: t.id == value ? cs.onSurface : Colors.transparent,
+                    width: 2.5,
+                  ),
+                ),
+                child: t.id == value
+                    ? const Icon(Icons.check, color: Colors.white, size: 22)
+                    : null,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// 语言代码 → 该语言的自称。
+///
+/// 用「自称」（Deutsch 而不是「德语」）是本地化界面的通行做法：
+/// 用户在自己看不懂的语言里找「德语」这两个汉字，是找不到的。
+/// 未知语言码回落到大写代码，至少不是空白。
+String languageName(String code) => switch (code) {
+      'zh' => '简体中文',
+      'en' => 'English',
+      'de' => 'Deutsch',
+      'fr' => 'Français',
+      'es' => 'Español',
+      'ja' => '日本語',
+      'ko' => '한국어',
+      _ => code.toUpperCase(),
+    };

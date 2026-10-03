@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import '../l10n/app_loc.dart';
+
 import '../ai/ai_client.dart';
 import '../models/enums.dart';
 import 'ocr_line.dart';
@@ -22,6 +25,72 @@ class LlmShelfParser {
 
   bool get available => llm.available && llm.model.trim().isNotEmpty;
 
+  /// **直接看图**：不经过端侧 OCR，让多模态模型从整张截图里读书名。
+  ///
+  /// 与 [structure] 是两条独立通道，各有各的短板：
+  ///   - OCR 通路：几何感知能把「0.8%」归到正确的书（靠 boundingBox），
+  ///     但竖排书名、封面美术字、被截断的标题它读不出来；
+  ///   - 多模态通路：能理解版面（哪块是封面、哪块是书脊、哪行是 UI），
+  ///     但拿不到坐标，也照样会编书名。
+  ///
+  /// 所以结果一律标 [TitleCandidate.inferred] 让用户确认，
+  /// 并且**失败时返回 null 而不是抛异常**——调用方要能静默回落到 OCR。
+  Future<List<TitleCandidate>?> readImage(
+    Uint8List jpegBytes, {
+    OcrMode mode = OcrMode.shelf,
+    String? hint,
+  }) async {
+    if (!available) return null;
+    if (!llm.supportsVision) return null;
+
+    try {
+      final raw = await llm.chatWithImage(
+        _imagePrompt(mode, hint),
+        imageBytes: jpegBytes,
+        temperature: 0.1,
+        maxTokens: 3072,
+      );
+      final arr = parseJsonArrayLoose(raw);
+      if (arr.isEmpty) return null;
+
+      final out = <TitleCandidate>[];
+      for (final e in arr) {
+        final title = (e['title'] ?? e['name'] ?? '').toString().trim();
+        if (title.isEmpty) continue;
+        if (ShelfOcrParser.isNoise(title)) continue;
+
+        final authorRaw = (e['author'] ?? e['authors'] ?? '').toString().trim();
+        final progress = _asDouble(e['progress'] ?? e['progressPercent']);
+        final status = _statusOf(e['status']);
+        final confidence = _asDouble(e['confidence']);
+        out.add(TitleCandidate(
+          title: title,
+          author: authorRaw.isEmpty ? null : authorRaw,
+          score: (confidence ?? 0.7).clamp(0.3, 0.98),
+          reason: appLoc.s_d2bbf7ce,
+          progressPercent: progress,
+          statusHint: status,
+          truncated: ShelfOcrParser.isTruncated(title),
+          // 没有 OCR 原文可比对，一律按「补出来的」标——
+          // 模型看图比 OCR 更容易顺手把截断的标题补全，
+          // 让用户知道哪个字未必在图上，比给个虚高的置信度诚实。
+          inferred: true,
+          rawText: title,
+        ));
+      }
+      return out.isEmpty ? null : out;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _imagePrompt(OcrMode mode, String? hint) {
+    final scene = mode == OcrMode.shelf
+        ? appLoc.s_381ca835
+        : appLoc.s_fce28e56;
+    return appLoc.s_ba5425c5(scene: scene, n: hint == null ? '' : appLoc.s_50018e2c(hint: hint));
+  }
+
   /// 返回 null 表示「这次没能用上大模型」，调用方应保留启发式结果
   Future<List<TitleCandidate>?> structure(
     List<OcrLine> lines, {
@@ -39,7 +108,7 @@ class LlmShelfParser {
         [
           {
             'role': 'system',
-            'content': '你是书架截图信息抽取助手。只输出 JSON 数组，不要任何解释文字。',
+            'content': appLoc.s_951042c3,
           },
           {'role': 'user', 'content': _prompt(text, mode)},
         ],
@@ -71,7 +140,7 @@ class LlmShelfParser {
           title: title,
           author: authorRaw.isEmpty ? null : authorRaw,
           score: (confidence ?? 0.65).clamp(0.3, 0.98),
-          reason: '大模型整理',
+          reason: appLoc.s_29dbdb32,
           progressPercent: progress,
           statusHint: status,
           truncated: truncated,
@@ -88,26 +157,8 @@ class LlmShelfParser {
   }
 
   static String _prompt(String ocrText, OcrMode mode) {
-    final scene = mode == OcrMode.cover ? '一张图书封面/书脊照片' : '一个电子书App的书架截图';
-    return '''下面是从$scene里 OCR 出来的文字行，顺序即页面上从上到下的顺序。
-
-请抽取其中**真实存在的书名**，忽略所有界面文字（搜索框、筛选、分类、状态栏、页码、章节标题、按钮、统计数字）。
-
-规则：
-1. 只输出图中确实出现的书。不要凭常识补充图里没有的书。
-2. 书名若被界面用省略号截断（例如「雅思口语深…」），请补全成完整书名。
-3. progress 只填 0-100 的整数百分比，读不到就填空字符串。注意「0.8%」是 0.8 不是 80。
-4. status 只填「未读 / 在读 / 已读完 / 弃读」之一，读不到填空字符串。
-5. author 只在图中明确出现时填写，否则留空。不要猜作者。
-6. 拿不准的行不要输出。宁可少一本，也不要多一本假书。
-
-只输出 JSON 数组，元素格式：
-[{"title":"","author":"","progress":"","status":"","confidence":0.0}]
-
-OCR 文字行：
-"""
-$ocrText
-"""''';
+    final scene = mode == OcrMode.cover ? appLoc.s_9cd6567e : appLoc.s_a6db1cf4;
+    return appLoc.s_43fca769(scene: scene, ocrText: ocrText);
   }
 
   /// 标题是否像是被截断的：原文里存在一个以该标题为前缀、且以省略号收尾的行
@@ -124,7 +175,7 @@ $ocrText
   /// 找到这条书目对应的原文行，供确认页展示「原图 → 识别」
   static String? _matchRawLine(String title, List<OcrLine> lines) {
     String norm(String s) =>
-        s.replaceAll(RegExp(r'[\s《》「」『』]'), '').toLowerCase();
+        s.replaceAll(RegExp(appLoc.s_cbb756f7), '').toLowerCase();
     final t = norm(title);
     if (t.isEmpty) return null;
     String? best;
@@ -149,12 +200,19 @@ $ocrText
   static BookStatus? _statusOf(dynamic v) {
     final s = v?.toString().trim() ?? '';
     if (s.isEmpty) return null;
-    return switch (s) {
-      '未读' || '想读' => BookStatus.wish,
-      '在读' || '阅读中' => BookStatus.reading,
-      '已读完' || '读完' || '已读' => BookStatus.finished,
-      '弃读' => BookStatus.abandoned,
-      _ => null,
-    };
+    // 不能写成 switch 的常量模式：`appLoc.*` 是运行时取值而非编译期常量，
+    // 常量模式会直接编译失败（constant_pattern_with_non_constant_expression）。
+    bool hits(List<String> labels) => labels.contains(s);
+    if (hits([appLoc.s_95222176, appLoc.s_5a833930])) return BookStatus.wish;
+    if (hits([appLoc.s_b9bf9b53, appLoc.s_be5492a5])) return BookStatus.reading;
+    if (hits([appLoc.s_44c14529, appLoc.s_0872b5b7, appLoc.s_300a32bd])) {
+      return BookStatus.finished;
+    }
+    // s_0f4d9c68（弃读）是 v2 时代的文案，模型可能仍按旧词表作答，
+    // 因此继续接受；s_eba88d83 现在是「搁置」，正好是它的新归宿。
+    if (s == appLoc.s_0f4d9c68 || s == appLoc.s_eba88d83) {
+      return BookStatus.shelved;
+    }
+    return null;
   }
 }

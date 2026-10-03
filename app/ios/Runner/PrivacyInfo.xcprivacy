@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<!--
+  隐私清单（Privacy Manifest）。Apple 自 2024-05-01 起强制：
+  使用 required-reason API 却不申报 -> ITMS-91053；理由码不在允许清单 -> ITMS-91055。
+  两者都会在上传阶段直接拦下构建。
+
+  三条必须守住的规则：
+  1. 键名与 Apple 文档逐字符一致，包括其历史拼写：
+     NSPrivacyCollectedDataTypePhotosorVideos —— 中间是「or」小写，
+     写成 PhotosOrVideos 不是合法键。
+  2. NSPrivacyAccessedAPITypes 只有五个合法分类：
+     FileTimestamp / SystemBootTime / DiskSpace / ActiveKeyboards / UserDefaults。
+     理由码必须取自该分类的允许清单，自造的值会触发 ITMS-91055。
+  3. 探测到用了却没申报 = 拦截；申报了但实际没用到 = 不会被自动判错。
+     所以这里宁多勿少。最终以归档时 Xcode 的
+     Product -> Archive -> Generate Privacy Report 汇总结果为准，
+     它会合并 App 与所有第三方 SDK 各自的清单。
+
+  NSPrivacyTracking = false：本 App 不做跨 App / 跨网站追踪，
+  不接入任何广告或数据经纪服务，因此不声明 NSPrivacyTrackingDomains。
+-->
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+		<!--
+		  1) 用户照片。仅当用户主动开启「用大模型识别书架截图」并选中图片时，
+		     该图片才会上传到用户自己配置的多模态模型端点。可选功能，
+		     不开启则没有任何图片离开设备；端侧 OCR 全程离线。
+		  未与身份关联：应用没有账号体系，不采集任何账户标识。
+		-->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypePhotosorVideos</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<!--
+		  2) 其他用户内容。生成 AI 阅读报告时，会把「周期内变化过的书籍」的
+		     书名 / 作者 / 分类 / 阅读状态 / 评分，连同聚合后的阅读统计，
+		     发送到用户自己配置的模型端点；笔记正文始终不含在内。
+		-->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeOtherUserContent</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+		<!--
+		  3) 性能数据（Diagnostics -> Performance Data）。端侧 OCR SDK（Google ML Kit）
+		     会自动向 Google 发送与图片内容无关的运行指标（API 调用次数、耗时、
+		     机型/系统版本等），用户无法关闭。依据 ML Kit 服务条款申报；
+		     被识别的图片本身不出设备。
+		-->
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypePerformanceData</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+			</array>
+		</dict>
+	</array>
+
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<!-- 只读写本 App 自己的设置（shared_preferences 等），不跨 App 共享。 -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+		<!--
+		  读取应用沙盒内文件的时间戳与元数据：封面磁盘缓存、SQLite 数据库文件、
+		  导出的 JSON 备份。C617.1 表示仅作用于本应用容器内。
+		-->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>

@@ -13,6 +13,26 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+// gal 2.3.3 的 build.gradle 在 `android {}` 里写 `compileSdk
+// flutter.compileSdkVersion`，但 Flutter 3.24.5 只给 **app 工程**注册
+// `flutter` 扩展，插件工程上没有；gal 一求值就 MissingPropertyException
+// （"Could not get unknown property 'flutter'"），compileSdk 从未设置，
+// 随后 FlutterPlugin 的 compileSdk 检测读 null.substring(8) 再崩一次
+// ——报错里看到的 "Cannot invoke method substring() on null object"
+// 只是第二层症状。
+// 这里给 gal 预置一份属性表兜底，数值取自 FlutterExtension 的默认值
+// （flutter.groovy: compileSdkVersion=34 / minSdkVersion=21 /
+// targetSdkVersion=34）。别的插件都用固定数值、不受影响。
+subprojects {
+    if (project.name == 'gal') {
+        project.ext.flutter = [
+            compileSdkVersion: 34,
+            minSdkVersion    : 21,
+            targetSdkVersion : 34,
+        ]
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }

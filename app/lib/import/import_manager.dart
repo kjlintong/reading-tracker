@@ -1,4 +1,5 @@
 import '../models/book.dart';
+import '../l10n/app_loc.dart';
 import '../models/enums.dart';
 import '../data/database.dart';
 import '../ai/ai_client.dart';
@@ -89,7 +90,7 @@ class ImportManager {
   }) async {
     final totalLines = lines.length;
 
-    onStage?.call('正在解析版面结构…');
+    onStage?.call(appLoc.s_ebf4bdfb);
     final layout = ShelfLayoutParser.parse(lines, mode: mode);
     // 几何信息不可用时布局解析内部会自动退化成文本解析，
     // 这里只在它彻底没结果时才再跑一次纯文本路径。
@@ -100,7 +101,7 @@ class ImportManager {
     final wantLlm = (useLlm ?? ocrUseLlm) && llm.available && lines.isNotEmpty;
     var usedLlm = false;
     if (wantLlm) {
-      onStage?.call('正在用大模型整理识别结果…');
+      onStage?.call(appLoc.s_ba1038b1);
       final smart = await LlmShelfParser(llm).structure(lines, mode: mode);
       if (smart != null && smart.isNotEmpty) {
         usedLlm = true;
@@ -108,7 +109,7 @@ class ImportManager {
       }
     }
 
-    onStage?.call('正在核对书名…');
+    onStage?.call(appLoc.s_6292a274);
     final repaired = await repairTitles(candidates);
 
     return (
@@ -133,7 +134,7 @@ class ImportManager {
     List<TitleCandidate> smart,
   ) {
     String norm(String s) =>
-        s.replaceAll(RegExp(r'[\s《》「」『』…⋯.\-—_:：]'), '').toLowerCase();
+        s.replaceAll(RegExp(appLoc.s_427e1f0d), '').toLowerCase();
 
     final out = <TitleCandidate>[...smart];
     final used = <int>{};
@@ -203,7 +204,7 @@ class ImportManager {
             c.inferred = true;
             // 补齐后的书名是经过权威源确认的，可信度上调
             c.score = (c.score + 0.2).clamp(0.0, 0.98);
-            c.reason = c.reason.isEmpty ? '书名已补齐' : '${c.reason},书名已补齐';
+            c.reason = c.reason.isEmpty ? appLoc.s_af041a1b : appLoc.s_988dd5cb(reason: c.reason);
           } else {
             // 搜到的就是它本身——说明没被截断，去掉误报
             c.truncated = false;
@@ -315,7 +316,7 @@ class ImportManager {
   }
 
   static List<String> _splitAuthors(String s) => s
-      .split(RegExp(r'[、,，;/]'))
+      .split(RegExp(appLoc.s_a746d189))
       .map((e) => e.trim())
       .where((e) => e.isNotEmpty)
       .toList();
@@ -365,7 +366,7 @@ class ImportManager {
         // 单本失败不应中断整批，但原因必须留痕——否则用户只看到
         // 「失败 3 本」却无从判断是网络、限流还是数据本身的问题
         failed++;
-        failures?.add('《${book.title.isEmpty ? book.id : book.title}》：$e');
+        failures?.add(appLoc.s_a4ec75fd(title: book.title.isEmpty ? book.id : book.title, e: e));
       }
     }
     onProgress?.call(books.length, books.length);

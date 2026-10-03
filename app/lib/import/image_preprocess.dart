@@ -1,4 +1,5 @@
 import 'dart:io';
+import '../l10n/app_loc.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
@@ -30,8 +31,30 @@ class ImagePreprocessor {
       await File(dst).writeAsBytes(out, flush: true);
       return dst;
     } catch (e) {
-      debugPrint('图像预处理失败，改用原图：$e');
+      debugPrint(appLoc.s_5583162a(e: e));
       return srcPath;
+    }
+  }
+
+  /// 转成可直接发给多模态模型的 JPEG 字节。
+  ///
+  /// 与 OCR 那条路的需求**相反**：OCR 要大而清晰（放大到 1200px），
+  /// 视觉模型要小而省 token（长边 1280、质量 85 足够读出书名，
+  /// 再大只是白烧钱并且更容易触发网关的体积上限）。
+  ///
+  /// 还必须统一成 JPEG：模型网关只认 image/jpeg / png / webp 少数几种，
+  /// 相册里选出来的可能是 HEIC，直接把原始字节发出去必被拒。
+  static Future<Uint8List?> toJpegBytes(
+    String srcPath, {
+    int maxSide = 1280,
+    int quality = 85,
+  }) async {
+    try {
+      final bytes = await File(srcPath).readAsBytes();
+      return await compute(_toJpeg, _JpegJob(bytes, maxSide, quality));
+    } catch (e) {
+      debugPrint(appLoc.s_628c2132(e: e));
+      return null;
     }
   }
 
@@ -73,4 +96,30 @@ Uint8List? enhanceForOcr(Uint8List input) {
   im = img.adjustColor(im, saturation: 0, contrast: 1.25, brightness: 1.03);
 
   return img.encodePng(im);
+}
+
+class _JpegJob {
+  final Uint8List bytes;
+  final int maxSide;
+  final int quality;
+
+  const _JpegJob(this.bytes, this.maxSide, this.quality);
+}
+
+/// 顶层函数，供 compute 在独立 isolate 中调用。
+Uint8List? _toJpeg(_JpegJob job) {
+  final decoded = img.decodeImage(job.bytes);
+  if (decoded == null) return null;
+  var im = decoded;
+  final longSide = im.width > im.height ? im.width : im.height;
+  if (longSide > job.maxSide) {
+    final ratio = job.maxSide / longSide;
+    im = img.copyResize(
+      im,
+      width: (im.width * ratio).round(),
+      height: (im.height * ratio).round(),
+      interpolation: img.Interpolation.average,
+    );
+  }
+  return Uint8List.fromList(img.encodeJpg(im, quality: job.quality));
 }

@@ -1,12 +1,22 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 网络权限。
-         Flutter 模板只在 debug/profile 的清单里声明了它，release 清单里没有，
-         所以 release 包一联网就被系统掐断 —— 报错是
-         `HttpException: Software caused connection abort`，
-         看起来像服务端问题，实际是权限缺失。release 构建下才复现。 -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!-- 网络：微信读书同步 / 大模型 / 元数据补全所必需（release 包缺少此权限将导致所有网络请求失败） -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- 阅读计划提醒（Android 13+ 必须声明，否则请求权限会被系统静默拒绝） -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- 拍照导入书架 -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- Android 13+ 读取相册 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <!-- Android 12 及以下读取外部存储 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <!-- 保存分享图到相册（gal）：Android 9 及以下需要 WRITE_EXTERNAL_STORAGE，
+         10 起走 MediaStore 不再需要写权限——所以上限卡在 29 而不是 32。 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" tools:ignore="ScopedStorage"/>
+
     <application
-        android:label="阅读管理"
+        android:label="Readnest"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

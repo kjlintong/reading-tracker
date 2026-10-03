@@ -1,3 +1,4 @@
+import '../l10n/app_loc.dart';
 /// 大模型接口协议。
 ///
 /// 只支持两族：
@@ -16,7 +17,7 @@ enum LlmProtocol {
       };
 
   String get label => switch (this) {
-        LlmProtocol.openai => 'OpenAI 兼容',
+        LlmProtocol.openai => appLoc.s_2ad3b6ba,
         LlmProtocol.anthropic => 'Anthropic Claude',
       };
 
@@ -27,8 +28,8 @@ enum LlmProtocol {
       };
 
   String get hint => switch (this) {
-        LlmProtocol.openai => 'Base URL 填到 /v1 为止，例如 https://api.deepseek.com/v1',
-        LlmProtocol.anthropic => 'Base URL 通常为 https://api.anthropic.com（不带 /v1）',
+        LlmProtocol.openai => appLoc.s_e2213e87,
+        LlmProtocol.anthropic => appLoc.s_17a4ba0f,
       };
 }
 
@@ -53,9 +54,14 @@ class LlmPreset {
 }
 
 /// 预设清单。顺序即界面上的展示顺序，把国内直连友好的放前面。
-const List<LlmPreset> llmPresets = [
+///
+/// ⚠️ 用 getter 而不是顶层 `final`：有几条预设的 `name` 是本地化字符串
+/// （`appLoc.s_f1ea3335` 等），顶层 `final` 懒初始化只求值一次，
+/// 会把第一次访问时的语言永久钉死——中文界面下显示英文服务商名。
+/// 与 `reading_profile.dart` 的 `_rules` 是同一类坑。
+List<LlmPreset> get llmPresets => [
   LlmPreset(
-    name: '商汤 SenseNova',
+    name: appLoc.s_f1ea3335,
     protocol: LlmProtocol.openai,
     baseUrl: 'https://token.sensenova.cn/v1',
     model: 'sensenova-6.8-flash-lite',
@@ -67,25 +73,25 @@ const List<LlmPreset> llmPresets = [
     model: 'deepseek-chat',
   ),
   LlmPreset(
-    name: '通义千问',
+    name: appLoc.s_e522fe39,
     protocol: LlmProtocol.openai,
     baseUrl: 'https://dashscope.aliyuncs.com/compatible-mode/v1',
     model: 'qwen-plus',
   ),
   LlmPreset(
-    name: '智谱 GLM',
+    name: appLoc.s_7e12f8b4,
     protocol: LlmProtocol.openai,
     baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
     model: 'glm-4-flash',
   ),
   LlmPreset(
-    name: '月之暗面 Kimi',
+    name: appLoc.s_c3d30bc2,
     protocol: LlmProtocol.openai,
     baseUrl: 'https://api.moonshot.cn/v1',
     model: 'moonshot-v1-8k',
   ),
   LlmPreset(
-    name: '硅基流动',
+    name: appLoc.s_8e941e27,
     protocol: LlmProtocol.openai,
     baseUrl: 'https://api.siliconflow.cn/v1',
     model: 'Qwen/Qwen2.5-7B-Instruct',
@@ -110,11 +116,11 @@ const List<LlmPreset> llmPresets = [
     keyHint: 'sk-ant-xxxxxxxx',
   ),
   LlmPreset(
-    name: 'Ollama 本地',
+    name: appLoc.s_c800478c,
     protocol: LlmProtocol.openai,
     baseUrl: 'http://localhost:11434/v1',
     model: 'qwen2.5:7b',
-    keyHint: '任意非空字符串',
+    keyHint: appLoc.s_0babfa89,
   ),
 ];
 

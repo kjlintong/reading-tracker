@@ -65,6 +65,11 @@ tools/samples/library-*.json
 app/test/fixtures/simhei.ttf
 app/test/failures/
 
+# ── Python 工具链（tool/checks 下的静态校验脚本）─────────────────
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
 # ── 第三方与临时物 ──────────────────────────────────────────────
 tools/tmp-skill/
 node_modules/
@@ -75,3 +80,8 @@ node_modules/
 *.keystore
 *.p12
 *.mobileprovision
+
+# ── 本地工作残留（不入库）────────────────────────
+backups/
+i18n_keys.csv
+app/i18n_keys.csv

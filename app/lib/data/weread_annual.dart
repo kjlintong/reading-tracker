@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../l10n/app_loc.dart';
 
 /// 微信读书「年度统计」的解包。
 ///
@@ -128,5 +129,5 @@ class MonthlyReading {
   double get hours => seconds / 3600;
 
   /// 「1 月」这样的轴标签
-  String get label => '$month 月';
+  String get label => appLoc.s_1a2e873e(month: month);
 }

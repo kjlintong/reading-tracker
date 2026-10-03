@@ -5,46 +5,73 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+// 从 android/key.properties 读取正式签名（详见 key.properties.example）
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
-    namespace = "cn.reading.reading_tracker"
-    compileSdk = flutter.compileSdkVersion
+    // 已定稿：产品名 Readnest，个人开发者反向域名（GitHub 路径，无需买域名）
+    namespace = "io.github.ltong9463.readnest"
+    // Google Play 自 2026-08-31 起要求新应用 targetSdk >= 36（Android 16）
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8
+        jvmTarget = JavaVersion.VERSION_17
     }
 
     defaultConfig {
-        applicationId = "cn.reading.reading_tracker"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        // 与 namespace 一致；上架后不可更改
+        applicationId = "io.github.ltong9463.readnest"
+        minSdk = 24
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        release {
+            keyAlias = keystoreProperties['keyAlias']
+            keyPassword = keystoreProperties['keyPassword']
+            storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+            storePassword = keystoreProperties['storePassword']
+        }
+    }
+
     buildTypes {
         release {
-            // 暂用 debug 签名：自用可直接安装；上架前需换成正式 keystore
-            signingConfig = signingConfigs.debug
+            // 未配置 android/key.properties 时此 release 构建会失败——
+            // 请先按 key.properties.example 用 keytool 生成 keystore 并填写。
+            signingConfig = signingConfigs.release
+            // 保留 release 包的符号信息（崩溃栈可读；正式上架可关闭）
+            ndk { debugSymbolLevel = "SYMBOL_TABLE" }
+            // Flutter 3.24 起 release 构建默认走 R8（脱糖 + 压缩）。
+            //
+            // google_mlkit_text_recognition 会懒加载引用中/日/韩/天城文识别器，
+            // 本项目只依赖拉丁 + 中文两套模型，R8 会因 "Missing class" 直接失败。
+            // 规则集中在 proguard-rules.pro（用 -dontwarn 放行按需加载的可选类）。
+            //
+            // 暂不开启 minifyEnabled：Flutter 已自带压缩，额外开启需在真机回归
+            // OCR 导入链路后再定。规则文件已接线，随时可切换。
+            debuggable false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
 
 dependencies {
-    // google_mlkit_text_recognition 的 TextRecognizer.initialize() 会引用中/日/韩/天城文
-    // 四种语言的 Options 类，而 Pub 包只依赖了拉丁语系（text-recognition）。
-    // debug 构建不做代码压缩，所以引用不到也看不出来；
-    // release 的 R8 做全程序分析时会报 "Missing class ... ChineseTextRecognizerOptions"
-    // 并直接让 :app:minifyReleaseWithR8 失败。这里显式补上缺失的语种包。
-    implementation 'com.google.mlkit:text-recognition-chinese:16.0.0'
-    implementation 'com.google.mlkit:text-recognition-devanagari:16.0.0'
-    implementation 'com.google.mlkit:text-recognition-japanese:16.0.0'
-    implementation 'com.google.mlkit:text-recognition-korean:16.0.0'
+    // 端侧中文 OCR 模型：google_mlkit_text_recognition 的 TextRecognizer
+    // 在识别中文时需要它显式存在于 classpath，否则运行时才报错。
+    // （拉丁模型由插件自带，无需声明。）
+    implementation 'com.google.mlkit:text-recognition-chinese:16.0.1'
 }
 
 flutter {

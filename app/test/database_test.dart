@@ -3,6 +3,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:reading_tracker/data/database.dart';
 import 'package:reading_tracker/models/book.dart';
 import 'package:reading_tracker/models/enums.dart';
+import 'package:reading_tracker/models/reading_plan.dart';
 
 /// 本地优先架构下，SQLite 是唯一数据源，没有服务端兜底。
 /// 这里用内存库跑真实 SQL，覆盖 CRUD、去重、统计与设置读写——
@@ -204,4 +205,290 @@ void main() {
       expect(await repo.getSetting('seedVersion'), '2026-10-01');
     });
   });
+
+  group('v2 → v3 状态迁移', () {
+    /// 直接往表里塞旧状态值，模拟升级前的库。
+    ///
+    /// 不能走 repo.insert：Dart 侧 BookStatus 已经没有 borrowed/paused 了，
+    /// 构造不出这样的 Book。而升级的真实场景正是「库里躺着旧值」，
+    /// 所以必须绕过模型直接写 SQL。
+    Future<void> legacy(
+      String id,
+      String status, {
+      String? borrowedFrom,
+      String? dueAt,
+    }) =>
+        raw.insert('books', {
+          'id': id,
+          'title': id,
+          'status': status,
+          'isBorrowed': 0,
+          'borrowedFrom': borrowedFrom,
+          'dueAt': dueAt,
+          'createdAt': now,
+          'updatedAt': now,
+        });
+
+    test('借阅中 → 在读 + 借阅标记，并保留原册摘要', () async {
+      await legacy('b1', 'borrowed', borrowedFrom: '市图书馆', dueAt: '2026-10-10');
+      await appDb.migrateBorrowedStatus(raw);
+
+      final b = (await repo.byId('b1'))!;
+      expect(b.status, BookStatus.reading);
+      expect(b.isBorrowed, isTrue);
+      // 迁移只动 status / isBorrowed，借阅的附属信息必须原样留着
+      expect(b.borrowedFrom, '市图书馆');
+      expect(b.dueAt, '2026-10-10');
+    });
+
+    test('弃读与暂搁都归到搁置', () async {
+      await legacy('b1', 'abandoned');
+      await legacy('b2', 'paused');
+      await legacy('b3', 'reading');
+      await appDb.migrateBorrowedStatus(raw);
+
+      expect((await repo.byId('b1'))!.status, BookStatus.shelved);
+      expect((await repo.byId('b2'))!.status, BookStatus.shelved);
+      // 没被迁移波及的状态不能被动
+      expect((await repo.byId('b3'))!.status, BookStatus.reading);
+    });
+
+    test('只填了借阅来源/应还日期的行也认作借阅', () async {
+      await legacy('b1', 'reading', dueAt: '2026-11-01');
+      await legacy('b2', 'finished', borrowedFrom: '同事');
+      await legacy('b3', 'wish');
+      await appDb.migrateBorrowedStatus(raw);
+
+      expect((await repo.byId('b1'))!.isBorrowed, isTrue);
+      expect((await repo.byId('b2'))!.isBorrowed, isTrue);
+      // 没有任何借阅信息的书不该被误标
+      expect((await repo.byId('b3'))!.isBorrowed, isFalse);
+    });
+
+    test('迁移后按状态查询能查到原「借阅中」的书', () async {
+      // 这是迁移存在的根本理由：统计走的是 SQL 而不是 fromString，
+      // 留在库里的 'borrowed' 会在所有按状态聚合的地方静默消失。
+      await legacy('b1', 'borrowed');
+      await appDb.migrateBorrowedStatus(raw);
+
+      final reading = await repo.all(status: BookStatus.reading);
+      expect(reading.map((b) => b.id), contains('b1'));
+      // 状态分布统计（后台报表用 SQL group by）也要能对上
+      expect((await repo.statusCounts())[BookStatus.reading], 1);
+      // 旧值不该再统计出任何一类
+      expect((await repo.statusCounts())[BookStatus.shelved], isNull);
+    });
+  });
+  group('阅读计划', () {
+    /// 造一条时长型计划。createdAt 由调用方给，好控制「从哪天开始算」。
+    ReadingPlan daily({
+      required String id,
+      required int minutes,
+      required String createdAt,
+      bool done = false,
+    }) =>
+        ReadingPlan(
+          id: id,
+          kind: PlanKind.dailyMinutes,
+          dailyMinutes: minutes,
+          createdAt: createdAt,
+          done: done,
+        );
+
+    ReadingPlan finish({
+      required String id,
+      required String bookId,
+      String? dueDate,
+      String createdAt = '2026-09-01T00:00:00.000Z',
+    }) =>
+        ReadingPlan(
+          id: id,
+          kind: PlanKind.finishBook,
+          bookId: bookId,
+          dueDate: dueDate,
+          createdAt: createdAt,
+        );
+
+    Future<void> log(String id, String date, int min) =>
+        repo.addLog(ReadingLog(id: id, bookId: 'b1', date: date, durationMin: min));
+
+    String iso(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
+        '${d.month.toString().padLeft(2, '0')}-'
+        '${d.day.toString().padLeft(2, '0')}T00:00:00.000Z';
+
+    test('存取往返不丢字段', () async {
+      final p = ReadingPlan(
+        id: 'p1',
+        kind: PlanKind.finishBook,
+        title: '本月读完这本书',
+        bookId: 'b1',
+        dueDate: '2026-10-31',
+        reminderEnabled: true,
+        createdAt: now,
+      );
+      await repo.upsertPlan(p);
+      final got = (await repo.plans()).single;
+      expect(got.id, 'p1');
+      expect(got.kind, PlanKind.finishBook);
+      expect(got.title, '本月读完这本书');
+      expect(got.bookId, 'b1');
+      expect(got.dueDate, '2026-10-31');
+      expect(got.reminderEnabled, isTrue);
+      expect(got.done, isFalse);
+    });
+
+    test('upsert 同 id 是更新而不是插两条', () async {
+      await repo.upsertPlan(daily(id: 'p1', minutes: 30, createdAt: now));
+      await repo.upsertPlan(daily(id: 'p1', minutes: 45, createdAt: now));
+      final all = await repo.plans();
+      expect(all.length, 1);
+      expect(all.single.dailyMinutes, 45);
+    });
+
+    test('已完成的计划排在进行中的后面', () async {
+      // 用户每天要看的是「还没做完的」，完成的不该占着首屏
+      await repo.upsertPlan(daily(id: 'done1', minutes: 10, createdAt: now, done: true));
+      await repo.upsertPlan(daily(id: 'live1', minutes: 10, createdAt: now));
+      final all = await repo.plans();
+      expect(all.first.id, 'live1');
+      expect(all.last.id, 'done1');
+    });
+
+    test('activePlans 只返回未完成的', () async {
+      await repo.upsertPlan(daily(id: 'a', minutes: 10, createdAt: now));
+      await repo.upsertPlan(daily(id: 'b', minutes: 10, createdAt: now, done: true));
+      final active = await repo.activePlans();
+      expect(active.map((p) => p.id), ['a']);
+    });
+
+    test('durations 型：日均达到目标才算达成', () async {
+      final created = DateTime.now().subtract(const Duration(days: 2));
+      // 从创建日到今天共 3 天（含今天），每天 30 分钟 → 日均 30
+      await log('l1', iso(created), 30);
+      await log('l2', iso(created.add(const Duration(days: 1))), 30);
+      await log('l3', '${DateTime.now().year.toString().padLeft(4, '0')}-'
+          '${DateTime.now().month.toString().padLeft(2, '0')}-'
+          '${DateTime.now().day.toString().padLeft(2, '0')}', 30);
+
+      final p = daily(id: 'p1', minutes: 30, createdAt: iso(created));
+      final pr = await repo.planProgress(p);
+      expect(pr.achieved, isTrue);
+      expect(pr.ratio, closeTo(1.0, 0.001));
+    });
+
+    test('durations 型：日均不够就不算达成，且比率反映真实差距', () async {
+      final created = DateTime.now().subtract(const Duration(days: 3));
+      // 4 天只读了 60 分钟 → 日均 15，目标 30 → 50%
+      await log('l1', iso(created), 60);
+      final p = daily(id: 'p1', minutes: 30, createdAt: iso(created));
+      final pr = await repo.planProgress(p);
+      expect(pr.achieved, isFalse);
+      expect(pr.ratio, closeTo(0.5, 0.02));
+    });
+
+    test('计划创建之前的日志不计入，否则老账会把新目标撑成已完成', () async {
+      final created = DateTime.now();
+      // 去年读了一大堆，跟今天立的目标无关
+      final old = DateTime.now().subtract(const Duration(days: 200));
+      await log('old', iso(old), 6000);
+      final p = daily(id: 'p1', minutes: 20, createdAt: iso(created));
+      final pr = await repo.planProgress(p);
+      expect(pr.current, 0);
+      expect(pr.achieved, isFalse);
+    });
+
+    test('finishBook 型：状态为已读完即达成，不看进度条', () async {
+      // 用户可能勾了「已读完」却没把进度条拖到底，此时以状态为准
+      await repo.insert(book(
+        id: 'b1',
+        title: '目标书',
+        status: BookStatus.finished,
+      ));
+      final pr = await repo.planProgress(finish(id: 'p1', bookId: 'b1'));
+      expect(pr.achieved, isTrue);
+      expect(pr.current, 100);
+    });
+
+    test('finishBook 型：在读但没读完，按实际进度算比率', () async {
+      await repo.insert(Book(
+        id: 'b1',
+        title: '目标书',
+        authors: const ['佚名'],
+        status: BookStatus.reading,
+        progressPercent: 40,
+        createdAt: now,
+        updatedAt: now,
+      ));
+      final pr = await repo.planProgress(finish(id: 'p1', bookId: 'b1'));
+      expect(pr.achieved, isFalse);
+      expect(pr.ratio, closeTo(0.4, 0.001));
+    });
+
+    test('目标书被删掉：不判达成也不崩，界面交给用户处理', () async {
+      final pr = await repo.planProgress(finish(id: 'p1', bookId: '不存在'));
+      expect(pr.achieved, isFalse);
+      expect(pr.current, 0);
+    });
+
+    test('倒计时：逾期是负数，今天到期是 0', () async {
+      final today = DateTime.now();
+      String pad(int n) => n.toString().padLeft(2, '0');
+      String fmt(DateTime d) => '${d.year}-${pad(d.month)}-${pad(d.day)}';
+
+      final overdue = finish(
+        id: 'p1',
+        bookId: 'b1',
+        dueDate: fmt(today.subtract(const Duration(days: 3))),
+      );
+      final dueToday = finish(
+        id: 'p2',
+        bookId: 'b1',
+        dueDate: fmt(today),
+      );
+      expect(overdue.daysUntilDue, -3);
+      expect(dueToday.daysUntilDue, 0);
+    });
+
+    test('报告载荷带达成情况，且口径与计划卡片同源', () async {
+      await repo.insert(book(
+        id: 'b1',
+        title: '目标书',
+        status: BookStatus.finished,
+      ));
+      final created = DateTime.now().subtract(const Duration(days: 1));
+      await repo.upsertPlan(finish(id: 'p1', bookId: 'b1', createdAt: iso(created)));
+      await repo.upsertPlan(daily(id: 'p2', minutes: 30, createdAt: iso(created)));
+
+      final snaps = await repo.activePlanProgress();
+      expect(snaps.length, 2);
+      final byId = {for (final s in snaps) s.plan.id: s};
+
+      // 这是一个**行为契约**：报告里的数字必须和卡片上看到的一致，
+      // 否则用户会看到「卡片说达成、报告说没达成」这种打脸的情况。
+      final js = byId['p1']!.toReportJson();
+      expect(js['achieved'], isTrue);
+      expect(js['kind'], 'finishBook');
+      expect(js['dueDate'], isNull);
+      expect(js['target'], 100);
+      expect(js['current'], 100);
+
+      final js2 = byId['p2']!.toReportJson();
+      expect(js2['achieved'], isFalse);
+      expect(js2['kind'], 'dailyMinutes');
+      expect(js2['targetMinutesPerDay'], 30);
+    });
+
+    test('已完成的计划不进报告载荷：复盘的是「还在追的」', () async {
+      await repo.upsertPlan(daily(id: 'p1', minutes: 10, createdAt: now, done: true));
+      final snaps = await repo.activePlanProgress();
+      expect(snaps, isEmpty);
+    });
+
+    test('删计划会连带清掉', () async {
+      await repo.upsertPlan(daily(id: 'p1', minutes: 10, createdAt: now));
+      await repo.deletePlan('p1');
+      expect(await repo.plans(), isEmpty);
+    });
+  });
+
 }

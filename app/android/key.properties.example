@@ -1,0 +1,13 @@
+# 复制本文件为 android/key.properties 并填写真实值（key.properties 已在 .gitignore 中，切勿提交）
+# Copy this file to android/key.properties and fill in real values (already gitignored; never commit it)
+
+# 生成命令示例（在 JDK 环境下执行一次，密码请妥善离线保存）：
+# keytool -genkeypair -v -keystore ../keystore/reading-tracker-release.keystore \
+#   -keyalg RSA -keysize 2048 -validity 10000 -alias readingtracker
+#
+# 然后按提示填写以下内容：
+
+storeFile=../keystore/reading-tracker-release.keystore
+storePassword=REPLACE_WITH_KEYSTORE_PASSWORD
+keyAlias=readingtracker
+keyPassword=REPLACE_WITH_KEY_PASSWORD

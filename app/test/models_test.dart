@@ -114,8 +114,31 @@ void main() {
       expect(BookSource.fromString('someNewApp'), BookSource.manual);
     });
 
+    test('旧状态值仍能解析，不会静默回落成「想读」', () {
+      // v3 把六个状态精简成四个。老库里可能残留旧值，
+      // fromString 必须认它们——回落到 wish 会让正在读的书
+      // 从统计里凭空消失，这比报错更难发现。
+      expect(BookStatus.fromString('paused'), BookStatus.shelved);
+      expect(BookStatus.fromString('abandoned'), BookStatus.shelved);
+      // 「借阅中」本质是在读，借阅标记已拆成 Book.isBorrowed
+      expect(BookStatus.fromString('borrowed'), BookStatus.reading);
+    });
+
+    test('storageValue 与词表一致，且可往返', () {
+      for (final s in BookStatus.values) {
+        expect(BookStatus.fromString(s.storageValue), s);
+      }
+      // 合并后的状态写回库时必须用新值，不能把 'paused' 又写回去
+      expect(BookStatus.shelved.storageValue, 'shelved');
+    });
+
     test('中文标签可用于 UI', () {
-      expect(BookStatus.reading.label, '在读');
+      // 标签一律走 appLoc 的 s_* 键，所以这里同时是在断言 ARB 的落字。
+      // 用户明确要求这四个写法：想看 / 阅读中 / 已读完 / 搁置。
+      expect(BookStatus.wish.label, '想看');
+      expect(BookStatus.reading.label, '阅读中');
+      expect(BookStatus.finished.label, '已读完');
+      expect(BookStatus.shelved.label, '搁置');
       expect(BookSource.weread.label, '微信读书');
     });
   });
@@ -137,7 +160,21 @@ void main() {
 
       expect(b1.daysUntilDue, 3);
       expect(b2.daysUntilDue, -2);
-      expect(b1.copyWith(status: BookStatus.borrowed).isBorrowed, isTrue);
+    });
+
+    test('借阅是独立标记，与阅读状态正交', () {
+      // 借来的书同样在「读」——两者不该互斥
+      final b = sample().copyWith(isBorrowed: true, status: BookStatus.reading);
+      expect(b.isBorrowed, isTrue);
+      expect(b.status, BookStatus.reading);
+    });
+
+    test('copyWith 不碰借阅标记时不会把它抹掉', () {
+      final b = sample().copyWith(isBorrowed: true);
+      for (final s in BookStatus.values) {
+        expect(b.copyWith(status: s).isBorrowed, isTrue,
+            reason: '改成 $s 后借阅标记丢了');
+      }
     });
   });
 }

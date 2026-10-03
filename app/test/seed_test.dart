@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:reading_tracker/data/database.dart';
+import 'package:reading_tracker/data/date_range.dart';
 import 'package:reading_tracker/data/seed_import.dart';
 import 'package:reading_tracker/models/book.dart';
 import 'package:reading_tracker/models/enums.dart';
@@ -83,6 +84,29 @@ void main() {
       expect(statuses, contains(BookStatus.finished));
       expect(statuses, contains(BookStatus.reading));
       expect(statuses, contains(BookStatus.wish));
+    });
+
+    test('完成日期可解析，且按年筛选不会把它们丢掉', () async {
+      final books = await loadSeed();
+      final finished =
+          books.where((b) => b.status == BookStatus.finished).toList();
+      expect(finished, isNotEmpty);
+
+      for (final b in finished) {
+        expect(StatsRange.parseSpan(b.finishedAt), isNotNull,
+            reason: '${b.title} 的完成日期 ${b.finishedAt} 解析不出来');
+      }
+
+      // 回归用例：种子里的完成日期只到月份（"2026-01"），
+      // 而 `DateTime.tryParse('2026-01')` 在 Dart 里返回 null。
+      // 统计页原先的 containsIso 因此把 11 本读完的书全部判成「不在区间内」，
+      // 「全部时间」口径因为短路看不出来，一点「2026 年」就变成「读完 0 本」。
+      final y2026 = finished.where(StatsRange.year(2026).containsBook).length;
+      final y2025 = finished.where(StatsRange.year(2025).containsBook).length;
+      expect(y2026, greaterThan(0), reason: '按年筛不能把读完的书全丢掉');
+      expect(y2025, greaterThan(0));
+      expect(y2026 + y2025, finished.length,
+          reason: '种子里的完成日期只落在 2025/2026 两年，两边加起来应等于总数');
     });
   });
 

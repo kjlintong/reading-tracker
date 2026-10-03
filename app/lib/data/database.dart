@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../l10n/app_loc.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -7,6 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../models/book.dart';
 import '../models/enums.dart';
+import '../models/reading_plan.dart';
+import 'backup.dart';
+import 'date_range.dart';
 import 'weread_annual.dart';
 
 /// 本地 SQLite 数据库。
@@ -16,7 +20,11 @@ import 'weread_annual.dart';
 class AppDatabase {
   static const _dbName = 'reading_tracker.db';
   /// v2：books 增加 categoryRaw 列，并对历史数据重跑分类归一化
-  static const _version = 2;
+  /// v3：状态精简为四个（弃读+暂搁 → shelved，借阅中 → reading），
+  ///     books 增加 isBorrowed 列，借阅拆成独立标记
+  /// v4：新增 reading_plans 表（阅读计划 + 提醒）
+  /// v5：reading_plans 增加 lastDoneOn（每日型计划的「今天已完成」打点）
+  static const _version = 5;
 
   Database? _db;
   Database get db => _db!;
@@ -80,6 +88,7 @@ class AppDatabase {
         highlights TEXT,
         startedAt TEXT,
         finishedAt TEXT,
+        isBorrowed INTEGER DEFAULT 0,
         borrowedFrom TEXT,
         dueAt TEXT,
         rereadCount INTEGER DEFAULT 0,
@@ -146,6 +155,23 @@ class AppDatabase {
     ''');
 
     await db.execute('''
+      CREATE TABLE reading_plans (
+        id TEXT PRIMARY KEY,
+        kind TEXT,
+        title TEXT,
+        dailyMinutes INTEGER,
+        bookId TEXT,
+        dueDate TEXT,
+        reminderEnabled INTEGER DEFAULT 0,
+        done INTEGER DEFAULT 0,
+        doneAt TEXT,
+        lastDoneOn TEXT,
+        createdAt TEXT
+      )
+    ''');
+    await db.execute('CREATE INDEX idx_plans_done ON reading_plans(done)');
+
+    await db.execute('''
       CREATE TABLE settings (
         key TEXT PRIMARY KEY,
         value TEXT
@@ -158,6 +184,65 @@ class AppDatabase {
       await db.execute('ALTER TABLE books ADD COLUMN categoryRaw TEXT');
       await renormalizeCategories(db: db);
     }
+    if (oldV < 3) {
+      await db.execute('ALTER TABLE books ADD COLUMN isBorrowed INTEGER DEFAULT 0');
+      await migrateBorrowedStatus(db);
+    }
+    if (oldV < 4) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS reading_plans (
+          id TEXT PRIMARY KEY,
+          kind TEXT,
+          title TEXT,
+          dailyMinutes INTEGER,
+          bookId TEXT,
+          dueDate TEXT,
+          reminderEnabled INTEGER DEFAULT 0,
+          done INTEGER DEFAULT 0,
+          doneAt TEXT,
+          lastDoneOn TEXT,
+          createdAt TEXT
+        )
+      ''');
+      await db.execute(
+          'CREATE INDEX IF NOT EXISTS idx_plans_done ON reading_plans(done)');
+    }
+    if (oldV < 5) {
+      // 每日型计划从「一次性完成任务」改成「周期任务」，需要一个
+      // 「今天已完成」的打点字段。存量行填 NULL：等于「今天还没打卡」，
+      // 用户下次打开就能重新勾——这正是我们想要的行为，不需要回填数据。
+      await db.execute(
+          'ALTER TABLE reading_plans ADD COLUMN lastDoneOn TEXT');
+    }
+  }
+
+  /// v2 → v3：把「借阅中」从一个状态拆成「在读 + 借阅标记」。
+  ///
+  /// 为什么必须搬数据而不是只改读取逻辑：`fromString` 虽然会把
+  /// 'borrowed' 认成 reading（兜底兼容），但**统计是直接查询
+  /// `status = 'reading'` 的 SQL**，不会走 Dart 的 fromString。
+  /// 留在库里的 'borrowed' 行会在所有按状态聚合的地方凭空消失——
+  /// 用户的在读书目会静默少几本，这比报错更难发现。
+  ///
+  /// 'paused' 与 'abandoned' 同理：合并成 'shelved'。
+  /// `borrowedFrom` / `dueAt` 原样保留，它们本来就是借阅的附属信息。
+  /// 公开是为了让测试能直接验证这一步（v2→v3 的真实迁移路径）。
+  Future<void> migrateBorrowedStatus(Database db) async {
+    // 借阅中 → 在读，并打上借阅标记
+    await db.execute(
+      "UPDATE books SET status = 'reading', isBorrowed = 1 "
+      "WHERE status = 'borrowed'",
+    );
+    // 没标借阅但填了借阅来源/应还日期的行，也认作借阅，
+    // 免得用户明明填过信息、界面却不显示标记
+    await db.execute(
+      'UPDATE books SET isBorrowed = 1 '
+      'WHERE isBorrowed = 0 AND (borrowedFrom IS NOT NULL OR dueAt IS NOT NULL)',
+    );
+    // 弃读 / 暂搁 → 搁置
+    await db.execute(
+      "UPDATE books SET status = 'shelved' WHERE status IN ('paused', 'abandoned')",
+    );
   }
 
   /// 把历史数据的分类重新过一遍归一化。
@@ -244,7 +329,7 @@ class BookRepository {
     final where = <String>[];
     final args = <Object?>[];
 
-    if (status != null) { where.add('status = ?'); args.add(status.name); }
+    if (status != null) { where.add('status = ?'); args.add(status.storageValue); }
     if (source != null) { where.add('source = ?'); args.add(source.name); }
     if (category != null) { where.add('categoryPrimary = ?'); args.add(category); }
     if (tag != null) { where.add('tags LIKE ?'); args.add('%"$tag"%'); }
@@ -340,10 +425,11 @@ class BookRepository {
 
   /// 分类分布
   Future<List<Map<String, dynamic>>> categoryDistribution() async {
-    return await _db.rawQuery('''
-      SELECT COALESCE(categoryPrimary,'未分类') name, COUNT(*) c
-      FROM books GROUP BY categoryPrimary ORDER BY c DESC
-    ''');
+    // '未分类' 用常量插值而非本地化文案：categoryDistributionOf 在 Dart 侧
+    // 也用同一个 key，两套实现必须完全一致。
+    return await _db.rawQuery(
+      "SELECT COALESCE(categoryPrimary,'$kUncategorized') name, COUNT(*) c "
+      'FROM books GROUP BY categoryPrimary ORDER BY c DESC');
   }
 
   /// 来源平台分布
@@ -357,7 +443,7 @@ class BookRepository {
     final rows = await _db.query(
       'books',
       where: "status = ? AND finishedAt LIKE ?",
-      whereArgs: [BookStatus.finished.name, '$year-%'],
+      whereArgs: [BookStatus.finished.storageValue, '$year-%'],
       orderBy: 'finishedAt DESC',
     );
     return rows.map(Book.fromMap).toList();
@@ -412,6 +498,74 @@ class BookRepository {
     return WereadAnnualStats.parse(raw);
   }
 
+  /// 区间内的阅读活动。
+  ///
+  /// 三个来源的时间粒度**不同**，混在一起处理会算出一个「看起来很确定」
+  /// 的错误数字，所以逐个交代：
+  ///
+  /// | 来源 | 位置 | 粒度 | 能否按区间筛 |
+  /// |---|---|---|---|
+  /// | 手工日志 | `reading_logs.date` | 天 | 能，精确 |
+  /// | 年度统计 | `readTimes`（逐月秒数） | **月** | 只能按月重叠 |
+  /// | 每本累计 | `extra.wereadReadingTimeSec` | 无日期 | 只有「全部时间」能用 |
+  ///
+  /// 年度统计与每本累计覆盖范围重叠（同一段阅读被记了两遍），
+  /// 所以取较大值而**不是**相加。手工日志是独立来源，照常叠加。
+  ///
+  /// 「有阅读记录的天数」只在两种情况下给得出：区间是完整自然年
+  /// （年度统计里有 `readDays`），或者压根没有年度统计（退回手工日志）。
+  /// 其余情况返回 null——塞 0 会让「这段时间没读过」和「这段时间的
+  /// 天数无从统计」长得一模一样。
+  Future<ReadingActivity> readingActivity(StatsRange range) async {
+    final logs =
+        await _db.rawQuery('SELECT date, durationMin FROM reading_logs');
+    var logMin = 0;
+    final logDays = <String>{};
+    for (final r in logs) {
+      final d = r['date'] as String?;
+      if (!range.containsIso(d)) continue;
+      logMin += (r['durationMin'] as int?) ?? 0;
+      if (d != null && d.length >= 10) logDays.add(d.substring(0, 10));
+    }
+
+    final annual = await wereadAnnualStats();
+    var annualSec = 0;
+    if (annual != null) {
+      for (final m in annual.monthly) {
+        if (range.overlapsMonth(m.year, m.month)) annualSec += m.seconds;
+      }
+    }
+
+    // 每本累计时长没有日期字段，只能用在「全部时间」口径下
+    var perBookSec = 0;
+    if (range.isAll) {
+      for (final e in await _extras()) {
+        final v = e['wereadReadingTimeSec'];
+        if (v is num) perBookSec += v.toInt();
+      }
+    }
+
+    final wereadSec = perBookSec > annualSec ? perBookSec : annualSec;
+    final minutes = logMin + (wereadSec / 60).round();
+
+    int? activeDays;
+    String? note;
+
+    if (annual == null) {
+      activeDays = logDays.isEmpty ? null : logDays.length;
+      if (logDays.isNotEmpty) note = appLoc.s_e74f752c;
+    } else if (range.isAll) {
+      activeDays = annual.readDays > 0 ? annual.readDays : null;
+      note = appLoc.s_9ea3cbae(year: annual.year);
+    } else if (range.coversWholeYear(annual.year)) {
+      activeDays = annual.readDays > 0 ? annual.readDays : null;
+    } else {
+      note = appLoc.s_f676228c;
+    }
+
+    return ReadingActivity(minutes: minutes, activeDays: activeDays, note: note);
+  }
+
   /// 连续阅读天数。
   ///
   /// 数据来源是「有阅读痕迹的日期」：reading_logs 的 date，
@@ -457,6 +611,125 @@ class BookRepository {
     return streak;
   }
 
+  /* --------------------------- 阅读计划 --------------------------- */
+
+  /// 全部计划，未完成的排前面（用户每天要看的是进行中的）。
+  Future<List<ReadingPlan>> plans() async {
+    final rows = await _db.query(
+      'reading_plans',
+      orderBy: 'done ASC, createdAt DESC',
+    );
+    return rows.map(ReadingPlan.fromMap).toList();
+  }
+
+  /// 仅进行中的计划。报告与提醒都只关心这些。
+  Future<List<ReadingPlan>> activePlans() async {
+    final rows = await _db.query('reading_plans',
+        where: 'done = 0', orderBy: 'createdAt DESC');
+    return rows.map(ReadingPlan.fromMap).toList();
+  }
+
+  Future<void> upsertPlan(ReadingPlan p) async {
+    await _db.insert('reading_plans', p.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> deletePlan(String id) async {
+    await _db.delete('reading_plans', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// 按天聚合的阅读分钟数（yyyy-MM-dd → 分钟）。
+  ///
+  /// 只统计有确切日期的来源：手工日志与每本书的最近阅读日。
+  /// 年度统计是**按月**的，拆不到天，所以算日均时不能把它掺进来
+  /// ——否则每个月的每天都会被均摊出一个假数字。
+  Future<Map<String, int>> minutesByDay() async {
+    final out = <String, int>{};
+    final logs =
+        await _db.rawQuery('SELECT date, durationMin FROM reading_logs');
+    for (final r in logs) {
+      final d = r['date'] as String?;
+      if (d == null || d.length < 10) continue;
+      final k = d.substring(0, 10);
+      out[k] = (out[k] ?? 0) + ((r['durationMin'] as int?) ?? 0);
+    }
+    return out;
+  }
+
+  /// 算出某条计划当前的完成情况。
+  ///
+  /// 这是**唯一**的判定入口：计划卡片、提醒调度、报告数据都调它。
+  /// 任何一处自己另算一遍，就会出现「卡片说达成、报告说没达成」。
+  Future<PlanProgress> planProgress(ReadingPlan p) async {
+    switch (p.kind) {
+      case PlanKind.dailyMinutes:
+        final target = (p.dailyMinutes ?? 0).toDouble();
+        final perDay = await minutesByDay();
+        if (target <= 0 || perDay.isEmpty) {
+          return PlanProgress(plan: p, target: target, current: 0, achieved: false);
+        }
+        // 从计划创建那天算起，已经过去的天数（含今天，今天还没读完也算进来）
+        final start = DateTime.tryParse(p.createdAt) ?? DateTime.now();
+        final today = DateTime.now();
+        var days = DateTime.utc(today.year, today.month, today.day)
+            .difference(DateTime.utc(start.year, start.month, start.day))
+            .inDays + 1;
+        if (days < 1) days = 1;
+        // 过去的完整天数 + 今天已读的部分，都计入分子
+        var sum = 0;
+        for (final e in perDay.entries) {
+          final d = DateTime.tryParse(e.key);
+          if (d == null) continue;
+          if (d.isBefore(DateTime(start.year, start.month, start.day))) continue;
+          sum += e.value;
+        }
+        final current = sum / days; // 日均
+        return PlanProgress(
+          plan: p,
+          target: target,
+          current: current,
+          achieved: current >= target,
+        );
+
+      case PlanKind.finishBook:
+        final bookId = p.bookId;
+        if (bookId == null) {
+          // 计划指向的书被删了。不当作达成，也不崩——
+          // 界面会显示「目标书已不在书架」，由用户自己决定删不删这条计划。
+          return PlanProgress(plan: p, target: 100, current: 0, achieved: false);
+        }
+        final rows = await _db.query('books',
+            columns: ['progressPercent', 'status'],
+            where: 'id = ?',
+            whereArgs: [bookId]);
+        if (rows.isEmpty) {
+          return PlanProgress(plan: p, target: 100, current: 0, achieved: false);
+        }
+        final status = BookStatus.fromString(rows.first['status'] as String?);
+        // 已读完直接算 100%，不看 progressPercent：用户可能勾了完成
+        // 但没把进度条拖到底，此时以状态为准更符合直觉
+        final cur = status == BookStatus.finished
+            ? 100.0
+            : ((rows.first['progressPercent'] as num?)?.toDouble() ?? 0);
+        return PlanProgress(
+          plan: p,
+          target: 100,
+          current: cur,
+          achieved: status == BookStatus.finished,
+        );
+    }
+  }
+
+  /// 所有进行中计划的完成快照。报告数据与提醒都吃这个。
+  Future<List<PlanProgress>> activePlanProgress() async {
+    final all = await activePlans();
+    final out = <PlanProgress>[];
+    for (final p in all) {
+      out.add(await planProgress(p));
+    }
+    return out;
+  }
+
   /// 评分分布：未评分 + 1~5 星。
   ///
   /// 在 Dart 侧分桶而不是写 SQL：`rating` 是 REAL，
@@ -474,7 +747,7 @@ class BookRepository {
     }
     return [
       for (var i = 0; i < 6; i++)
-        {'label': i == 0 ? '未评分' : '$i 星', 'count': counts[i], 'stars': i},
+        {'label': i == 0 ? appLoc.s_06225788 : appLoc.s_89cfaca8(i: i), 'count': counts[i], 'stars': i},
     ];
   }
 
@@ -545,6 +818,110 @@ class BookRepository {
     final rows = await _db.query('notes',
         where: 'bookId = ?', whereArgs: [bookId], orderBy: 'createdAt DESC');
     return rows.map(Note.fromMap).toList();
+  }
+
+  Future<void> updateNote(Note note) async {
+    await _db.update('notes', note.toMap(),
+        where: 'id = ?', whereArgs: [note.id]);
+  }
+
+  Future<void> deleteNote(String id) async {
+    await _db.delete('notes', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// 全库笔记数。统计页要展示「写了几条笔记」——有产出才谈得上鼓励。
+  Future<int> noteCount() async {
+    final r = await _db.rawQuery('SELECT COUNT(*) c FROM notes');
+    return (r.first['c'] as int?) ?? 0;
+  }
+
+  /// 全库笔记（按时间倒序），每条都带上所属书籍。
+  ///
+  /// 传 [bookId] 则只看某一本书的笔记。
+  ///
+  /// 为什么不用 SQL JOIN：书名作者要经 `Book.fromMap` 还原（authors 是
+  /// JSON 数组），而 sqflite 的 `rawQuery` 只会给我平铺的列。
+  /// 与其在 Dart 侧再解析一遍，不如分两次查询 + 内存建索引——
+  /// 书架规模是几十到几百本，一次全表扫描比 JOIN 后的重复解析更快也更好读。
+  ///
+  /// 书籍可能缺失（书被删、或笔记来自导入时的书名匹配），此时
+  /// [NoteWithBook.book] 为 null，界面要能正常显示。
+  Future<List<NoteWithBook>> allNotes({String? bookId}) async {
+    final rows = await _db.query(
+      'notes',
+      where: bookId == null ? null : 'bookId = ?',
+      whereArgs: bookId == null ? null : <Object?>[bookId],
+      orderBy: 'createdAt DESC',
+    );
+    if (rows.isEmpty) return const <NoteWithBook>[];
+
+    final notes = rows.map(Note.fromMap).toList();
+    final byId = <String, Book>{};
+    for (final b in await all()) {
+      byId.putIfAbsent(b.id, () => b);
+    }
+    return notes
+        .map((n) => NoteWithBook(note: n, book: byId[n.bookId]))
+        .toList();
+  }
+
+  /// 写过笔记的书（按最近笔记时间倒序），供笔记页的「按书筛选」下拉使用。
+  ///
+  /// 只返回**有笔记**的书：下拉里塞进 38 本一本笔记都没有的书，
+  /// 点进去全是空态，等于给用户造了一个会失望的入口。
+  Future<List<Book>> booksWithNotes() async {
+    final rows = await _db.rawQuery('''
+      SELECT DISTINCT bookId FROM notes
+    ''');
+    if (rows.isEmpty) return const <Book>[];
+
+    final byId = <String, Book>{};
+    for (final b in await all()) {
+      byId.putIfAbsent(b.id, () => b);
+    }
+    final out = <Book>[];
+    for (final r in rows) {
+      final b = byId[r['bookId'] as String?];
+      if (b != null) out.add(b);
+    }
+    // 按书名排序，让下拉是可扫读的，而不是按 SQLite 的行顺序乱跳。
+    out.sort((a, b) => a.title.compareTo(b.title));
+    return out;
+  }
+
+  /* ------------------------- 备份与恢复 ------------------------- */
+
+  /// 整库导出为 JSON 快照。
+  ///
+  /// 直接取原始行而不经过 Book.fromMap/toMap 往返：模型转换是有损的
+  /// （未知字段被丢弃、类型被规整），备份的意义恰恰是零丢失。
+  Future<Map<String, List<Map<String, dynamic>>>> dumpTables() async {
+    final out = <String, List<Map<String, dynamic>>>{};
+    for (final t in BackupCodec.tables) {
+      out[t] = (await _db.query(t)).map(Map<String, dynamic>.from).toList();
+    }
+    return out;
+  }
+
+  /// 从备份快照恢复。返回各表写入的行数。
+  ///
+  /// 用 `ConflictAlgorithm.replace` 整行覆盖而不是合并：
+  /// 恢复的语义是「回到备份那一刻」，半推半就的合并会造出
+  /// 「备份里删掉的书在本地复活」这种拆东补西的怪状态。
+  Future<Map<String, int>> restoreTables(
+      Map<String, List<Map<String, dynamic>>> data) async {
+    final counts = <String, int>{};
+    await _db.transaction((txn) async {
+      for (final t in BackupCodec.tables) {
+        final rows = data[t];
+        if (rows == null) continue;
+        for (final r in rows) {
+          await txn.insert(t, r, conflictAlgorithm: ConflictAlgorithm.replace);
+        }
+        counts[t] = rows.length;
+      }
+    });
+    return counts;
   }
 
   /* ------------------------- AI 报告 ------------------------- */

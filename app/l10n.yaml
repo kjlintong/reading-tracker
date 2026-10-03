@@ -1,0 +1,25 @@
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: S
+nullable-getter: false
+# 关键：让 gen-l10n 把生成文件写到 lib/l10n/，
+# 否则 main.dart 中 `import 'l10n/app_localizations.dart'` 无法解析。
+# Flutter >= 3.32 起该选项默认即为 false，保留只是为了兼容更旧的 SDK
+# （新版本只会打印一条“已无作用”的警告，不会报错）。
+synthetic-package: false
+
+# 生成的 S 方法使用「命名参数」：S.of(context).s_xxx(name: value)。
+# 全项目 800+ 处调用点都是这样写的，且命名参数不受占位符顺序影响。
+# 需要 Flutter >= 3.29.0（该选项在 3.29 才加入 gen-l10n）；
+# 低于该版本会被静默忽略，从而生成位置参数并导致大面积编译错误。
+use-named-parameters: true
+
+# 放宽 ICU 语法：`{` 后面不是「已声明的占位符」时按普通字符处理，
+# `}` 未闭合任何特殊 `{` 时也按普通字符处理。
+# 用途：s_4304f539 / s_3864d3b4 / s_ba5425c5 / s_43fca769 这几条
+# 大模型提示词里含 JSON 示例（如 {"title":"..."}），严格语法会直接报
+# “ICU Syntax Error: Expected "identifier"” 而中断构建。
+# 注意：开启后「只有 app_en.arb 的 @key.placeholders 里声明过的名字」
+# 才会被当成占位符，因此所有含占位符的消息都已在 ARB 中显式声明。
+relax-syntax: true

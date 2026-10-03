@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Reading Tracker</string>
+	<string>Readnest</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>reading_tracker</string>
+	<string>readnest</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -45,5 +45,18 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- 相机 / 相册用途声明：缺失将导致调用拍照/选图时崩溃，并被 App Store 拒审 (Guideline 5.1.1) -->
+	<key>NSCameraUsageDescription</key>
+	<string>用于拍摄您的书架照片，以识别书目并导入。</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>用于从相册选择书架截图，以识别书目并导入。</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>用于将导出的数据文件保存到您的相册。</string>
+	<!-- 多语言声明：即使做了 i18n，也需在此声明商店才会展示为多语言应用 -->
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>zh-Hans</string>
+		<string>en</string>
+	</array>
 </dict>
 </plist>

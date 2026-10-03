@@ -1,4 +1,5 @@
 import '../models/book.dart';
+import '../l10n/app_loc.dart';
 import '../models/enums.dart';
 
 /// 书名候选（OCR 提取结果）
@@ -211,7 +212,7 @@ class ShelfOcrParser {
   ///
   /// 返回 null 表示这行不是元信息，应当按标题或作者继续判断。
   static OcrMetaLine? metaOf(String s) {
-    final t = s.replaceAll('％', '%').trim();
+    final t = s.replaceAll(appLoc.s_885dd894, '%').trim();
     if (t.isEmpty) return null;
 
     // 「共 11 本」「总计 3 册」
@@ -239,7 +240,8 @@ class ShelfOcrParser {
     if (p2 != null) {
       return OcrMetaLine(progressPercent: double.tryParse(p2.group(1)!));
     }
-    // 纯状态词
+    // 纯状态词。外部书架截图里可能是旧版词表（弃读 / 暂搁 / 借阅中），
+    // 它们现在都归口到四个状态上——识别表保留旧词，避免漏认。
     const statusWords = <String, BookStatus>{
       '未读': BookStatus.wish,
       '想读': BookStatus.wish,
@@ -250,9 +252,11 @@ class ShelfOcrParser {
       '在读': BookStatus.reading,
       '阅读中': BookStatus.reading,
       '正在读': BookStatus.reading,
-      '弃读': BookStatus.abandoned,
-      '放弃': BookStatus.abandoned,
-      '暂搁': BookStatus.paused,
+      '借阅中': BookStatus.reading,
+      '弃读': BookStatus.shelved,
+      '放弃': BookStatus.shelved,
+      '暂搁': BookStatus.shelved,
+      '搁置': BookStatus.shelved,
     };
     final st = statusWords[t];
     if (st != null) {
@@ -327,40 +331,40 @@ class ShelfOcrParser {
     var score = 0.5;
     final reasons = <String>[];
 
-    if (s.contains('《') || s.contains('》')) {
+    if (s.contains(appLoc.s_620b459e) || s.contains(appLoc.s_150c7508)) {
       score += 0.3;
-      reasons.add('含书名号');
+      reasons.add(appLoc.s_67df3afd);
     }
     final stripped = s.replaceAll(RegExp(r'[《》]'), '');
 
     if (stripped.length >= 2 && stripped.length <= 20) {
       score += 0.15;
-      reasons.add('长度合理');
+      reasons.add(appLoc.s_0cedc3f4);
     } else if (stripped.length < 2) {
       score -= 0.4;
-      reasons.add('过短');
+      reasons.add(appLoc.s_5bdfa6ae);
     } else if (stripped.length > 30) {
       score -= 0.35;
-      reasons.add('过长');
+      reasons.add(appLoc.s_58171266);
     }
 
     if (RegExp(r'[\u4e00-\u9fa5]').hasMatch(stripped)) {
       score += 0.1;
-      reasons.add('中文');
+      reasons.add(appLoc.s_5a09ed37);
     }
     if (RegExp(r'^[a-zA-Z\s]+$').hasMatch(stripped) && stripped.length <= 3) {
       score -= 0.3;
-      reasons.add('疑似英文 UI 词');
+      reasons.add(appLoc.s_6b631636);
     }
     if (RegExp(r'[，。；、？！]$').hasMatch(stripped)) {
       score -= 0.15;
-      reasons.add('句末标点');
+      reasons.add(appLoc.s_a335b25f);
     }
     if (prevIdx >= 0 &&
         candidates.length > prevIdx &&
         idx - candidates[prevIdx].lineIndex <= 2) {
       score += 0.05;
-      reasons.add('相邻行');
+      reasons.add(appLoc.s_1dd3f274);
     }
 
     return (score.clamp(0.0, 1.0), reasons.join(','));
@@ -382,7 +386,7 @@ class ShelfOcrParser {
         if (adjacent && prevIsFragment && curIsFragment && mergedLen <= 30) {
           prev.title += cur.title;
           prev.score = (prev.score + 0.1).clamp(0.0, 1.0);
-          prev.reason += ',合并断行';
+          prev.reason += appLoc.s_f547232b;
           prev.lineIndex = cur.lineIndex;
           prev.merged = true;
           continue;

@@ -313,6 +313,72 @@ void main() {
     });
   });
 
+  group('阅读计划注入报告', () {
+    /// 抓出发给模型的 user 报文正文。
+    /// 报告是「一段时间读得怎么样」的复盘，阅读计划是这段时间里
+    /// 用户自己下的注，模型不看到它就只能泛泛而谈。
+    Future<String> promptFor(Map<String, dynamic> data) async {
+      final adapter = _FakeAdapter((_) => _json({
+            'choices': [
+              {
+                'message': {'content': '## 概览\n写得不错'}
+              }
+            ]
+          }));
+      final dio = Dio()..httpClientAdapter = adapter;
+      final client = LlmClient(
+          dio: dio, apiKey: 'k', baseUrl: 'https://api.example.com/v1', model: 'm');
+      await client.generateReport('2026 年报', data);
+      final messages = (adapter.captured.single.data as Map)['messages'] as List;
+      return (messages.last as Map)['content'] as String;
+    }
+
+    test('没有计划时完全不提这一节，避免模型硬凑', () async {
+      final p = await promptFor({'total': 1, 'bookList': []});
+      expect(p.contains('阅读计划'), isFalse);
+    });
+
+    test('计划为空数组同样不注入：空数组不等于「有计划」', () async {
+      final p = await promptFor({'total': 1, 'bookList': [], 'readingPlans': []});
+      expect(p.contains('阅读计划'), isFalse);
+    });
+
+    test('有计划时注入分析要求，且要求用具体数字而非下判断', () async {
+      final p = await promptFor({
+        'total': 1,
+        'bookList': [],
+        'readingPlans': [
+          {
+            'kind': 'dailyMinutes',
+            'target': 30,
+            'current': 12.5,
+            'achieved': false,
+            'ratio': 0.42,
+            'targetMinutesPerDay': 30,
+          }
+        ],
+      });
+      expect(p.contains('阅读计划'), isTrue);
+      // 底线：没完成不等于失败，模型不许把未达成写成道德问题
+      expect(p.contains('不要因为没完成计划就贬低读者'), isTrue);
+      // 要分析规律而不是下判断
+      expect(p.contains('分析**规律**'), isTrue);
+    });
+
+    test('有计划时，达成情况仍然落在「内容边界」之内', () async {
+      // 边界段与计划段必须同时在场：用户此前明确反感越界建议，
+      // 新增计划段不能成为绕过边界那条附加通道。
+      final p = await promptFor({
+        'total': 1,
+        'bookList': [],
+        'readingPlans': [
+          {'kind': 'finishBook', 'target': 100, 'current': 100, 'achieved': true}
+        ],
+      });
+      expect(p.contains('不要评论书籍的来源或获取渠道'), isTrue);
+    });
+  });
+
   group('宽松 JSON 解析', () {
     test('剥掉 markdown 代码块', () {
       expect(
@@ -332,6 +398,261 @@ void main() {
       // 无外层方括号的并列对象——实测模型真的会这么吐
       expect(parseJsonArrayLoose('{"t":"A"},{"t":"B"}').length, 2);
       expect(parseJsonArrayLoose('完全不是 JSON'), isEmpty);
+    });
+  });
+
+  /// 「返回结构无法解析」是上一版最让人无从下手的报错：既不说清出了什么事，
+  /// 也不带任何原始响应片段。下面每一种形态都在真实网关上出现过。
+  group('响应体形态容错', () {
+    test('标准 OpenAI 结构', () {
+      expect(
+        LlmClient.extractReplyText({
+          'choices': [
+            {
+              'message': {'content': 'A'}
+            }
+          ]
+        }),
+        'A',
+      );
+    });
+
+    test('content 为空串时取 reasoning_content', () {
+      // 推理模型常常 content:"" 而把正文放进 reasoning_content。
+      // 写成 `content is String` 就直接返回空串，报告出来是空白页
+      expect(
+        LlmClient.extractReplyText({
+          'choices': [
+            {
+              'message': {'content': '', 'reasoning_content': 'R'}
+            }
+          ]
+        }),
+        'R',
+      );
+    });
+
+    test('content 是分块数组', () {
+      expect(
+        LlmClient.extractReplyText({
+          'choices': [
+            {
+              'message': {
+                'content': [
+                  {'type': 'text', 'text': 'A'}
+                ]
+              }
+            }
+          ]
+        }),
+        'A',
+      );
+    });
+
+    test('Anthropic 顶层 content 分块，跳过 thinking', () {
+      expect(
+        LlmClient.extractReplyText({
+          'content': [
+            {'type': 'thinking', 'thinking': '内部推理'},
+            {'type': 'text', 'text': 'B'},
+          ]
+        }),
+        'B',
+      );
+    });
+
+    test('补全风格 choices[0].text', () {
+      expect(
+        LlmClient.extractReplyText({
+          'choices': [
+            {'text': 'C'}
+          ]
+        }),
+        'C',
+      );
+    });
+
+    test('Ollama 原生顶层 message', () {
+      expect(
+        LlmClient.extractReplyText({
+          'message': {'role': 'assistant', 'content': 'D'}
+        }),
+        'D',
+      );
+    });
+
+    test('外层再包一层 data / result', () {
+      expect(
+        LlmClient.extractReplyText({
+          'data': {
+            'choices': [
+              {
+                'message': {'content': 'E'}
+              }
+            ]
+          }
+        }),
+        'E',
+      );
+    });
+
+    test('响应体是纯字符串（网关 Content-Type 给成 text/plain）', () {
+      // Dio 不会自动解码非 JSON 的 Content-Type，res.data 就是个 String。
+      // 上一版直接判 `d is! Map` 就报「无法解析」，而响应体本身是完好的 JSON
+      expect(
+        LlmClient.extractReplyText('{"choices":[{"message":{"content":"F"}}]}'),
+        'F',
+      );
+      // 完全不是 JSON 也不是结构问题，那就是正文本身
+      expect(LlmClient.extractReplyText('直接就是正文'), '直接就是正文');
+    });
+
+    test('SSE 残留也能取到第一个 data 载荷', () {
+      expect(
+        LlmClient.extractReplyText(
+            'data: {"choices":[{"message":{"content":"G"}}]}\n\ndata: [DONE]\n'),
+        'G',
+      );
+    });
+
+    test('Responses 风格 output_text 与 output[]', () {
+      expect(LlmClient.extractReplyText({'output_text': 'H'}), 'H');
+      expect(
+        LlmClient.extractReplyText({
+          'output': [
+            {
+              'type': 'message',
+              'content': [
+                {'type': 'output_text', 'text': 'I'}
+              ]
+            }
+          ]
+        }),
+        'I',
+      );
+    });
+
+    test('认不出的结构返回 null，而不是抛异常', () {
+      expect(LlmClient.extractReplyText({'unexpected': 1}), isNull);
+      expect(LlmClient.extractReplyText(null), isNull);
+      expect(LlmClient.extractReplyText({'choices': []}), isNull);
+    });
+
+    test('HTTP 200 里裹着的错误也能被认出来', () {
+      expect(
+        LlmClient.extractApiError({
+          'error': {'message': 'insufficient balance'}
+        }),
+        'insufficient balance',
+      );
+      expect(LlmClient.extractApiError({'code': 40001, 'success': false}),
+          'code=40001');
+      expect(LlmClient.extractApiError({'msg': '模型不存在'}), '模型不存在');
+      // 正常响应不能被误判成错误
+      expect(
+        LlmClient.extractApiError({
+          'choices': [
+            {
+              'message': {'content': 'ok'}
+            }
+          ]
+        }),
+        isNull,
+      );
+    });
+  });
+
+  group('响应异常的可诊断性', () {
+    test('HTTP 200 裹 error 时报出真正原因，而不是「无法解析」', () async {
+      final dio = Dio()
+        ..httpClientAdapter = _FakeAdapter(
+            (_) => _json({'error': {'message': '账户余额不足，请充值'}}));
+      final client = LlmClient(
+          dio: dio, apiKey: 'k', baseUrl: 'https://api.example.com/v1', model: 'm');
+      try {
+        await client.chat([
+          {'role': 'user', 'content': 'hi'}
+        ]);
+        fail('应当抛错');
+      } on LlmException catch (e) {
+        expect(e.message, contains('账户余额不足'));
+        expect(e.toString(), contains('账户余额不足'));
+      }
+    });
+
+    test('真的认不出结构时，错误里必须带上原始响应片段', () async {
+      final dio = Dio()
+        ..httpClientAdapter =
+            _FakeAdapter((_) => _json({'weird': '形状完全不一样'}));
+      final client = LlmClient(
+          dio: dio, apiKey: 'k', baseUrl: 'https://api.example.com/v1', model: 'm');
+      try {
+        await client.chat([
+          {'role': 'user', 'content': 'hi'}
+        ]);
+        fail('应当抛错');
+      } on LlmException catch (e) {
+        // 没有片段的话，用户和开发都无从判断到底收到了什么
+        expect(e.toString(), contains('形状完全不一样'));
+        expect(e.raw, isNotNull);
+      }
+    });
+
+    test('模型不认 response_format 时自动降级重试一次', () async {
+      var calls = 0;
+      final adapter = _FakeAdapter((_) {
+        calls++;
+        if (calls == 1) {
+          return _json({
+            'error': {'message': 'Unsupported parameter: response_format'}
+          }, 400);
+        }
+        return _json({
+          'choices': [
+            {
+              'message': {'content': 'ok'}
+            }
+          ]
+        });
+      });
+      final dio = Dio()..httpClientAdapter = adapter;
+      final client = LlmClient(
+          dio: dio, apiKey: 'k', baseUrl: 'https://api.example.com/v1', model: 'm');
+
+      expect(
+        await client.chat([
+          {'role': 'user', 'content': 'hi'}
+        ], jsonMode: true),
+        'ok',
+      );
+      expect(calls, 2);
+      expect((adapter.captured[0].data as Map).containsKey('response_format'),
+          isTrue);
+      expect((adapter.captured[1].data as Map).containsKey('response_format'),
+          isFalse);
+    });
+
+    test('与 response_format 无关的 400 不重试', () async {
+      var calls = 0;
+      final dio = Dio()
+        ..httpClientAdapter = _FakeAdapter((_) {
+          calls++;
+          return _json({
+            'error': {'message': 'model not found'}
+          }, 400);
+        });
+      final client = LlmClient(
+          dio: dio, apiKey: 'k', baseUrl: 'https://api.example.com/v1', model: 'm');
+      try {
+        await client.chat([
+          {'role': 'user', 'content': 'hi'}
+        ], jsonMode: true);
+        fail('应当抛错');
+      } on LlmException catch (e) {
+        // 模型名写错也是 400，重试只会把一个错误变两个
+        expect(calls, 1);
+        expect(e.statusCode, 400);
+      }
     });
   });
 }

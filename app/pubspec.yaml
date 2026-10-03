@@ -1,13 +1,17 @@
 name: reading_tracker
 description: 个人阅读管理 App — 多平台书架导入、本地优先存储、AI 阅读分析
 publish_to: 'none'
-version: 0.2.0+2
+version: 0.9.0+9
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
 
 dependencies:
   flutter:
+    sdk: flutter
+
+  # 国际化（en / zh-Hans）。运行 flutter gen-l10n 生成 lib/l10n/app_localizations.dart
+  flutter_localizations:
     sdk: flutter
 
   # 本地存储（本地优先架构，无账号也能用）
@@ -18,6 +22,9 @@ dependencies:
   path: ^1.9.0
   path_provider: ^2.1.4
   shared_preferences: ^2.3.3
+
+  # 敏感凭据（微信读书 Key / 大模型 Key）存系统密钥库，不写明文 SQLite
+  flutter_secure_storage: ^9.2.0
 
   # 导入能力
   image_picker: ^1.1.2
@@ -32,9 +39,29 @@ dependencies:
 
   # UI
   flutter_riverpod: ^2.6.1
-  intl: ^0.20.2
+  # intl 由 flutter_localizations 间接锁定，且不同 Flutter 版本锁的版本不同：
+  #   3.24.5（本机 WSL）→ intl 0.19.0
+  #   >=3.29（Codemagic stable）→ intl 0.20.2
+  # 写成 `^0.20.2` 会让 pub 在 3.24.5 上直接解析失败（version solving failed），
+  # 而写死 `^0.19.0` 又会在新版 SDK 上失败。用区间兼容两端。
+  intl: '>=0.19.0 <0.21.0'
   fl_chart: ^0.69.2
   cached_network_image: ^3.3.1
+
+  # 阅读画像「生成分享图片」：离屏渲染成 PNG + 调起系统分享
+  screenshot: ^3.0.0
+  share_plus: ^10.1.2
+  # 「保存图片到本地相册」。share_plus 只能把图交给别的 App，
+  # 用户想要「攒下来」时没有出口——这两件事不能互相替代。
+  # gal 2.3.3 的约束是 sdk >=3.0.0 / flutter >=3.7.0，与 3.24.5 兼容。
+  gal: ^2.3.3
+  # 打赏页：从「设置 → 支持开发者」调起外部浏览器打开用户自填链接
+  url_launcher: ^6.3.1
+
+  # 阅读计划提醒：本地通知（无需推送服务，不依赖任何后端）
+  flutter_local_notifications: ^17.2.3
+  # zonedSchedule 需要时区类型；latest_all 含完整时区数据
+  timezone: ^0.9.4
 
 dev_dependencies:
   flutter_test:
@@ -43,6 +70,10 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # 打开 gen-l10n 代码生成：flutter pub get / build 时会依据 l10n.yaml
+  # 自动生成 lib/l10n/app_localizations.dart（含 S 类）。缺这一行则
+  # 必须每次手动执行 `flutter gen-l10n`，否则 import 会解析失败。
+  generate: true
   assets:
     # 首批示例书库（38 本合成数据，分类与简介覆盖率 100%）
     # 首次启动自动灌库，让用户打开即见形态完整的书架而非空列表

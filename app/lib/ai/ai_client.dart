@@ -1,5 +1,9 @@
 import 'dart:convert';
+import '../l10n/app_loc.dart';
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
+import '../data/report_style.dart';
 import '../models/enums.dart';
 import 'llm_protocol.dart';
 
@@ -27,7 +31,7 @@ class WereadGateway {
 
   Future<Map<String, dynamic>> call(String apiName,
       [Map<String, dynamic> payload = const {}]) async {
-    if (!available) throw StateError('未配置微信读书 API Key');
+    if (!available) throw StateError(appLoc.s_178329ba);
     final res = await _dio.post(
       _gateway,
       options: Options(headers: {
@@ -348,7 +352,7 @@ class MetadataClient {
   /// 候选是否像同一本书：一方是另一方的前缀，或去掉标点后高度重合。
   static bool _titleMatches(String partial, String full) {
     String norm(String s) =>
-        s.replaceAll(RegExp(r'[\s·・\-—_:：,，。.·（）()\[\]【】]'), '').toLowerCase();
+        s.replaceAll(RegExp(appLoc.s_dd204792), '').toLowerCase();
     final a = norm(partial);
     final b = norm(full);
     if (a.isEmpty || b.isEmpty) return false;
@@ -366,19 +370,72 @@ class MetadataClient {
     return false;
   }
 
+  /// 公开书目检索：Google Books + Open Library，返回多条候选。
+  ///
+  /// 与 [lookup] 的分工很清楚：lookup 是「已知书名、补齐字段」，命中一条就够；
+  /// 这里是「用户主动搜索」，必须给多条让用户自己挑——公开书库里同名书、
+  /// 不同版次、不同译本遍地都是，替用户拍板等于替他做错误决策。
+  ///
+  /// 微信读书书城有意不参与：它是中文封闭体系，与国际书目混排只会把
+  /// 结果撕成两半，反而更难挑。
+  Future<List<MetadataResult>> search(String query, {int limit = 12}) async {
+    final q = query.trim();
+    if (q.isEmpty) return const [];
+    final out = <MetadataResult>[];
+    try {
+      out.addAll(await _googleBooksList(q, limit));
+    } catch (_) {
+      // 单个数据源不可达不应让整次搜索失败，继续试下一个
+    }
+    if (out.length < limit) {
+      try {
+        out.addAll(await _openLibraryList(q, limit - out.length));
+      } catch (_) {}
+    }
+    return out;
+  }
+
   Future<MetadataResult?> _googleBooks(String query) async {
+    final list = await _googleBooksList(query, 1);
+    return list.isEmpty ? null : list.first;
+  }
+
+  Future<List<MetadataResult>> _googleBooksList(String query, int limit) async {
     final res = await _dio.get(
       'https://www.googleapis.com/books/v1/volumes',
-      queryParameters: {'q': query, 'maxResults': 5},
+      queryParameters: {
+        'q': query,
+        // Google Books 的 maxResults 上限是 40，且不给这个参数时默认只有 10
+        'maxResults': limit.clamp(1, 40),
+      },
     );
     final items = res.data?['items'] as List?;
-    if (items == null || items.isEmpty) return null;
-    final v = (items.first as Map)['volumeInfo'] as Map? ?? {};
+    if (items == null || items.isEmpty) return const [];
+    final out = <MetadataResult>[];
+    for (final item in items) {
+      final m = _googleVolume(item);
+      if (m != null) out.add(m);
+    }
+    return out;
+  }
+
+  /// 单条 Google Books volumeInfo → MetadataResult。
+  /// 结构异常（缺 volumeInfo、不是 Map）返回 null 而不是抛异常——
+  /// 一个坏条目不该毁掉整批搜索结果。
+  static MetadataResult? _googleVolume(dynamic item) {
+    if (item is! Map) return null;
+    final v = item['volumeInfo'] as Map?;
+    if (v == null) return null;
+    final date = v['publishedDate'] as String?;
     return MetadataResult(
       title: v['title'] as String?,
       authors: (v['authors'] as List?)?.map((e) => e.toString()).toList() ?? const [],
       publisher: v['publisher'] as String?,
-      publishedAt: (v['publishedDate'] as String?)?.substring(0, (v['publishedDate'] as String).length.clamp(0, 10)),
+      // Google Books 的日期有时是完整时间戳（2019-05-01T00:00:00+00:00），
+      // 这里只取到「日」；短于 10 位的（如只有年份）原样保留。
+      publishedAt: date == null
+          ? null
+          : (date.length > 10 ? date.substring(0, 10) : date),
       description: v['description'] as String?,
       categoryPrimary: (v['categories'] as List?)?.first?.toString(),
       coverUrl: (v['imageLinks'] as Map?)?['thumbnail'] as String?,
@@ -392,17 +449,33 @@ class MetadataClient {
   }
 
   Future<MetadataResult?> _openLibrary(String query) async {
+    final list = await _openLibraryList(query, 1);
+    return list.isEmpty ? null : list.first;
+  }
+
+  Future<List<MetadataResult>> _openLibraryList(String query, int limit) async {
     final res = await _dio.get(
       'https://openlibrary.org/search.json',
       queryParameters: {
         'q': query,
-        'limit': 5,
-        'fields': 'title,author_name,publisher,first_publish_year,subject,isbn,cover_i,number_of_pages_median',
+        'limit': limit.clamp(1, 40),
+        'fields':
+            'title,author_name,publisher,first_publish_year,subject,isbn,cover_i,number_of_pages_median',
       },
     );
     final docs = res.data?['docs'] as List?;
-    if (docs == null || docs.isEmpty) return null;
-    final d = docs.first as Map;
+    if (docs == null || docs.isEmpty) return const [];
+    final out = <MetadataResult>[];
+    for (final doc in docs) {
+      final m = _openLibraryDoc(doc);
+      if (m != null) out.add(m);
+    }
+    return out;
+  }
+
+  static MetadataResult? _openLibraryDoc(dynamic doc) {
+    if (doc is! Map) return null;
+    final d = doc;
     return MetadataResult(
       title: d['title'] as String?,
       authors: (d['author_name'] as List?)?.map((e) => e.toString()).toList() ?? const [],
@@ -413,6 +486,9 @@ class MetadataClient {
           ? 'https://covers.openlibrary.org/b/id/${d['cover_i']}-M.jpg'
           : null,
       pageCount: d['number_of_pages_median'] as int?,
+      // Open Library 的 isbn 是数组，取第一个；
+      // 与 Google Books 的 isbn13 字段对齐，便于去重命中同一条指纹
+      isbn13: (d['isbn'] as List?)?.first?.toString(),
       tags: (d['subject'] as List?)?.take(5).map((e) => e.toString()).toList() ?? const [],
       source: 'openlibrary',
     );
@@ -520,11 +596,11 @@ class LlmClient {
     String? modelOverride,
   }) async {
     if (!available) {
-      throw LlmException('未配置大模型 API Key', hint: '到「设置 → 大模型」填写');
+      throw LlmException(appLoc.s_ad86a5ca, hint: appLoc.s_8a853cbe);
     }
     final useModel = (modelOverride ?? model).trim();
     if (useModel.isEmpty) {
-      throw LlmException('未选择模型', hint: '点「拉取模型」从账号可用列表里选一个');
+      throw LlmException(appLoc.s_7d704c88, hint: appLoc.s_4508cedd);
     }
 
     try {
@@ -545,7 +621,140 @@ class LlmClient {
     }
   }
 
+  /// 多模态：把一张图连同提示词一起发给模型。
+  ///
+  /// 两条协议的图片格式完全不同，且都不能复用 `chat` 那条
+  /// `Map<String, String>` 的消息结构——content 变成了块数组：
+  ///   - OpenAI：`content: [{type:'text'},{type:'image_url',image_url:{url:'data:…;base64,…'}}]`
+  ///   - Anthropic：`content: [{type:'image',source:{type:'base64',media_type,data}},{type:'text'}]`
+  ///     **图片块要放在文本块前面**，Claude 对先图后文的排版更稳。
+  ///
+  /// [mimeType] 必须与字节的实际格式一致，写错会让网关直接拒收。
+  /// 调用方统一转成 JPEG 再传，省得在这里猜。
+  Future<String> chatWithImage(
+    String prompt, {
+    required Uint8List imageBytes,
+    String mimeType = 'image/jpeg',
+    double temperature = 0.1,
+    int maxTokens = 3072,
+    String? modelOverride,
+  }) async {
+    if (!available) {
+      throw LlmException(appLoc.s_ad86a5ca, hint: appLoc.s_8a853cbe);
+    }
+    final useModel = (modelOverride ?? model).trim();
+    if (useModel.isEmpty) {
+      throw LlmException(appLoc.s_7d704c88, hint: appLoc.s_4508cedd);
+    }
+    final b64 = base64Encode(imageBytes);
+
+    try {
+      if (protocol == LlmProtocol.anthropic) {
+        final res = await _dio.post(
+          chatUri.toString(),
+          options: Options(headers: _headers),
+          data: {
+            'model': useModel,
+            'max_tokens': maxTokens,
+            'system': appLoc.s_1b5140db,
+            'messages': [
+              {
+                'role': 'user',
+                'content': [
+                  {
+                    'type': 'image',
+                    'source': {
+                      'type': 'base64',
+                      'media_type': mimeType,
+                      'data': b64,
+                    },
+                  },
+                  {'type': 'text', 'text': prompt},
+                ],
+              },
+            ],
+          },
+        );
+        return _unpack(res.data);
+      }
+
+      final res = await _dio.post(
+        chatUri.toString(),
+        options: Options(headers: _headers),
+        data: {
+          'model': useModel,
+          'temperature': temperature,
+          'max_tokens': maxTokens,
+          'messages': [
+            {
+              'role': 'user',
+              'content': [
+                {
+                  'type': 'image_url',
+                  'image_url': {'url': 'data:$mimeType;base64,$b64'},
+                },
+                {'type': 'text', 'text': prompt},
+              ],
+            },
+          ],
+        },
+      );
+      return _unpack(res.data);
+    } on DioException catch (e) {
+      throw _wrap(e);
+    }
+  }
+
+  /// 这个模型看起来支不支持图片输入。
+  ///
+  /// 只能靠名字猜，没有可靠的查询接口。猜错不致命——网关会返回
+  /// 400/422，调用方按失败处理并回落到端侧 OCR 即可。
+  /// 但**不能在不支持的模型上白等一次超时**，所以先把明显是纯文本的
+  /// 名字挡掉（含 embed / moderation / whisper 的）。
+  bool get supportsVision {
+    final m = model.toLowerCase();
+    if (m.isEmpty) return false;
+    const textOnly = ['embed', 'moderation', 'whisper', 'tts', 'dall-e'];
+    for (final t in textOnly) {
+      if (m.contains(t)) return false;
+    }
+    return true;
+  }
+
   Future<String> _chatOpenAi(
+    List<Map<String, String>> messages, {
+    required String useModel,
+    required double temperature,
+    required bool jsonMode,
+    int? maxTokens,
+  }) async {
+    if (!jsonMode) {
+      return _postOpenAi(messages,
+          useModel: useModel,
+          temperature: temperature,
+          jsonMode: false,
+          maxTokens: maxTokens);
+    }
+    try {
+      return await _postOpenAi(messages,
+          useModel: useModel,
+          temperature: temperature,
+          jsonMode: true,
+          maxTokens: maxTokens);
+    } on DioException catch (e) {
+      // 不少轻量模型根本不认 response_format，直接 400。
+      // 这时降级重试一次——模型自己硬输出 JSON 也还有 parseJsonLoose 兜底，
+      // 好过让「元数据兜底补全」整条链路因为一个可选参数彻底不可用。
+      if (!_isJsonModeRejection(e)) rethrow;
+      return _postOpenAi(messages,
+          useModel: useModel,
+          temperature: temperature,
+          jsonMode: false,
+          maxTokens: maxTokens);
+    }
+  }
+
+  Future<String> _postOpenAi(
     List<Map<String, String>> messages, {
     required String useModel,
     required double temperature,
@@ -563,38 +772,45 @@ class LlmClient {
         if (maxTokens != null) 'max_tokens': maxTokens,
       },
     );
-    final d = res.data;
-    final raw = _truncate(jsonEncode(d));
-    if (d is! Map) throw LlmException('返回结构无法解析', raw: raw);
+    return _unpack(res.data);
+  }
 
-    final choices = d['choices'];
-    if (choices is! List || choices.isEmpty) {
-      throw LlmException('返回结构无法解析', raw: raw);
+  /// 服务端明确表示不支持 `response_format` 时才认为可以降级重试。
+  /// 不能对所有 400 都重试——模型名写错也是 400，重试只会把一个错误变两个。
+  static bool _isJsonModeRejection(DioException e) {
+    if (e.response?.statusCode != 400) return false;
+    final msg = '${e.response?.data}'.toLowerCase();
+    return msg.contains('response_format') ||
+        msg.contains('json_object') ||
+        msg.contains('json mode');
+  }
+
+  /// 响应体 → 正文。两种协议的收尾都走这里。
+  ///
+  /// 抠不到正文时**必须把原始响应带进报错里**：上一版只丢一句
+  /// 「返回结构无法解析」，用户不知道发生了什么，开发者也拿不到任何线索。
+  /// 真实遇到过的情况是网关用 HTTP 200 返回 `{"error":...}`（欠费、无权限、
+  /// 模型不存在），那句报错把真正的原因整个吞掉了。
+  static String _unpack(Object? data) {
+    final body = _asJson(data);
+    final text = extractReplyText(body);
+    if (text != null) return text;
+
+    final head = _preview(body);
+
+    final apiError = extractApiError(body);
+    if (apiError != null) {
+      throw LlmException(
+        appLoc.s_c94c96fc(apiError: apiError),
+        raw: head,
+        hint: appLoc.s_3b43c7c4(head: head),
+      );
     }
-    final first = choices.first;
-    if (first is Map) {
-      final message = first['message'];
-      if (message is Map) {
-        // 空串必须当作「没给内容」：推理模型（deepseek-reasoner 一类）
-        // 常常返回 content:"" 并在 reasoning_content 里放正文。
-        // 直接 return content 会把答案吃掉，还返回一个空报告。
-        final content = message['content'];
-        if (content is String && content.trim().isNotEmpty) return content;
-        final reasoning = message['reasoning_content'];
-        if (reasoning is String && reasoning.trim().isNotEmpty) {
-          return reasoning;
-        }
-        // content 可能是分块数组（部分网关沿用 Claude 风格）
-        if (content is List) {
-          final buf = StringBuffer();
-          for (final b in content) {
-            if (b is Map && b['text'] is String) buf.write(b['text'] as String);
-          }
-          if (buf.toString().trim().isNotEmpty) return buf.toString();
-        }
-      }
-    }
-    throw LlmException('返回结构无法解析', raw: raw);
+    throw LlmException(
+      appLoc.s_231cf54a,
+      raw: head,
+      hint: appLoc.s_90747d4c(head: head),
+    );
   }
 
   /// Anthropic Messages API。
@@ -626,10 +842,10 @@ class LlmClient {
       }
     }
     if (jsonMode) {
-      systemParts.add('只输出合法 JSON，不要输出解释文字或 markdown 代码块。');
+      systemParts.add(appLoc.s_1b5140db);
     }
     if (turns.isEmpty) {
-      throw LlmException('消息为空，无法发送');
+      throw LlmException(appLoc.s_9d9714af);
     }
 
     final res = await _dio.post(
@@ -644,24 +860,12 @@ class LlmClient {
       },
     );
 
-    final d = res.data;
-    if (d is Map) {
-      final stop = d['stop_reason'];
-      if (stop == 'refusal') {
-        throw LlmException('模型拒绝了这次请求');
-      }
-      final blocks = d['content'];
-      if (blocks is List) {
-        final buf = StringBuffer();
-        for (final b in blocks) {
-          if (b is Map && b['type'] == 'text' && b['text'] is String) {
-            buf.write(b['text'] as String);
-          }
-        }
-        if (buf.isNotEmpty) return buf.toString();
-      }
+    final body = _asJson(res.data);
+    if (body is Map && body['stop_reason'] == 'refusal') {
+      throw LlmException(appLoc.s_f44ff25c,
+          hint: appLoc.s_cad5bf6e);
     }
-    throw LlmException('返回结构无法解析', raw: _truncate(jsonEncode(d)));
+    return _unpack(body);
   }
 
   /// 拉取该 Key 实际可用的模型列表。
@@ -670,14 +874,14 @@ class LlmClient {
   /// `models[]` 甚至裸数组的网关，所以逐个兜底探测。
   Future<List<LlmModel>> listModels() async {
     if (!available) {
-      throw LlmException('未配置 API Key', hint: '先填 Key 再拉取模型');
+      throw LlmException(appLoc.s_0f7b54a1, hint: appLoc.s_345e9547);
     }
     try {
       final res = await _dio.get(
         modelsUri.toString(),
         options: Options(headers: _headers),
       );
-      final raw = res.data;
+      final raw = _asJson(res.data);
       final out = <LlmModel>[];
 
       void take(List list) {
@@ -707,8 +911,13 @@ class LlmClient {
         }
       }
       if (out.isEmpty) {
-        throw LlmException('该服务返回的模型列表为空',
-            raw: _truncate(jsonEncode(raw)), hint: '可以手动填写模型名');
+        final apiError = extractApiError(raw);
+        throw LlmException(
+            apiError == null ? appLoc.s_3a5d4cca : appLoc.s_cea80527(apiError: apiError),
+            raw: _preview(raw, 300),
+            hint: apiError == null
+                ? appLoc.s_4674d953
+                : appLoc.s_749fc40e(raw: _preview(raw, 300)));
       }
       out.sort((a, b) => a.id.toLowerCase().compareTo(b.id.toLowerCase()));
       return out;
@@ -717,10 +926,10 @@ class LlmClient {
       if (wrapped.statusCode == 404) {
         // statusCode 必须带上：设置页要靠它区分「没有列表接口」和「地址填错」，
         // 丢了它这条例外就跟普通网络故障长得一样了。
-        throw LlmException('该服务没有提供模型列表接口 (404)',
+        throw LlmException(appLoc.s_8add575d,
             statusCode: 404,
             raw: wrapped.raw,
-            hint: '手动填写模型名即可，例如 deepseek-chat / claude-sonnet-5');
+            hint: appLoc.s_53fb436d);
       }
       throw wrapped;
     }
@@ -733,12 +942,12 @@ class LlmClient {
   Future<LlmPing> testConnection({String? overrideModel}) async {
     final useModel = (overrideModel ?? model).trim();
     if (useModel.isEmpty) {
-      throw LlmException('未填写模型名', hint: '先点「拉取模型」或手动填一个');
+      throw LlmException(appLoc.s_438a5695, hint: appLoc.s_1da90e20);
     }
     final started = DateTime.now();
     final text = await chat(
       [
-        {'role': 'user', 'content': '回复两个字：可用'},
+        {'role': 'user', 'content': appLoc.s_2abb6b8a},
       ],
       temperature: 0,
       maxTokens: 64,
@@ -754,19 +963,17 @@ class LlmClient {
   /// 元数据兜底：公开源查不到时，用 LLM 推断分类 / 简介 / 标签
   Future<Map<String, dynamic>?> inferMetadata(String title,
       {String? author, List<String>? categories}) async {
-    final vocab = (categories ?? defaultCategories).join(' / ');
+    // 候选词表给的是「当前语言的可读名」：这样模型照抄回来的分类与它写的
+    // 简介 / 标签语言一致。落库前会经 Book.withNormalizedCategory()
+    // 反查回规范值（categoryLabel 的逆映射），不会把显示名写进数据库。
+    final vocab = (categories ?? defaultCategories.map(categoryLabel).toList())
+        .join(' / ');
     final raw = await chat(
       [
-        {'role': 'system', 'content': '你是图书编目助手。只输出 JSON，不要解释。'},
+        {'role': 'system', 'content': appLoc.s_ad736a74},
         {
           'role': 'user',
-          'content': '已知书名《$title》${author != null ? '，作者：$author' : ''}。\n'
-              '请补充：\n'
-              '- categoryPrimary：必须从词表中选一个：$vocab\n'
-              '- description：80-150 字中文内容梗概，客观陈述，不含评价\n'
-              '- tags：3-5 个中文关键词标签\n'
-              '- authors：若能确定作者则给出数组，否则空数组\n'
-              '输出格式：{"categoryPrimary":"","description":"","tags":[],"authors":[]}'
+          'content': appLoc.s_4304f539(title: title, author: author != null ? appLoc.s_854a34ca(author: author) : '', vocab: vocab)
         },
       ],
       jsonMode: true,
@@ -774,24 +981,115 @@ class LlmClient {
     return parseJsonLoose(raw);
   }
 
+  /// 让模型基于统计给一组「性格标签」。
+  ///
+  /// 提示词里有两条硬约束，都是踩过坑加的：
+  ///   - 「每条都要能从数据里找到依据」：不写这句，模型会给出
+  ///     「热爱生活」这类任何书单都成立的标签，看两遍就腻；
+  ///   - 「不要出现『读者』『爱好者』」：这类词信息量为零。
+  ///
+  /// 返回值是**并列展示**的一版，不覆盖规则推导出来的那版——
+  /// 用户自己挑更可信的那一组。
+  Future<List<String>> suggestProfileTags(Map<String, dynamic> summary) async {
+    final raw = await chat(
+      [
+        {'role': 'system', 'content': appLoc.s_cbe8aa6b},
+        {
+          'role': 'user',
+          'content': appLoc.s_3864d3b4(summary: jsonEncode(summary))
+        },
+      ],
+      jsonMode: true,
+      temperature: 0.8,
+    );
+
+    final obj = parseJsonLoose(raw);
+    final list = obj?['tags'] ?? obj?['labels'] ?? obj?['data'];
+    final out = <String>[];
+    if (list is List) {
+      for (final e in list) {
+        final t = e is Map ? '${e['tag'] ?? e['name'] ?? ''}' : '$e';
+        final s = t.trim();
+        if (s.isNotEmpty) out.add(s);
+      }
+    } else {
+      // 模型直接给了裸数组
+      for (final e in parseJsonArrayLoose(raw)) {
+        final s = '${e['tag'] ?? e['name'] ?? ''}'.trim();
+        if (s.isNotEmpty) out.add(s);
+      }
+    }
+    return out.take(12).toList();
+  }
+
   /// 生成定期阅读报告
-  Future<String> generateReport(String period, Map<String, dynamic> data) async {
+  /// 生成阅读报告。
+  ///
+  /// [data] 里除了聚合统计，还带一份 `bookList`（书名 / 作者 / 分类 /
+  /// 状态 / 评分）。**报告必须能点名具体的书**——一份只谈「你读了 12 本，
+  /// 社科占 40%」的报告，换成任何人的数据都能套上去；只有指出
+  /// 《置身事内》读到 30% 就停了，才是「你的」报告。
+  ///
+  /// 清单默认只发周期内**变化过的书**（读完 / 在读 / 新增），不发全库，
+  /// 也不发笔记正文——阅读记录是私密数据，标题层面足够支撑分析。
+  ///
+  /// [style]：报告风格。不同风格换的是**语气与结构侧重**，
+  /// 而结构化标记（Markdown 标题、书名《》）与内容边界由
+  /// [kReportFormatRules] / [kReportContentBoundary] 统一附加，
+  /// 任何风格都改不掉——否则页面排版会散架、越界建议会回来。
+  ///
+  /// [customPrompt]：仅当 [style] 是自定义时使用；为空白则退回默认风格。
+  Future<String> generateReport(
+    String period,
+    Map<String, dynamic> data, {
+    ReportStyle? style,
+    String? customPrompt,
+  }) async {
+    final s = style ?? reportStyles.first;
+    final hasList = (data['bookList'] as List?)?.isNotEmpty ?? false;
+    final listHint = hasList ? appLoc.s_735e2d59 : '';
+
+    // 自定义风格且用户确实写了内容时，用他的提示词替代预设的写作要求
+    final custom = customPrompt?.trim() ?? '';
+    final useCustom = s.isCustom && custom.isNotEmpty;
+    final extra = useCustom ? custom : (s.instruction ?? '');
+
+    final userPrompt = StringBuffer()
+      ..writeln(appLoc.s_414278bd(
+        period: period,
+        data: jsonEncode(data),
+        listHint: listHint,
+      ));
+    if (extra.isNotEmpty) {
+      userPrompt
+        ..writeln()
+        ..writeln(extra);
+    }
+    userPrompt
+      ..writeln()
+      ..writeln(kReportFormatRules)
+      ..writeln()
+      ..writeln(kReportContentBoundary);
+    // 只有数据里真的带了计划才附加这段要求：否则模型会对着一个
+    // 不存在的字段硬凑一节「关于阅读计划」，纯属幻觉。
+    final hasPlans = (data['readingPlans'] as List?)?.isNotEmpty ?? false;
+    if (hasPlans) {
+      userPrompt
+        ..writeln()
+        ..writeln(kReportPlanRules);
+    }
+
     return chat(
       [
         {
           'role': 'system',
-          'content': '你是私人阅读顾问。基于数据做客观分析，避免空泛赞美，指出被忽视的结构性问题。'
+          // 角色始终取预设；自定义风格只改「写作要求」，不改角色——
+          // 让用户同时定义角色与要求，提示词会变得很长且容易自相矛盾
+          'content': s.persona,
         },
         {
           'role': 'user',
-          'content': '以下是我$period的阅读数据（JSON）：\n${jsonEncode(data)}\n\n'
-              '请生成一份中文阅读报告，包含：\n'
-              '1. 概览：读完本数、总时长、日均时长\n'
-              '2. 结构分析：分类分布、来源平台分布、形态占比\n'
-              '3. 习惯洞察：阅读节奏、连续天数、弃读率\n'
-              '4. 偏好画像：我可能是什么类型的读者\n'
-              '5. 建议：基于缺口给出 3 条具体可执行的下一步建议\n'
-              '用 Markdown 输出。'
+          'content': userPrompt.toString(),
         },
       ],
       temperature: 0.6,
@@ -805,22 +1103,21 @@ class LlmClient {
     final host = chatUri.host;
     switch (e.type) {
       case DioExceptionType.connectionTimeout:
-        return LlmException('连接超时：无法在 20 秒内连上 $host',
-            hint: '检查网络或 Base URL；国内直连部分海外服务需要代理');
+        return LlmException(appLoc.s_46e5ebef(host: host),
+            hint: appLoc.s_3c836870);
       case DioExceptionType.sendTimeout:
-        return LlmException('发送超时', hint: '网络上行不稳定，稍后重试');
+        return LlmException(appLoc.s_84264711, hint: appLoc.s_225ed2e1);
       case DioExceptionType.receiveTimeout:
-        return LlmException('响应超时：模型 180 秒内没有返回',
-            hint: '换一个更快的模型，或把报告周期缩短后重试');
+        return LlmException(appLoc.s_b265cf86,
+            hint: appLoc.s_cc12eea3);
       case DioExceptionType.badCertificate:
-        return LlmException('HTTPS 证书校验失败',
-            hint: '若使用自建/内网端点请改用可信证书');
+        return LlmException(appLoc.s_d711b259,
+            hint: appLoc.s_4722b0f8);
       case DioExceptionType.cancel:
-        return LlmException('请求已取消');
+        return LlmException(appLoc.s_07a2b144);
       case DioExceptionType.connectionError:
-        return LlmException('网络不可达：连不上 $host',
-            hint: '① 检查手机网络；② 确认 Base URL 写全了（含 /v1）；'
-                '③ 该服务是否需要代理；④ 本地服务（Ollama）手机访问不到电脑的 localhost');
+        return LlmException(appLoc.s_8ae0b0e4(host: host),
+            hint: appLoc.s_0a9425b8);
       case DioExceptionType.badResponse:
         break;
       case DioExceptionType.transformTimeout:
@@ -831,12 +1128,12 @@ class LlmClient {
         if (raw.contains('Software caused connection abort') ||
             raw.contains('Connection reset') ||
             raw.contains('Connection closed')) {
-          return LlmException('连接被中断',
+          return LlmException(appLoc.s_554d5235,
               raw: _truncate(raw),
-              hint: '常见于网络权限被拦、代理或防火墙中断连接，也可能是不支持明文 HTTP。稍后重试或换网络');
+              hint: appLoc.s_020fe21a);
         }
-        return LlmException('网络请求失败',
-            raw: _truncate(raw), hint: '检查 Base URL、代理设置与网络环境');
+        return LlmException(appLoc.s_dfde23b1,
+            raw: _truncate(raw), hint: appLoc.s_2ae4f5fe);
     }
 
     final code = e.response?.statusCode;
@@ -844,32 +1141,31 @@ class LlmClient {
     final detail = _extractMessage(e.response?.data);
     switch (code) {
       case 400:
-        return LlmException('请求被拒绝 (400)${detail != null ? '：$detail' : ''}',
-            statusCode: code, raw: body, hint: '多半是模型名不对，或该模型不支持当前参数');
+        return LlmException(appLoc.s_d6ac5952(detail: detail != null ? appLoc.s_edf331af(detail: detail) : ''),
+            statusCode: code, raw: body, hint: appLoc.s_cb980461);
       case 401:
-        return LlmException('鉴权失败 (401)${detail != null ? '：$detail' : ''}',
-            statusCode: code, raw: body, hint: 'API Key 无效或已过期，重新复制一个');
+        return LlmException(appLoc.s_d9775d22(detail: detail != null ? appLoc.s_edf331af(detail: detail) : ''),
+            statusCode: code, raw: body, hint: appLoc.s_c4198142);
       case 402:
-        return LlmException('账户余额不足 (402)', statusCode: code, raw: body);
+        return LlmException(appLoc.s_e06ab1cc, statusCode: code, raw: body);
       case 403:
-        return LlmException('无权限 (403)${detail != null ? '：$detail' : ''}',
-            statusCode: code, raw: body, hint: 'Key 没有该模型的调用权限，或未实名/未开通');
+        return LlmException(appLoc.s_05b3ec8b(detail: detail != null ? appLoc.s_edf331af(detail: detail) : ''),
+            statusCode: code, raw: body, hint: appLoc.s_f00f6ff2);
       case 404:
-        return LlmException('接口或模型不存在 (404)${detail != null ? '：$detail' : ''}',
-            statusCode: code, raw: body, hint: '核对 Base URL 是否填到 /v1；模型名可用「拉取模型」获取');
+        return LlmException(appLoc.s_016f7576(detail: detail != null ? appLoc.s_edf331af(detail: detail) : ''),
+            statusCode: code, raw: body, hint: appLoc.s_a8aa2c59);
       case 422:
-        return LlmException('参数不合法 (422)${detail != null ? '：$detail' : ''}',
+        return LlmException(appLoc.s_9688a257(detail: detail != null ? appLoc.s_edf331af(detail: detail) : ''),
             statusCode: code, raw: body);
       case 429:
-        return LlmException('触发限流 (429)', statusCode: code, raw: body, hint: '稍等再试，或升级套餐');
+        return LlmException(appLoc.s_1b3daaa3, statusCode: code, raw: body, hint: appLoc.s_2a564df1);
       case 500:
       case 502:
       case 503:
       case 504:
-        return LlmException('服务端错误 ($code)', statusCode: code, raw: body, hint: '对端的问题，稍后重试');
+        return LlmException(appLoc.s_6627221e(code: code), statusCode: code, raw: body, hint: appLoc.s_2fe391dd);
       default:
-        return LlmException('请求失败${code != null ? ' ($code)' : ''}'
-            '${detail != null ? '：$detail' : ''}',
+        return LlmException(appLoc.s_679e6c2e(code: code != null ? ' ($code)' : '', detail: detail != null ? appLoc.s_edf331af(detail: detail) : ''),
             statusCode: code, raw: body);
     }
   }
@@ -898,6 +1194,199 @@ class LlmClient {
     if (s == null) return null;
     return s.length <= max ? s : '${s.substring(0, max)}…';
   }
+
+  /* ------------------------- 响应体解析 ------------------------- */
+  /*
+   * 这一组刻意做成 static + 纯函数：它们是「各家网关长得不一样」这件事的
+   * 全部复杂度所在，必须能脱离网络在单测里逐个形态钉住。
+   */
+
+  /// 响应体解码。
+  ///
+  /// Dio 只在 `Content-Type` 是 JSON 时才自动解码。实测有网关把它写成
+  /// `text/plain`（甚至 `text/event-stream`），此时 `res.data` 是 **String**——
+  /// 上一版代码直接判 `d is! Map` 就抛「返回结构无法解析」，
+  /// 明明响应体是完好的 JSON，只是没被解码。
+  static Object? _asJson(Object? data) {
+    if (data is! String) return data;
+    final t = data.trim();
+    if (t.isEmpty) return '';
+    if (t.startsWith('{') || t.startsWith('[')) {
+      try {
+        return jsonDecode(t);
+      } catch (_) {
+        return t;
+      }
+    }
+    // 少数网关无视 stream=false 仍然回 SSE，只取第一个 data: 载荷
+    if (t.startsWith('data:') || t.contains('\ndata:')) {
+      for (final line in t.split('\n')) {
+        final s = line.trim();
+        if (!s.startsWith('data:')) continue;
+        final payload = s.substring(5).trim();
+        if (payload.isEmpty || payload == '[DONE]') continue;
+        try {
+          return jsonDecode(payload);
+        } catch (_) {
+          break;
+        }
+      }
+    }
+    return t;
+  }
+
+  /// 响应体 → 正文。抠不到返回 null。
+  ///
+  /// 只认 `choices[0].message.content` 是不够的，下面每一种都在真实网关
+  /// 上出现过，任何一种没覆盖到，界面上就是一句「返回结构无法解析」——
+  /// 用户既看不懂也无法自救：
+  ///
+  /// 1. 标准 OpenAI 兼容：`choices[0].message.content`
+  /// 2. 推理模型：`content` 是空串，正文在 `message.reasoning_content`
+  /// 3. 分块数组：`content: [{type: 'text', text: '…'}]`（部分网关仿 Claude）
+  /// 4. 补全风格：`choices[0].text`
+  /// 5. 外层再包一层：`{data:{…}}` / `{result:{…}}` / `{output:{…}}`
+  /// 6. Ollama 原生 `/api/chat`：顶层 `{message:{content:'…'}}`
+  /// 7. Responses 风格：顶层 `output_text` / `output[].content[].text`
+  /// 8. 整个响应体就是纯文本（见 [_asJson]）
+  static String? extractReplyText(Object? body) {
+    final b = _asJson(body);
+
+    // 纯文本响应：解不出 JSON 就把它本身当正文
+    if (b is String) return _nonEmpty(b);
+    // 少数网关直接给 content 分块数组
+    if (b is List) return _textFromBlocks(b);
+    if (b is! Map) return null;
+
+    // 先剥常见包装层，剥不动再往下走
+    for (final key in ['data', 'result', 'output', 'response', 'body']) {
+      final v = b[key];
+      if (v is Map || v is List) {
+        final inner = extractReplyText(v);
+        if (inner != null) return inner;
+      }
+    }
+
+    // choices[0] / choices[n]
+    final choices = b['choices'];
+    if (choices is List) {
+      for (final c in choices) {
+        if (c is! Map) continue;
+        final t = _textFromMessage(c['message']) ??
+            _textFromMessage(c['delta']) ??
+            _plainText(c['text']);
+        if (t != null) return t;
+      }
+    }
+
+    // Anthropic 原生：顶层 content 分块数组
+    // Ollama 原生：顶层 message
+    final t = _textFromMessage(b['message']) ??
+        _plainText(b['content']) ??
+        _textFromBlocks(b['content']) ??
+        _plainText(b['output_text']) ??
+        _textFromBlocks(b['output']);
+    return t;
+  }
+
+  /// 从响应体里挖出服务端错误信息。
+  ///
+  /// 存在的理由：**部分网关用 HTTP 200 返回错误**（欠费 / 模型不存在 /
+  /// Key 无权限）。不专门查这个字段，用户看到的就是「返回结构无法解析」，
+  /// 而真正的原因整整齐齐地躺在响应体里。
+  static String? extractApiError(Object? body) {
+    final b = _asJson(body);
+    if (b is! Map) return null;
+
+    final err = b['error'];
+    if (err is String) return _nonEmpty(err);
+    if (err is Map) {
+      final t = _nonEmpty('${err['message'] ?? err['msg'] ?? err['detail'] ?? ''}');
+      if (t != null) return t;
+    }
+    for (final k in ['message', 'msg', 'error_msg', 'errorMessage', 'detail']) {
+      final v = b[k];
+      if (v is String) {
+        final t = _nonEmpty(v);
+        if (t != null) return t;
+      }
+    }
+    // {"success": false, "code": 40001} 这类没有文字说明的
+    final code = b['code'];
+    if (code != null && (b['success'] == false || b['status'] == false)) {
+      return 'code=$code';
+    }
+    return null;
+  }
+
+  static String? _textFromMessage(Object? m) {
+    if (m is String) return _nonEmpty(m);
+    if (m is! Map) return null;
+    final content = m['content'];
+    if (content is String) {
+      // 空串必须当作「没给内容」：推理模型（deepseek-reasoner 一类）
+      // 常常 `content:""` 而把正文放在 reasoning_content 里。
+      // 上一版写成 `content is String` 就直接 return 空串，
+      // 报告出来是空白页，比报错还难查。
+      final t = _nonEmpty(content);
+      if (t != null) return t;
+    }
+    if (content is List) {
+      final t = _textFromBlocks(content);
+      if (t != null) return t;
+    }
+    final reasoning = m['reasoning_content'] ?? m['reasoning'];
+    return reasoning is String ? _nonEmpty(reasoning) : null;
+  }
+
+  /// 分块数组 → 文本。跳过 thinking / tool_use 块：
+  /// 它们是模型的中间过程，不是给用户的结果。
+  static String? _textFromBlocks(Object? blocks) {
+    if (blocks is! List) return null;
+    final buf = StringBuffer();
+    for (final b in blocks) {
+      if (b is String) {
+        buf.write(b);
+        continue;
+      }
+      if (b is! Map) continue;
+      final type = b['type'];
+      if (type == 'thinking' || type == 'tool_use' || type == 'tool_result') continue;
+      final t = b['text'] ?? b['content'];
+      if (t is String) {
+        buf.write(t);
+      } else if (t is Map && t['value'] is String) {
+        buf.write(t['value'] as String);
+      } else if (t is List) {
+        // Responses 风格是两层：output[].content[].text
+        final inner = _textFromBlocks(t);
+        if (inner != null) buf.write(inner);
+      }
+    }
+    return _nonEmpty(buf.toString());
+  }
+
+  static String? _plainText(Object? v) => v is String ? _nonEmpty(v) : null;
+
+  static String? _nonEmpty(String? s) {
+    if (s == null) return null;
+    final t = s.trim();
+    return t.isEmpty ? null : t;
+  }
+
+  /// 响应体的单行预览。jsonEncode 遇到不支持的类型会抛异常，
+  /// 而这里恰恰是「已经出了意外」的路径，绝不能再抛第二次。
+  static String _preview(Object? data, [int max = 160]) {
+    String s;
+    try {
+      s = data is String ? data : jsonEncode(data);
+    } catch (_) {
+      s = '$data';
+    }
+    s = s.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (s.isEmpty) return appLoc.s_0cf0a499;
+    return s.length <= max ? s : '${s.substring(0, max)}…';
+  }
 }
 
 /// 把任意异常翻成一句能给用户看的话。
@@ -917,7 +1406,7 @@ String describeLlmError(Object e) {
       text.contains('SocketException') ||
       text.contains('HttpException') ||
       text.contains('ClientException')) {
-    return '网络请求失败，检查手机网络与「设置 → 大模型」里的 Base URL';
+    return appLoc.s_9ed7e745;
   }
   return text;
 }

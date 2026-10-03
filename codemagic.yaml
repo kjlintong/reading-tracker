@@ -1,0 +1,69 @@
+# Codemagic 云构建配置（无需自备 Mac）
+#
+# 用法：在 https://codemagic.io 关联本仓库，选择 workflow 即可云端 macOS 出包。
+# - Android：直接产出 AAB（Google Play 上传用）
+# - iOS：云端 macOS 出 IPA；签名证书 / 描述文件在 Codemagic 控制台上传，
+#        或在 Codemagic 开启 "Automatic code signing"（Apple 开发者账号）。
+#
+# 注意：iOS 步骤里 `flutter create --platforms=ios .` 会重新生成 ios/，
+# 因此脚本在生成后用 PlistBuddy 把相机/相册用途描述与多语言声明重新注入
+# Info.plist，并把隐私清单拷回 Runner/，保证合规信息不丢失。
+
+workflows:
+  android-release:
+    name: Android Release (AAB)
+    max_build_duration: 30
+    instance_type: linux
+    environment:
+      flutter: stable
+      java: 17
+    scripts:
+      - flutter pub get
+      - flutter gen-l10n
+      - flutter build appbundle --release
+    artifacts:
+      - build/app/outputs/bundle/release/app-release.aab
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+
+  ios-release:
+    name: iOS Release (IPA)
+    max_build_duration: 45
+    instance_type: mac_mini_m1
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - flutter pub get
+      - flutter gen-l10n
+      # 重新生成规范 ios/（确保 Podfile / Xcode 工程正确）
+      - flutter create --platforms=ios .
+      # 重新注入相机/相册用途描述与多语言声明（生成会覆盖 Info.plist）
+      - >-
+        /usr/libexec/PlistBuddy -c "Add :NSCameraUsageDescription string '用于拍照识别图书封面与书架'"
+        ios/Runner/Info.plist ||
+        /usr/libexec/PlistBuddy -c "Set :NSCameraUsageDescription '用于拍照识别图书封面与书架'"
+        ios/Runner/Info.plist
+      - >-
+        /usr/libexec/PlistBuddy -c "Add :NSPhotoLibraryUsageDescription string '用于从相册选择书架截图进行识别'"
+        ios/Runner/Info.plist ||
+        /usr/libexec/PlistBuddy -c "Set :NSPhotoLibraryUsageDescription '用于从相册选择书架截图进行识别'"
+        ios/Runner/Info.plist
+      - /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations array" ios/Runner/Info.plist || true
+      - /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations:0 string en" ios/Runner/Info.plist || true
+      - /usr/libexec/PlistBuddy -c "Add :CFBundleLocalizations:1 string zh-Hans" ios/Runner/Info.plist || true
+      # 隐私清单（若被生成步骤移除则补回）
+      - cp -f ios/Runner/PrivacyInfo.xcprivacy ios/Runner/PrivacyInfo.xcprivacy || true
+      - cd ios && pod install && cd ..
+      # 部署目标 15.5（ML Kit 要求）由 Podfile 与 Info.plist 约束
+      - flutter build ipa --release
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        apple_id: $APPLE_ID
+        password: $APPLE_PASSWORD
+        # 在 Codemagic 控制台上传 Distribute 证书与 App Store 描述文件

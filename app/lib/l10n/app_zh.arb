@@ -1,0 +1,3289 @@
+{
+  "@@locale": "zh",
+  "appTitle": "Readnest",
+  "navShelf": "书架",
+  "addBookSheetTitle": "添加图书",
+  "addBookManualTitle": "手动填写",
+  "addBookManualDesc": "自己输入书名、作者等信息，不依赖任何账号或文件。",
+  "navStats": "统计",
+  "navSettings": "设置",
+  "supportDev": "支持开发者",
+  "supportDevDesc": "本应用全部功能免费开放，不含广告，也没有内购。如果它对你的阅读有帮助，欢迎请我喝杯咖啡——完全自愿，打赏与否功能完全一致。",
+  "openTipPage": "请我喝杯咖啡 · Ko-fi",
+  "about": "关于",
+  "aboutDesc": "开发者信息与相关链接。",
+  "appIntroPage": "应用介绍页",
+  "developerHomepage": "开发者主页",
+  "privacyPolicy": "隐私政策",
+  "appVersionLabel": "版本 {version}",
+  "goodreadsImport": "Goodreads / 书库 CSV 导入",
+  "goodreadsImportDesc": "导入从 Goodreads 等平台导出的书库 CSV（含书名、作者、评分、书架状态）。",
+  "goodreadsImportEmpty": "CSV 里找不到「Title」列",
+  "openLibraryImport": "Open Library / Google Books 搜索导入",
+  "openLibraryImportDesc": "按书名或 ISBN 搜索公开书目库，直接导入并补全作者、出版社、封面等元数据。",
+  "catalogSearchTitle": "公开书目搜索",
+  "catalogSearchHint": "输入书名或 ISBN",
+  "catalogSearchAction": "搜索",
+  "catalogSearchInitial": "从 Google Books 与 Open Library 检索公共书目，选中的书会直接入库，并带齐作者、出版社、封面与页数。",
+  "catalogNoResult": "没有找到匹配的书目，换个关键词试试",
+  "catalogSearchFailed": "搜索失败：{e}",
+  "imageUploadConsentTitle": "发送书架截图到 AI 服务？",
+  "imageUploadConsentBody": "为了让 AI 识别整张书架截图，这张图片会发往你在「设置 → 大模型」里填写的服务（第三方）。图片不含笔记正文，但会包含书名与封面。是否允许本次上传？",
+  "allow": "允许",
+  "cancel": "取消",
+  "s_178329ba": "未配置微信读书 API Key",
+  "s_dd204792": "[\\s·・\\-—_:：,，。.·（）()\\[\\]【】]",
+  "s_ad86a5ca": "未配置大模型 API Key",
+  "s_8a853cbe": "到「设置 → 大模型」填写",
+  "s_7d704c88": "未选择模型",
+  "s_4508cedd": "点「拉取模型」从账号可用列表里选一个",
+  "s_1b5140db": "只输出合法 JSON，不要输出解释文字或 markdown 代码块。",
+  "s_c94c96fc": "模型服务返回错误：{apiError}",
+  "s_3b43c7c4": "响应原文：{head}\n先在「设置 → 大模型」用「拉取模型」核对地址与模型名，欠费或未开通该模型也会走到这里",
+  "s_231cf54a": "模型返回的内容无法识别",
+  "s_90747d4c": "响应原文：{head}\n这是网关返回了非标准结构。可以换个模型或协议再试；把这段原文反馈回来也能帮助我们适配。",
+  "s_9d9714af": "消息为空，无法发送",
+  "s_f44ff25c": "模型拒绝了这个请求",
+  "s_cad5bf6e": "内容被判定为不适宜，换个说法或换个模型再试",
+  "s_0f7b54a1": "未配置 API Key",
+  "s_345e9547": "先填 Key 再拉取模型",
+  "s_3a5d4cca": "该服务返回的模型列表为空",
+  "s_cea80527": "拉取模型失败：{apiError}",
+  "s_4674d953": "可以手动填写模型名",
+  "s_749fc40e": "响应原文：{raw}",
+  "s_8add575d": "该服务没有提供模型列表接口 (404)",
+  "s_53fb436d": "手动填写模型名即可，例如 deepseek-chat / claude-sonnet-5",
+  "s_438a5695": "未填写模型名",
+  "s_1da90e20": "先点「拉取模型」或手动填一个",
+  "s_2abb6b8a": "回复两个字：可用",
+  "s_ad736a74": "你是图书编目助手。只输出 JSON，不要解释。",
+  "s_4304f539": "已知书名《{title}》{author}。\n请补充：\n- categoryPrimary：必须从词表中选一个：{vocab}\n- description：80-150 字中文内容梗概，客观陈述，不含评价\n- tags：3-5 个中文关键词标签\n- authors：若能确定作者则给出数组，否则空数组\n输出格式：{\"categoryPrimary\":\"\",\"description\":\"\",\"tags\":[],\"authors\":[]}",
+  "s_cbe8aa6b": "你是阅读画像分析师。只输出 JSON，不要解释。",
+  "s_3864d3b4": "以下是我的阅读数据（JSON）：\n{summary}\n\n请给我 10 个中文「性格标签」，每个 2-6 字，像书友会给人贴的绰号那样。\n要求：\n1. 每个标签都要能从上面的数据里找到依据，不要凭想象\n2. 风格参考：学习使我快乐 / 道法自然 / 颜值正义 / 博古通今 / 孤独的智者\n3. 不要出现「读者」「爱好者」「达人」这类没有信息量的词\n4. 不要解释，不要 markdown 代码块\n输出格式：{\"tags\":[\"标签1\",\"标签2\"]}",
+  "s_735e2d59": "6. 点名环节：从 bookList 里挑 3~5 本具体谈（哪本读完了、哪本开了头没继续、哪本评分最高），给出书名。\n报告中出现的书名必须来自 bookList，不要编造。\n",
+  "s_99acf9a4": "你是私人阅读顾问。基于数据做客观分析，避免空泛赞美，指出被忽视的结构性问题。",
+  "s_414278bd": "以下是我{period}的阅读数据（JSON）：\n{data}\n\n请生成一份中文阅读报告，包含：\n1. 概览：读完本数、总时长、日均时长\n2. 结构分析：分类分布、来源平台分布、形态占比\n3. 习惯洞察：阅读节奏、连续天数、弃读率\n4. 偏好画像：我可能是什么类型的读者\n5. 建议：基于缺口给出 3 条具体可执行的下一步建议。建议只围绕阅读本身（读什么、怎么读、读后如何记录）：不要评论书籍的来源或获取渠道，不要催促写书评、分享或打卡，不要做阅读之外的评判。\n{listHint}格式要求（严格遵守，报告会在 App 里按 Markdown 排版呈现）：\n- 六个部分都用二级标题开头（例如「## 概览」），标题里不要带编号。\n- 关键数字一律加粗，例如「共读完 **12 本**」「日均 **37 分钟**」。\n- 并列要点用 - 开头的无序列表；给读者的行动建议用 1. 2. 3. 有序列表。\n- 所有书名一律用《》包裹，例如《置身事内》。\n- 不要写 HTML 标签，不要使用四级及更深的标题。",
+  "s_46e5ebef": "连接超时：无法在 20 秒内连上 {host}",
+  "s_3c836870": "检查网络或 Base URL；国内直连部分海外服务需要代理",
+  "s_84264711": "发送超时",
+  "s_225ed2e1": "网络上行不稳定，稍后重试",
+  "s_b265cf86": "响应超时：模型 180 秒内没有返回",
+  "s_cc12eea3": "换一个更快的模型，或把报告周期缩短后重试",
+  "s_d711b259": "HTTPS 证书校验失败",
+  "s_4722b0f8": "若使用自建/内网端点请改用可信证书",
+  "s_07a2b144": "请求已取消",
+  "s_8ae0b0e4": "网络不可达：连不上 {host}",
+  "s_0a9425b8": "① 检查手机网络；② 确认 Base URL 写全了（含 /v1）；③ 该服务是否需要代理；④ 本地服务（Ollama）手机访问不到电脑的 localhost",
+  "s_554d5235": "连接被中断",
+  "s_020fe21a": "常见于网络权限被拦、代理或防火墙中断连接，也可能是不支持明文 HTTP。稍后重试或换网络",
+  "s_dfde23b1": "网络请求失败",
+  "s_2ae4f5fe": "检查 Base URL、代理设置与网络环境",
+  "s_d6ac5952": "请求被拒绝 (400){detail}",
+  "s_cb980461": "多半是模型名不对，或该模型不支持当前参数",
+  "s_d9775d22": "鉴权失败 (401){detail}",
+  "s_c4198142": "API Key 无效或已过期，重新复制一个",
+  "s_e06ab1cc": "账户余额不足 (402)",
+  "s_05b3ec8b": "无权限 (403){detail}",
+  "s_f00f6ff2": "Key 没有该模型的调用权限，或未实名/未开通",
+  "s_016f7576": "接口或模型不存在 (404){detail}",
+  "s_a8aa2c59": "核对 Base URL 是否填到 /v1；模型名可用「拉取模型」获取",
+  "s_9688a257": "参数不合法 (422){detail}",
+  "s_1b3daaa3": "触发限流 (429)",
+  "s_2a564df1": "稍等再试，或升级套餐",
+  "s_6627221e": "服务端错误 ({code})",
+  "s_2fe391dd": "对端的问题，稍后重试",
+  "s_679e6c2e": "请求失败{code}{detail}",
+  "s_0cf0a499": "(空响应体)",
+  "s_9ed7e745": "网络请求失败，检查手机网络与「设置 → 大模型」里的 Base URL",
+  "s_2ad3b6ba": "OpenAI 兼容",
+  "s_e2213e87": "Base URL 填到 /v1 为止，例如 https://api.deepseek.com/v1",
+  "s_17a4ba0f": "Base URL 通常为 https://api.anthropic.com（不带 /v1）",
+  "s_f1ea3335": "商汤 SenseNova",
+  "s_e522fe39": "通义千问",
+  "s_7e12f8b4": "智谱 GLM",
+  "s_c3d30bc2": "月之暗面 Kimi",
+  "s_8e941e27": "硅基流动",
+  "s_c800478c": "Ollama 本地",
+  "s_0babfa89": "任意非空字符串",
+  "s_e74f752c": "阅读天数为手工记录的阅读日",
+  "s_9ea3cbae": "时长与天数取自微信读书 {year} 年度统计（全年口径）",
+  "s_f676228c": "微信读书只提供年度口径，该区间的阅读天数无法精确给出；时长按整月粒度统计",
+  "s_06225788": "未评分",
+  "s_89cfaca8": "{i} 星",
+  "s_e7a2db51": "全部时间",
+  "s_a87cfcc9": "{y} 年",
+  "s_62654321": "近 {n} 个月",
+  "s_41f3af95": "阅读时长与天数为整月/年度粒度",
+  "s_e8a43314": "从下一本书开始，这份书单就会长出第一个数字。",
+  "s_af03278c": "书架还是空的——每段阅读史都是从这里起步的。",
+  "s_f53eead8": "连续阅读 {streak} 天了，节奏已经长在你身上。",
+  "s_ff1565a3": "{streak} 天的连续记录，别让它断在今天。",
+  "s_1736f17e": "连续 {streak} 天，这个习惯比任何一份书单都值钱。",
+  "s_9a3fb5e5": "已经读完 {finished} 本——把速度换成节奏，你会走得更远。",
+  "s_9d430ad3": "{finished} 本读完了。偶尔回头看看哪些真正留下了东西。",
+  "s_597f7c05": "这个区间读完 {finished} 本，每一本都算数。",
+  "s_1c87153f": "读完 {finished} 本。下一本从书架里挑一本开了头的吧。",
+  "s_41db17b9": "这段时间读了 {minutes} 分钟——把半小时变成每天的事，一年就是一百八十小时。",
+  "s_6a57c553": "已有 {minutes} 分钟阅读记录。今天再添一小段？",
+  "s_152a88d7": "书架已经备好，从一个轻松的短篇开始今天的十分钟。",
+  "s_795806c0": "挑一本开了头的书，读十分钟就算赢。",
+  "s_aa51bf46": "不用一口气读很多——今天翻开任意一本就算记录在案。",
+  "s_363c6a0c": "未分类",
+  "s_420a7ac1": "学习使我快乐",
+  "s_bcd278a6": "成长",
+  "s_3702d226": "成长类 {cat} 本 · 占 {pct}",
+  "s_6672b3fa": "浪漫诗意",
+  "s_d422d33c": "文学",
+  "s_40ba4ecb": "文学 {cat} 本 · 占 {pct}",
+  "s_ea2eaec4": "孤独的智者",
+  "s_5da32671": "哲学",
+  "s_0f80a135": "哲学 {cat} 本 · 占 {pct}",
+  "s_111ec0f6": "以史为鉴",
+  "s_07f288e9": "历史",
+  "s_abeb8e3d": "历史 {cat} 本 · 占 {pct}",
+  "s_5e336507": "向内探索",
+  "s_4307c7a8": "心理",
+  "s_cfce6d52": "心理 {cat} 本 · 占 {pct}",
+  "s_d5e26f37": "IT 精英",
+  "s_8612fa7f": "计算机",
+  "s_d6bdf44e": "计算机 {cat} 本 · 占 {pct}",
+  "s_00dcb308": "颜值正义",
+  "s_b31e932c": "艺术",
+  "s_aee18737": "艺术 {cat} 本 · 占 {pct}",
+  "s_2ddd554c": "理性务实",
+  "s_56734d39": "经济",
+  "s_5974bf24": "管理",
+  "s_066faf9c": "经济与经营 {cat} 本 · 占 {toStringAsFixed}%",
+  "s_d574ffeb": "世事洞明",
+  "s_086ac5bf": "社科",
+  "s_5a276724": "社科 {cat} 本 · 占 {pct}",
+  "s_d81bab36": "好奇心旺盛",
+  "s_41fa5c70": "科普",
+  "s_fcc3102d": "科技",
+  "s_76c118d0": "科普与科技 {n} 本",
+  "s_2b65326c": "以人为镜",
+  "s_f85fa7d4": "传记",
+  "s_b2e9db16": "传记 {cat} 本 · 占 {pct}",
+  "s_9e49409c": "养生有道",
+  "s_c21b69a8": "医学",
+  "s_1dd31356": "医学健康 {cat} 本",
+  "s_77e32253": "拿来主义",
+  "s_0323f1bb": "法律",
+  "s_82364cc8": "法律 {cat} 本",
+  "s_ea038731": "自娱自乐",
+  "s_dbb1c112": "漫画",
+  "s_6398a679": "童书",
+  "s_a1b1d26a": "漫画与童书 {cat} 本",
+  "s_94f8d7c2": "道法自然",
+  "s_30412ad5": "宗教",
+  "s_d00fbfe6": "宗教 {cat} 本",
+  "s_52c36d65": "懂生活",
+  "s_06e23c48": "其他",
+  "s_e3a3f18e": "生活类 {cat} 本 · 占 {pct}",
+  "s_dc2e94c1": "传道受业",
+  "s_235af603": "教育",
+  "s_be73b4a0": "教育 {cat} 本 · 占 {pct}",
+  "s_7ea6e8a9": "博古通今",
+  "s_938fd6ec": "藏书横跨 {categoryKinds} 个分类，什么都读一点",
+  "s_41a09d04": "专注深耕",
+  "s_c61130ac": "{total} 本只落在 {categoryKinds} 个分类里",
+  "s_431dc47d": "有始有终",
+  "s_a7b097f6": "读完率 {toStringAsFixed}%（{finished}/{total}）",
+  "s_6b51050c": "囤书如山",
+  "s_55413cd8": "想读 {wish} 本，读完的只有 {finished} 本",
+  "s_e60e931c": "果断止损",
+  "s_b3549d21": "弃读 {abandoned} 本 · 占 {toStringAsFixed}%，不好看就放下的类型",
+  "s_4be15f8c": "开坑能手",
+  "s_b0a853cf": "{stalled} 本在读但进度不到 15%",
+  "s_10b9bddd": "温柔以待",
+  "s_6a469e36": "评过分的 {ratedCount} 本平均 {toStringAsFixed} 分",
+  "s_e67694db": "毒舌评委",
+  "s_30c4cecf": "评过分的 {ratedCount} 本平均只有 {toStringAsFixed} 分",
+  "s_fe4567e4": "爱憎分明",
+  "s_b1d69175": "评分标准差 {toStringAsFixed}，好与差拉得很开",
+  "s_fbad19d5": "温故知新",
+  "s_8d62979c": "{reread} 本读了两遍以上",
+  "s_54302bb2": "沉浸式阅读",
+  "s_bc9dbced": "有阅读记录的日子里平均每天 {round} 分钟",
+  "s_e9eddf51": "电子书党",
+  "s_df5bbdba": "微信读书 {weread} 本 · 占 {toStringAsFixed}%",
+  "s_ce6517f9": "纸电双修",
+  "s_75c2fd5a": "还有 {libraryCount} 本借阅与 {paper} 本纸质书",
+  "s_8cac22b7": "用耳朵读书",
+  "s_72b826e9": "有声书 {audio} 本",
+  "s_7caeab27": "图文并茂",
+  "s_a5a44a39": "漫画 {comic} 本",
+  "s_0e59d960": "{y} 年 {m} 月",
+  "s_1a2e873e": "{month} 月",
+  "s_5583162a": "图像预处理失败，改用原图：{e}",
+  "s_628c2132": "转 JPEG 失败：{e}",
+  "s_ebf4bdfb": "正在解析版面结构…",
+  "s_ba1038b1": "正在用大模型整理识别结果…",
+  "s_6292a274": "正在核对书名…",
+  "s_427e1f0d": "[\\s《》「」『』…⋯.\\-—_:：]",
+  "s_af041a1b": "书名已补齐",
+  "s_988dd5cb": "{reason},书名已补齐",
+  "s_a746d189": "[、,，;/]",
+  "s_a4ec75fd": "《{title}》：{e}",
+  "s_d2bbf7ce": "多模态识别",
+  "s_381ca835": "这是一张书架/书单的截图",
+  "s_fce28e56": "这是一张单本书的封面或详情截图",
+  "s_ba5425c5": "{scene}。\n\n请只输出 JSON 数组，每项形如：\n{\"title\":\"书名\",\"author\":\"作者\",\"progress\":0-100的数字或null,\"status\":\"未读/在读/已读完 之一或null\",\"confidence\":0-1的数字}\n\n要求：\n1. 只输出图中**确实能看到**的书，不要补充你以为该有的书；\n2. 忽略界面文案（筛选、搜索、排序、全部、书架、共 N 本等）；\n3. 书名按图上的原文抄，被省略号截断的照抄，不要自行补全；\n4. 读不到作者就留空字符串，不要猜；\n5. 作者确实写在图上时才填。\n{n}",
+  "s_951042c3": "你是书架截图信息抽取助手。只输出 JSON 数组，不要任何解释文字。",
+  "s_29dbdb32": "大模型整理",
+  "s_9cd6567e": "一张图书封面/书脊照片",
+  "s_a6db1cf4": "一个电子书App的书架截图",
+  "s_43fca769": "下面是从{scene}里 OCR 出来的文字行，顺序即页面上从上到下的顺序。\n\n请抽取其中**真实存在的书名**，忽略所有界面文字（搜索框、筛选、分类、状态栏、页码、章节标题、按钮、统计数字）。\n\n规则：\n1. 只输出图中确实出现的书。不要凭常识补充图里没有的书。\n2. 书名若被界面用省略号截断（例如「雅思口语深…」），请补全成完整书名。\n3. progress 只填 0-100 的整数百分比，读不到就填空字符串。注意「0.8%」是 0.8 不是 80。\n4. status 只填「未读 / 在读 / 已读完 / 弃读」之一，读不到填空字符串。\n5. author 只在图中明确出现时填写，否则留空。不要猜作者。\n6. 拿不准的行不要输出。宁可少一本，也不要多一本假书。\n\n只输出 JSON 数组，元素格式：\n[{\"title\":\"\",\"author\":\"\",\"progress\":\"\",\"status\":\"\",\"confidence\":0.0}]\n\nOCR 文字行：\n\"\"\"\n{ocrText}\n\"\"\"",
+  "s_cbb756f7": "[\\s《》「」『』]",
+  "s_95222176": "未读",
+  "s_5a833930": "想看",
+  "s_b9bf9b53": "阅读中",
+  "s_be5492a5": "阅读中",
+  "s_44c14529": "已读完",
+  "s_0872b5b7": "读完",
+  "s_300a32bd": "已读完",
+  "s_0f4d9c68": "弃读（已并入搁置）",
+  "s_7675d229": "\\s*(著|编著|译|著译)$",
+  "s_285bb37e": "[，。；、？！：）」』]$",
+  "s_8f936d11": "(著|编著|译|著译)$",
+  "s_d0c345ec": "[（《·“]$",
+  "s_2d3c83a7": "[）》」』”]$",
+  "s_0686f279": "封面最大字号",
+  "s_5514105a": "封面次级文字",
+  "s_174faffb": "含中文",
+  "s_b13a1237": "带进度或状态",
+  "s_24745e9d": "带作者",
+  "s_0cedc3f4": "长度合理",
+  "s_5bdfa6ae": "过短",
+  "s_58171266": "过长",
+  "s_1e8c236b": "列左对齐",
+  "s_89ac54fb": "封面美术字",
+  "s_132a750b": "过短英文",
+  "s_6af25a96": "[，。；、？！]$",
+  "s_a335b25f": "句末标点",
+  "s_885dd894": "％",
+  "s_620b459e": "《",
+  "s_150c7508": "》",
+  "s_67df3afd": "含书名号",
+  "s_5a09ed37": "中文",
+  "s_6b631636": "疑似英文 UI 词",
+  "s_1dd3f274": "相邻行",
+  "s_f547232b": ",合并断行",
+  "s_fc39b00e": "借阅中",
+  "s_eba88d83": "搁置",
+  "s_b6fe7962": "电子书",
+  "s_c7673d27": "纸质",
+  "s_02a1a8ed": "有声书",
+  "s_fe152225": "微信读书",
+  "s_2032cbd7": "掌阅精选",
+  "s_12ed007e": "京东读书",
+  "s_570bb7c8": "文石",
+  "s_36bfef2d": "图书馆",
+  "s_4139f3b5": "手动",
+  "s_88cdd7e4": "划线",
+  "s_6abc44a8": "想法",
+  "s_67585b8a": "评论",
+  "s_96009a7e": "阅读报告",
+  "s_4343b7b3": "正在后台补生成：{join}",
+  "s_a6c57a43": "已自动补生成 {ok} 份报告",
+  "s_f71dea06": "补生成完成 {ok} 份，失败 {failed} 份（可手动重试）",
+  "s_e93308dd": "连通正常 · {model} · {latencyMs} ms",
+  "s_d2a3748e": "模型返回了空内容",
+  "s_3abdc334": "可能是模型不支持当前参数，或触发了内容过滤，换一个模型再试",
+  "s_cc72f973": "未配置大模型 Key，请先到「设置 → 大模型」填写并测试连通性",
+  "s_9e51ce93": "未选择模型，请到「设置 → 大模型」点「拉取模型」选一个",
+  "s_c6e18e89": "这个周期里没有符合条件的书，换一个周期试试",
+  "s_8bb45b34": "报告周期",
+  "s_8bd59fb2": "选择年报或月报",
+  "s_53bea04d": "按自然年 / 自然月归档，生成后可随时回看。当月月报要等下个月才生成。",
+  "s_1f048ed9": "测试中…",
+  "s_38fb1115": "测试连接",
+  "s_a14e36dc": "生成中…（长文本约需 1 分钟）",
+  "s_b36c173d": "生成报告",
+  "s_c94ade95": "会发送本周期的书名清单（书名 / 作者 / 分类 / 评分）与聚合统计，这样报告才点得出具体的书；笔记正文与划线内容不上传。",
+  "s_5e05e92a": "纳入统计",
+  "s_be9a1551": "{total} 本",
+  "s_ce115766": "{finished} 本",
+  "s_8b46a11f": "{reading} 本",
+  "s_81e94993": "{wish} 本",
+  "s_09b589b4": "平均分",
+  "s_0825e123": "报告内容 · {label}",
+  "s_049eca89": "复制全文",
+  "s_50bf9961": "报告已复制到剪贴板",
+  "s_772cbfcf": "自动生成",
+  "s_01955ddf": "开启后，打开本页会自动补生成缺失的年报与上月月报。",
+  "s_b2a52a3d": "自动补生成",
+  "s_b233138e": "年报",
+  "s_877b864d": "月报",
+  "s_a3dfa2a6": "历史报告",
+  "s_66772db6": "导出阅读数据",
+  "s_6b198f0b": "已取消导出",
+  "s_a101fbdd": "已导出到：{saved}\n\n{counts}",
+  "s_6ec2d38e": "导出失败：{e}",
+  "s_c699263b": "选择备份文件",
+  "s_e34bdbcb": "读不到这个文件：{e}",
+  "s_1dedeaa2": "这不是本 App 导出的备份文件（缺少格式标识，或版本比当前 App 新）",
+  "s_103c5811": "文件里没有可恢复的数据",
+  "s_674a7957": "确认恢复？",
+  "s_94094e0d": "将用备份覆盖本机数据：\n\n{length}\n\n同名记录会被整行覆盖——恢复的语义是「回到备份那一刻」，不做字段级合并。当前库里备份之后新增的书不会被删掉。",
+  "s_a0451c97": "取消",
+  "s_ec7085ab": "恢复",
+  "s_2296b134": "恢复完成{first}\n\n{counts}",
+  "s_e669bac1": "恢复失败：{e}",
+  "s_7c0be1cd": "图书 {books} 本",
+  "s_dd2321ce": "笔记 {notes} 条",
+  "s_d48aa751": "阅读记录 {reading_logs} 条",
+  "s_d044717e": "AI 报告 {llm_reports} 份",
+  "s_f4d248a7": "设置项 {settings} 条",
+  "s_8719bf89": "数据导出与恢复",
+  "s_8fe27f12": "导出什么",
+  "s_5d9af0a7": "整库 JSON 快照：图书、笔记、阅读记录、AI 报告与设置。存下来的是一个文件，换设备时用它恢复。",
+  "s_582f4cb6": "导出为 JSON 文件",
+  "s_091ad5f4": "从备份恢复",
+  "s_3a36f742": "选择之前导出的 .json 文件。同名记录整行覆盖，不合并字段——这是「回到备份那一刻」而不是「取并集」。",
+  "s_6f9ab88c": "选择备份文件并恢复",
+  "s_f24f63da": "删除这条笔记？",
+  "s_ecbd7449": "删除",
+  "s_f98a79dc": "添加笔记",
+  "s_05712ea1": "编辑笔记",
+  "s_e3fdcb7e": "摘抄、随想或书评…",
+  "s_c8d8fada": "章节 / 页码",
+  "s_f80f4749": "选填",
+  "s_abfe9512": "保存",
+  "s_a647c2e0": "这本书不存在或已被删除",
+  "s_154ada37": "作者：{join}",
+  "s_904feb6c": "译者：{join}",
+  "s_1e4c61f8": "出版社：{publisher}",
+  "s_bf93bf6d": "出版：{first}",
+  "s_def61e8c": "分类：{categoryPrimary}",
+  "s_d9bdf56b": "阅读状态",
+  "s_94b27e86": "进度 {toStringAsFixed}%",
+  "s_8331377a": "评分",
+  "s_205eb716": "摘要",
+  "s_b5e2aa8a": "记录这本书讲了什么",
+  "s_3ec1ca86": "读后感",
+  "s_aa5a5d3e": "你的评价与思考",
+  "s_fb47d52b": "笔记 · {length}",
+  "s_18dd30c5": "还没有笔记。读到有意思的地方记一条，将来写年度回顾时这就是素材。",
+  "s_4b7d48f2": "简介",
+  "s_5e52b06a": "应还日期：{dueAt}",
+  "s_ad207008": "编辑",
+  "s_f5d99c16": "、",
+  "s_65983593": "书名不能为空",
+  "s_1f0939bc": "[,，、;；]",
+  "s_6c7a6cc5": "编辑图书",
+  "s_31e2aa97": "手动添加图书",
+  "s_eda73905": "保存修改",
+  "s_71b10e99": "加入书架",
+  "s_2dae8ba5": "选择本地封面",
+  "s_5be7901d": "设置封面",
+  "s_a59912dd": "移除封面",
+  "s_e2b6c0de": "书名 *",
+  "s_22760472": "作者",
+  "s_5f70e9dd": "多位作者用逗号分隔",
+  "s_759fb403": "状态",
+  "s_da1c08d9": "载体",
+  "s_5ce4e16d": "清除",
+  "s_b0d7b0de": "简介 / 摘要",
+  "s_d0dd45ac": "分类会归一化到受控词表，手写「经管励志」也会并进「管理」，统计里不会裂成两类。",
+  "s_b32f0afe": "分类",
+  "s_87635298": "可留空",
+  "s_5aa23087": "不填",
+  "s_573b6694": "出错了：{e}",
+  "s_28690759": "正在增强图像…",
+  "s_d5155b2d": "没能识别出书名，换一张图试试",
+  "s_e20dac78": "正在用多模态模型读图…",
+  "s_5fea0487": "多模态模型没能从这张图里读出书名。确认所选模型支持图片输入（纯文本模型会直接拒收），或把「设置 → 截图识别 → 识别方式」改回「自动」以回落到端侧 OCR。",
+  "s_cdda9381": "多模态没结果，改用端侧 OCR…",
+  "s_b85e4cbc": "未授权图片上传，改用端侧 OCR…",
+  "s_a9698571": "正在识别文字…",
+  "s_7ef6b42d": "这张图里没读到文字。换个角度、让文字更清晰，或直接截屏（截屏的文字比拍照更规整）。",
+  "s_319b9488": "没读到像书名的文字。如果是书内页，书名通常不在页面上——试试点「截图导入书架」或直接拍封面。",
+  "s_37588c9c": "没能从图中识别出书名，试试裁掉多余界面元素后重试",
+  "s_04a1b347": "书名",
+  "s_a9fe3793": "CSV 里找不到「书名」列",
+  "s_3db59388": "进度",
+  "s_9e160a69": "出版社",
+  "s_d4b7c3c7": "解析到 {length} 本书，确认导入？",
+  "s_649320a3": "正在读取微信读书书架…",
+  "s_e53774ba": "书架为空或接口未返回数据",
+  "s_8151aa42": "微信读书书架共 {length} 本，确认导入？",
+  "s_9b37038a": "正在补全元数据并入库…",
+  "s_c4f36bd6": "导入完成：新增 {added} 本，更新 {duplicated} 本{failed}",
+  "s_28ab46d9": "本地还没有微信读书的书，先做一次书架同步",
+  "s_6d61442b": "正在同步阅读进度…",
+  "s_a26c53db": "已更新 {updated} / {length} 本的阅读进度",
+  "s_3a0cf870": "网络连接被中断，检查网络后重试",
+  "s_1cbe2507": "确认",
+  "s_1df9fbd5": "导入",
+  "s_874053cb": "微信读书 API Key",
+  "s_58652b51": "用微信扫码打开 weread.qq.com/r/weread-skills，\n复制页面上的 Key（wrk- 开头）。Key 只保存在本机。",
+  "s_cb2558f7": "截图导入书架",
+  "s_24b715f3": "从相册选一张书架截图，识别每一格的书名与进度。识别结果可能有偏差，保存前请核对。",
+  "s_4f062f79": "拍照导入书架",
+  "s_6e464c0e": "拍封面、书脊或书页，识别书名并自动补全作者、出版社等元数据。识别结果可能有偏差，保存前请核对。",
+  "s_a5452d46": "从渠道同步书架",
+  "s_d40e2a14": "通过已配置渠道的官方接口读取书架与阅读状态，无需截图。目前支持微信读书，更多渠道正在接入。",
+  "s_af94a367": "同步阅读进度",
+  "s_59d2efab": "逐本拉取阅读百分比与累计时长。部分渠道的书架接口不含进度，需单独请求。",
+  "s_fa52186c": "CSV / Notion 导入",
+  "s_2c78f2b8": "从 Notion 导出的 CSV 一键迁移，列名自动识别，自定义字段不丢失。",
+  "s_238b14fc": "处理中…",
+  "s_ed4b0551": "{length} 本未能导入",
+  "s_ec50ebde": "…另有 {length} 条",
+  "s_18307d56": "手动添加",
+  "s_cc0eef03": "识别到 {length} 本",
+  "s_0f466d7a": "全选",
+  "s_42b2fafa": "全不选",
+  "s_7feb7674": "识别到 {totalLines} 行文字，采用 {keptLines} 本{usedLlm}{repairedTitles}",
+  "s_4d52323f": "带「补齐」「推测」标记的条目，书名不是原图原文，请确认后再导入。标题与作者都可以点开修改。",
+  "s_0f40975c": "手动添加一本（OCR 没读到的）",
+  "s_fdc0acd1": "导入选中的 {length} 本",
+  "s_4443bd2c": "原图被截断",
+  "s_7af46a28": "进度 {progressPercent}%",
+  "s_4737de25": "置信度 {toStringAsFixed}%",
+  "s_2df91ffc": "原图：{rawText}",
+  "s_7bbe0f10": "作者（可留空）",
+  "s_bd13cf0b": "删掉这条",
+  "s_c048f107": "统计区间",
+  "s_89c61e4a": "藏书总数",
+  "s_9da15a74": "状态分布",
+  "s_130a42ae": "分类分布",
+  "s_98f42577": "来源分布",
+  "s_5e8ebbe6": "形态分布",
+  "s_5182e58a": "平均评分",
+  "s_50bcc778": "评过分的本数",
+  "s_59c5e73a": "阅读时长分钟",
+  "s_48529b9f": "有阅读记录的天数",
+  "s_7be1388c": "未配置大模型 Key，到「设置 → 大模型」填写后才能生成",
+  "s_992d7786": "模型没有返回可用的标签，换个模型再试",
+  "s_eead3bcd": "用这一组替换？",
+  "s_b9da6464": "当前 {length} 个标签会被替换成这 {length_1} 个。替换后仍然可以逐个编辑或删除。",
+  "s_89829921": "替换",
+  "s_0f8acec9": "已替换为主标签",
+  "s_93aebfd1": "这个标签已经在上面了",
+  "s_bca518fd": "已加入主标签",
+  "s_284dfaab": "已删除「{text}」",
+  "s_8eb8d18d": "编辑标签",
+  "s_35c48d07": "这是你自己写的标签，没有自动依据。",
+  "s_724386f0": "添加标签",
+  "s_fdd8c684": "自己写的标签不做校验，也不会被重算覆盖。",
+  "s_7b328e58": "恢复默认标签？",
+  "s_b9a4d4ef": "你手动改过的内容会被清掉，重新按当前藏书结构推导。",
+  "s_0fcef2c8": "已恢复为按藏书推导的标签",
+  "s_e97565e5": "我的阅读画像",
+  "s_783e43af": "生成分享图片失败：{e}",
+  "s_14f92b04": "生成分享图片",
+  "s_a17c4e02": "已保存到相册",
+  "s_3f81d5b6": "保存失败：{e}",
+  "s_c6d1e7a3": "图片已生成",
+  "s_b8e4c9a1": "保存图片到本地",
+  "s_51ebc0d1": "重新计算",
+  "s_6c64acc5": "我的性格标签",
+  "s_03bf36af": "{length} 本藏书推出",
+  "s_a789d74f": "标签都被删掉了。点下面的「添加」自己写一个，或恢复默认让系统重新推导。",
+  "s_a1d885c1": "添加",
+  "s_64bff158": "点标签可改文字或删除；规则推导的那些带数字依据，在编辑弹窗里能看到。",
+  "s_84bf2c49": "生成中…",
+  "s_5a251fee": "让 AI 再生成一组",
+  "s_18be3bbe": "恢复默认",
+  "s_7ae84af3": "阅读偏好分布",
+  "s_aeed65e7": "共 {length} 类",
+  "s_f2a9e2a4": "圆形面积与书本数量成正比（所以半径按数量的平方根算，直接拿数量当半径会把差距放大成误导）。",
+  "s_abd0dab0": "AI 生成 · {stamp}",
+  "s_7ea8e671": "替换主标签",
+  "s_d1a58b2f": "点单个标签把它加进主标签，或整组替换。这一组由模型根据聚合统计生成，依据没有规则版明确。",
+  "s_a38881a0": "这个区间里还没有书",
+  "s_20fde694": "换一个时间范围，或者先导入一些书",
+  "s_9fe34cff": "暂无分类数据",
+  "s_d9579b73": "{rangeLabel} · {bookCount} 本藏书",
+  "s_bfc50de8": "性格标签",
+  "s_ab5cc063": "阅读偏好",
+  "s_9de44e0f": "阅读管理 · 我的书架",
+  "s_20a63774": "选择统计区间",
+  "s_d507abff": "确定",
+  "s_ff31410d": "自定义…",
+  "s_72cca1f6": "配置已保存到本地",
+  "s_b6477017": "已填入 {name}，还需要填 API Key",
+  "s_533f5118": "正在拉取模型列表…",
+  "s_648219b9": "已选择模型：{id}",
+  "s_baf95794": "共 {length} 个可用模型（未选择）",
+  "s_e37cab47": "正在测试连通性…",
+  "s_c17c1a05": "连通正常 · {model}\n耗时 {latencyMs} ms，模型回复「{reply}」",
+  "s_5df0d12b": "正在验证微信读书 Key…",
+  "s_bd245b07": "Key 有效，书架当前 {n} 本",
+  "s_73f89115": "连不上 {host}\n检查网络、Base URL 是否写全（含 /v1），以及该服务是否需要代理",
+  "s_9038e16e": "对端响应超时（180 秒）",
+  "s_e0710bf5": "服务返回 {statusCode}：{e}",
+  "s_24d6c7ae": "请求失败：{name}",
+  "s_4d3eb2b3": "搜索模型",
+  "s_17d94005": "共 {length} 个",
+  "s_a48ae43a": "点选即写入模型名",
+  "s_b5c7b82d": "设置",
+  "s_bc90fa59": "用于同步书架与阅读进度。扫码打开 weread.qq.com/r/weread-skills 可获取。",
+  "s_e44e9f26": "验证 Key",
+  "s_75bf6943": "大模型",
+  "s_9e8f6691": "用于元数据兜底补全、截图识别整理与阅读报告。",
+  "s_cc3c9556": "服务商预设",
+  "s_9021b9f9": "选择后自动填入地址与模型",
+  "s_1fd51aaa": "模型名称",
+  "s_209e1f28": "建议点「拉取模型」从账号实际可用的列表里选",
+  "s_ab135d7c": "拉取模型",
+  "s_a46a5664": "测试连通性",
+  "s_e4f7e107": "显示密钥",
+  "s_b13be56e": "隐藏密钥",
+  "s_9ac01f6b": "测试与拉取都会先保存当前填写的内容，测到什么就存什么。",
+  "s_0001747c": "截图识别",
+  "s_3f5cbdbf": "决定拍照/截图导入的识别效果。",
+  "s_9130a4ed": "图像增强预处理",
+  "s_b79fc99c": "识别前放大到 1200px 宽并转灰度、提对比度。小字书名识别率明显更高。",
+  "s_9695a603": "用大模型整理识别结果",
+  "s_267118b5": "把 OCR 文本交给大模型挑出真正的书名并补全被截断的标题。需要配置大模型 Key，会消耗 token。",
+  "s_6d7e1f9f": "识别方式",
+  "s_ed144a76": "自动（多模态优先，失败回落端侧）",
+  "s_c7bab837": "多模态大模型直接读图",
+  "s_d8f3da2a": "端侧 OCR（离线、免费）",
+  "s_f22e4cd2": "端侧 OCR 拿得到坐标，多列书架里能把「0.8%」归到正确的书；但竖排书名、封面美术字、被截断的标题它读不出来。多模态模型能理解版面，代价是依赖网络且会编书名。两者失败模式不同，默认「自动」叠加使用最稳。",
+  "s_67677b3d": "数据",
+  "s_d596ba9b": "导出整库 JSON 用于换设备迁移。全新安装的书架是空的，看书请从「导入」页同步或添加。",
+  "s_39239742": "一键导出 / 恢复数据",
+  "s_3c21597a": "所有改动都会自动保存到本机数据库，无需手动保存。",
+  "s_68885a92": "密钥仅保存在本机数据库中，不会随应用分发或上传。",
+  "s_9b3c95d4": "最近更新",
+  "s_97428491": "最近读完",
+  "s_8f38c041": "评分最高",
+  "s_50a7317f": "进度最深",
+  "s_b5538557": "书名升序",
+  "s_e3cd14ba": "已添加《{title}》",
+  "s_296fc9b4": "书架",
+  "s_a444b428": "排序",
+  "s_fa0a5cdd": "切换为列表",
+  "s_cb4a4231": "切换为封面网格",
+  "s_78966c42": "搜索书名 / 作者 / 出版社",
+  "s_8ed41c6c": "没有符合筛选条件的书",
+  "s_bd33274a": "还没有书，去「导入」页添加吧",
+  "s_0cd6d0f8": "共 {length} 本",
+  "s_ff7e02df": "在读 {reading} · 已读 {finished}",
+  "s_68022ee7": "全部",
+  "s_542b67cc": "更多筛选",
+  "s_ec977df0": "来源平台",
+  "s_50d471b2": "重置",
+  "s_37361909": "图表显示设置",
+  "@s_37361909": {
+    "description": "auto-extracted"
+  },
+  "s_b1288e4a": "全部显示",
+  "@s_b1288e4a": {
+    "description": "auto-extracted"
+  },
+  "s_6b2b7015": "全部隐藏",
+  "@s_6b2b7015": {
+    "description": "auto-extracted"
+  },
+  "s_e91a9228": "只显示你关心的图表，其余收起来。",
+  "@s_e91a9228": {
+    "description": "auto-extracted"
+  },
+  "s_fe93ef35": "应用",
+  "s_0d65fca2": "[《》「」]",
+  "s_9380d869": "应还 {daysUntilDue} 天",
+  "s_0e13c16f": "统计",
+  "s_3ad4c4c8": "阅读画像",
+  "s_7c6c253b": "本期 · {label}",
+  "s_88c0b751": "按书的完成/活动日期归属",
+  "s_50ba5fd5": "本",
+  "s_cc4556af": "新增藏书",
+  "s_3509a9f8": "天",
+  "s_a7e9ff0f": "分",
+  "s_58d90b89": "当前书架",
+  "s_c3bb899b": "快照口径，不受上面的时间筛选影响",
+  "s_563edd9d": "总藏书",
+  "s_0d8d3eb3": "连续阅读",
+  "s_4ab30c5b": "在读低进度",
+  "s_b563f985": "结构分析 · {label}",
+  "s_a7e09561": "共 {length} 本纳入统计",
+  "s_c6cc650b": "阅读状态分布",
+  "s_8137585d": "分类分布 Top 8",
+  "s_f92480e2": "共 {length} 个分类",
+  "s_50feb68a": "月度在读",
+  "s_750a3b1c": "这个区间还没有月度在读记录",
+  "s_4d7dd157": "月度阅读时长",
+  "s_5a78dc03": "导入微信读书年度统计后显示",
+  "s_5b37ad6b": "评分分布",
+  "s_3c0e984b": "平均 {toStringAsFixed} 分 · 未评分 {unratedCount} 本",
+  "s_3c1cb8ee": "还没有评过分",
+  "s_01d886c7": "在读进度分布",
+  "s_ecf53f5a": "共 {readingInRange} 本在读",
+  "s_faf98ba4": "这个区间没有在读的书",
+  "s_77030fdc": "共 {length} 个平台",
+  "s_cea9cf70": "{first} 年",
+  "s_c4e530bb": "{first}-{last} 年",
+  "s_00fbaae1": "{scope} · 合计 {toStringAsFixed} 小时",
+  "s_e7b115df": "微信读书年度统计只覆盖 {join} 年，所以这张图按自然年画；上面那张读完图用的是最近 12 个月。",
+  "s_9ef861db": "{name}\n{toInt} 本",
+  "s_2cf3ef4e": "{i} · {toInt} 本",
+  "s_e241a8ef": "{i} · {toStringAsFixed} 小时",
+  "s_1597bc27": "AI 阅读报告",
+  "s_5024726e": "已存档 {reportCount} 份 · 按年 / 月归档，可随时回看",
+  "s_73f01b82": "按年 / 月生成一份阅读总结，点开即可生成",
+  "s_530f5951": "查看",
+  "s_d51cd7ae": "生成",
+  "s_f8525cf2": "暂无数据",
+  "s_854a34ca": "，作者：{author}",
+  "s_edf331af": "：{detail}",
+  "s_50018e2c": "\n补充：{hint}\n",
+  "s_a537d6ac": "（备份于 {first}）",
+  "s_acd7a061": "，失败 {failed} 本",
+  "s_da4d4d27": " · 已用大模型整理",
+  "s_af735e5a": " · 已补齐 {repairedTitles} 个截断书名",
+  "@appTitle": {
+    "description": "Application title shown on the home screen and task switcher"
+  },
+  "@navShelf": {
+    "description": "Bottom navigation: bookshelf"
+  },
+  "@navStats": {
+    "description": "Bottom navigation: statistics"
+  },
+  "@addBookSheetTitle": {
+    "description": "Bottom sheet: add-a-book title"
+  },
+  "@addBookManualTitle": {
+    "description": "Add-book sheet: manual entry"
+  },
+  "@addBookManualDesc": {
+    "description": "Add-book sheet: manual entry description"
+  },
+  "@navSettings": {
+    "description": "Bottom navigation: settings"
+  },
+  "navNotes": "记录",
+  "@navNotes": {
+    "description": "Bottom navigation: notes + reading plans merged into one column"
+  },
+  "notesViewByTime": "按时间",
+  "@notesViewByTime": {
+    "description": "Notes page: chronological view"
+  },
+  "notesViewByBook": "按书",
+  "@notesViewByBook": {
+    "description": "Notes page: grouped-by-book view"
+  },
+  "notesFilterByBook": "按书筛选",
+  "@notesFilterByBook": {
+    "description": "Notes page: book filter dropdown label"
+  },
+  "notesAllBooks": "全部书",
+  "@notesAllBooks": {
+    "description": "Notes page: book filter option meaning no filter"
+  },
+  "notesBookMissing": "书籍已不存在",
+  "@notesBookMissing": {
+    "description": "Notes page: placeholder when the note's book was deleted"
+  },
+  "notesOverview": "共 {count} 条 · 覆盖 {books} 本书",
+  "@notesOverview": {
+    "description": "Notes page: summary line",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "books": {
+        "type": "int"
+      }
+    }
+  },
+  "notesMoreCount": "还有 {count} 条",
+  "@notesMoreCount": {
+    "description": "Notes page: hidden note count in a book card",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "notesEmptyTitle": "还没有笔记",
+  "@notesEmptyTitle": {
+    "description": "Notes page: empty state title"
+  },
+  "notesEmptyDesc": "打开任意一本书，在详情页下方记一条划线或想法，它们会自动汇总到这里。",
+  "@notesEmptyDesc": {
+    "description": "Notes page: empty state guidance"
+  },
+  "notesEmptyFilteredTitle": "这本书还没有笔记",
+  "@notesEmptyFilteredTitle": {
+    "description": "Notes page: empty state title when a book filter yields nothing"
+  },
+  "notesEmptyFilteredDesc": "换一本书，或者清除筛选看看其它笔记。",
+  "@notesEmptyFilteredDesc": {
+    "description": "Notes page: empty state guidance when filtered"
+  },
+  "notesClearFilter": "清除筛选",
+  "@notesClearFilter": {
+    "description": "Notes page: clear the book filter"
+  },
+  "@supportDev": {
+    "description": "Settings section title for tipping the developer"
+  },
+  "@supportDevDesc": {
+    "description": "Explanation under the tipping section"
+  },
+  "@openTipPage": {
+    "description": "Button to open the developer tip page"
+  },
+  "@about": {
+    "description": "Settings section title for app/developer information"
+  },
+  "@aboutDesc": {
+    "description": "Explanation under the About section"
+  },
+  "@developerHomepage": {
+    "description": "Label for the row opening the developer's website"
+  },
+  "@privacyPolicy": {
+    "description": "Label for the row opening the privacy policy in the current language"
+  },
+  "@appVersionLabel": {
+    "description": "Shows the app version number",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "@goodreadsImport": {
+    "description": "Import card title for Goodreads CSV"
+  },
+  "@goodreadsImportDesc": {
+    "description": "Import card description for Goodreads CSV"
+  },
+  "@goodreadsImportEmpty": {
+    "description": "Error when CSV lacks a Title column"
+  },
+  "@openLibraryImport": {
+    "description": "Import card title for catalog search"
+  },
+  "@openLibraryImportDesc": {
+    "description": "Import card description for catalog search"
+  },
+  "@catalogSearchTitle": {
+    "description": "AppBar title of the public catalog search page"
+  },
+  "@catalogSearchHint": {
+    "description": "Hint text of the search field on the catalog search page"
+  },
+  "@catalogSearchAction": {
+    "description": "Label of the search button on the catalog search page"
+  },
+  "@catalogSearchInitial": {
+    "description": "Empty-state blurb shown before the first catalog search"
+  },
+  "@catalogNoResult": {
+    "description": "Shown when the catalog search returns no results"
+  },
+  "@catalogSearchFailed": {
+    "description": "Shown when the catalog search request throws",
+    "placeholders": {
+      "e": {}
+    }
+  },
+  "@imageUploadConsentTitle": {
+    "description": "Title of the consent dialog shown before uploading a shelf screenshot to the user's AI service"
+  },
+  "@imageUploadConsentBody": {
+    "description": "Explains the screenshot will leave the device and go to a third-party AI service"
+  },
+  "@allow": {
+    "description": "Confirm button label on the consent dialog"
+  },
+  "@cancel": {
+    "description": "Cancel button label on the consent dialog"
+  },
+  "@s_178329ba": {
+    "description": "auto-extracted"
+  },
+  "@s_dd204792": {
+    "description": "auto-extracted"
+  },
+  "@s_ad86a5ca": {
+    "description": "auto-extracted"
+  },
+  "@s_8a853cbe": {
+    "description": "auto-extracted"
+  },
+  "@s_7d704c88": {
+    "description": "auto-extracted"
+  },
+  "@s_4508cedd": {
+    "description": "auto-extracted"
+  },
+  "@s_1b5140db": {
+    "description": "auto-extracted"
+  },
+  "@s_c94c96fc": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "apiError": {}
+    }
+  },
+  "@s_3b43c7c4": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "head": {}
+    }
+  },
+  "@s_231cf54a": {
+    "description": "auto-extracted"
+  },
+  "@s_90747d4c": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "head": {}
+    }
+  },
+  "@s_9d9714af": {
+    "description": "auto-extracted"
+  },
+  "@s_f44ff25c": {
+    "description": "auto-extracted"
+  },
+  "@s_cad5bf6e": {
+    "description": "auto-extracted"
+  },
+  "@s_0f7b54a1": {
+    "description": "auto-extracted"
+  },
+  "@s_345e9547": {
+    "description": "auto-extracted"
+  },
+  "@s_3a5d4cca": {
+    "description": "auto-extracted"
+  },
+  "@s_cea80527": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "apiError": {}
+    }
+  },
+  "@s_4674d953": {
+    "description": "auto-extracted"
+  },
+  "@s_749fc40e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "raw": {}
+    }
+  },
+  "@s_8add575d": {
+    "description": "auto-extracted"
+  },
+  "@s_53fb436d": {
+    "description": "auto-extracted"
+  },
+  "@s_438a5695": {
+    "description": "auto-extracted"
+  },
+  "@s_1da90e20": {
+    "description": "auto-extracted"
+  },
+  "@s_2abb6b8a": {
+    "description": "auto-extracted"
+  },
+  "@s_ad736a74": {
+    "description": "auto-extracted"
+  },
+  "@s_4304f539": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "author": {},
+      "title": {},
+      "vocab": {}
+    }
+  },
+  "@s_cbe8aa6b": {
+    "description": "auto-extracted"
+  },
+  "@s_3864d3b4": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "summary": {}
+    }
+  },
+  "@s_735e2d59": {
+    "description": "auto-extracted"
+  },
+  "@s_99acf9a4": {
+    "description": "auto-extracted"
+  },
+  "@s_414278bd": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "data": {},
+      "listHint": {},
+      "period": {}
+    }
+  },
+  "@s_46e5ebef": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "host": {}
+    }
+  },
+  "@s_3c836870": {
+    "description": "auto-extracted"
+  },
+  "@s_84264711": {
+    "description": "auto-extracted"
+  },
+  "@s_225ed2e1": {
+    "description": "auto-extracted"
+  },
+  "@s_b265cf86": {
+    "description": "auto-extracted"
+  },
+  "@s_cc12eea3": {
+    "description": "auto-extracted"
+  },
+  "@s_d711b259": {
+    "description": "auto-extracted"
+  },
+  "@s_4722b0f8": {
+    "description": "auto-extracted"
+  },
+  "@s_07a2b144": {
+    "description": "auto-extracted"
+  },
+  "@s_8ae0b0e4": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "host": {}
+    }
+  },
+  "@s_0a9425b8": {
+    "description": "auto-extracted"
+  },
+  "@s_554d5235": {
+    "description": "auto-extracted"
+  },
+  "@s_020fe21a": {
+    "description": "auto-extracted"
+  },
+  "@s_dfde23b1": {
+    "description": "auto-extracted"
+  },
+  "@s_2ae4f5fe": {
+    "description": "auto-extracted"
+  },
+  "@s_d6ac5952": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "@s_cb980461": {
+    "description": "auto-extracted"
+  },
+  "@s_d9775d22": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "@s_c4198142": {
+    "description": "auto-extracted"
+  },
+  "@s_e06ab1cc": {
+    "description": "auto-extracted"
+  },
+  "@s_05b3ec8b": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "@s_f00f6ff2": {
+    "description": "auto-extracted"
+  },
+  "@s_016f7576": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "@s_a8aa2c59": {
+    "description": "auto-extracted"
+  },
+  "@s_9688a257": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "@s_1b3daaa3": {
+    "description": "auto-extracted"
+  },
+  "@s_2a564df1": {
+    "description": "auto-extracted"
+  },
+  "@s_6627221e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "code": {
+        "type": "int?"
+      }
+    }
+  },
+  "@s_2fe391dd": {
+    "description": "auto-extracted"
+  },
+  "@s_679e6c2e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "code": {},
+      "detail": {}
+    }
+  },
+  "@s_0cf0a499": {
+    "description": "auto-extracted"
+  },
+  "@s_9ed7e745": {
+    "description": "auto-extracted"
+  },
+  "@s_2ad3b6ba": {
+    "description": "auto-extracted"
+  },
+  "@s_e2213e87": {
+    "description": "auto-extracted"
+  },
+  "@s_17a4ba0f": {
+    "description": "auto-extracted"
+  },
+  "@s_f1ea3335": {
+    "description": "auto-extracted"
+  },
+  "@s_e522fe39": {
+    "description": "auto-extracted"
+  },
+  "@s_7e12f8b4": {
+    "description": "auto-extracted"
+  },
+  "@s_c3d30bc2": {
+    "description": "auto-extracted"
+  },
+  "@s_8e941e27": {
+    "description": "auto-extracted"
+  },
+  "@s_c800478c": {
+    "description": "auto-extracted"
+  },
+  "@s_0babfa89": {
+    "description": "auto-extracted"
+  },
+  "@s_e74f752c": {
+    "description": "auto-extracted"
+  },
+  "@s_9ea3cbae": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "year": {}
+    }
+  },
+  "@s_f676228c": {
+    "description": "auto-extracted"
+  },
+  "@s_06225788": {
+    "description": "auto-extracted"
+  },
+  "@s_89cfaca8": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "i": {}
+    }
+  },
+  "@s_e7a2db51": {
+    "description": "auto-extracted"
+  },
+  "@s_a87cfcc9": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "y": {}
+    }
+  },
+  "@s_62654321": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "n": {}
+    }
+  },
+  "@s_41f3af95": {
+    "description": "auto-extracted"
+  },
+  "@s_e8a43314": {
+    "description": "auto-extracted"
+  },
+  "@s_af03278c": {
+    "description": "auto-extracted"
+  },
+  "@s_f53eead8": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "streak": {}
+    }
+  },
+  "@s_ff1565a3": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "streak": {}
+    }
+  },
+  "@s_1736f17e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "streak": {}
+    }
+  },
+  "@s_9a3fb5e5": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "finished": {}
+    }
+  },
+  "@s_9d430ad3": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "finished": {}
+    }
+  },
+  "@s_597f7c05": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "finished": {}
+    }
+  },
+  "@s_1c87153f": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "finished": {}
+    }
+  },
+  "@s_41db17b9": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "@s_6a57c553": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "@s_152a88d7": {
+    "description": "auto-extracted"
+  },
+  "@s_795806c0": {
+    "description": "auto-extracted"
+  },
+  "@s_aa51bf46": {
+    "description": "auto-extracted"
+  },
+  "@s_363c6a0c": {
+    "description": "auto-extracted"
+  },
+  "@s_420a7ac1": {
+    "description": "auto-extracted"
+  },
+  "@s_bcd278a6": {
+    "description": "auto-extracted"
+  },
+  "@s_3702d226": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_6672b3fa": {
+    "description": "auto-extracted"
+  },
+  "@s_d422d33c": {
+    "description": "auto-extracted"
+  },
+  "@s_40ba4ecb": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_ea2eaec4": {
+    "description": "auto-extracted"
+  },
+  "@s_5da32671": {
+    "description": "auto-extracted"
+  },
+  "@s_0f80a135": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_111ec0f6": {
+    "description": "auto-extracted"
+  },
+  "@s_07f288e9": {
+    "description": "auto-extracted"
+  },
+  "@s_abeb8e3d": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_5e336507": {
+    "description": "auto-extracted"
+  },
+  "@s_4307c7a8": {
+    "description": "auto-extracted"
+  },
+  "@s_cfce6d52": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_d5e26f37": {
+    "description": "auto-extracted"
+  },
+  "@s_8612fa7f": {
+    "description": "auto-extracted"
+  },
+  "@s_d6bdf44e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_00dcb308": {
+    "description": "auto-extracted"
+  },
+  "@s_b31e932c": {
+    "description": "auto-extracted"
+  },
+  "@s_aee18737": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_2ddd554c": {
+    "description": "auto-extracted"
+  },
+  "@s_56734d39": {
+    "description": "auto-extracted"
+  },
+  "@s_5974bf24": {
+    "description": "auto-extracted"
+  },
+  "@s_066faf9c": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "toStringAsFixed": {}
+    }
+  },
+  "@s_d574ffeb": {
+    "description": "auto-extracted"
+  },
+  "@s_086ac5bf": {
+    "description": "auto-extracted"
+  },
+  "@s_5a276724": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_d81bab36": {
+    "description": "auto-extracted"
+  },
+  "@s_41fa5c70": {
+    "description": "auto-extracted"
+  },
+  "@s_fcc3102d": {
+    "description": "auto-extracted"
+  },
+  "@s_76c118d0": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "n": {}
+    }
+  },
+  "@s_2b65326c": {
+    "description": "auto-extracted"
+  },
+  "@s_f85fa7d4": {
+    "description": "auto-extracted"
+  },
+  "@s_b2e9db16": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_9e49409c": {
+    "description": "auto-extracted"
+  },
+  "@s_c21b69a8": {
+    "description": "auto-extracted"
+  },
+  "@s_1dd31356": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {}
+    }
+  },
+  "@s_77e32253": {
+    "description": "auto-extracted"
+  },
+  "@s_0323f1bb": {
+    "description": "auto-extracted"
+  },
+  "@s_82364cc8": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {}
+    }
+  },
+  "@s_ea038731": {
+    "description": "auto-extracted"
+  },
+  "@s_dbb1c112": {
+    "description": "auto-extracted"
+  },
+  "@s_6398a679": {
+    "description": "auto-extracted"
+  },
+  "@s_a1b1d26a": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {}
+    }
+  },
+  "@s_94f8d7c2": {
+    "description": "auto-extracted"
+  },
+  "@s_30412ad5": {
+    "description": "auto-extracted"
+  },
+  "@s_d00fbfe6": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {}
+    }
+  },
+  "@s_52c36d65": {
+    "description": "auto-extracted"
+  },
+  "@s_06e23c48": {
+    "description": "auto-extracted"
+  },
+  "@s_e3a3f18e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_dc2e94c1": {
+    "description": "auto-extracted"
+  },
+  "@s_235af603": {
+    "description": "auto-extracted"
+  },
+  "@s_be73b4a0": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "cat": {},
+      "pct": {}
+    }
+  },
+  "@s_7ea6e8a9": {
+    "description": "auto-extracted"
+  },
+  "@s_938fd6ec": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "categoryKinds": {}
+    }
+  },
+  "@s_41a09d04": {
+    "description": "auto-extracted"
+  },
+  "@s_c61130ac": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "categoryKinds": {},
+      "total": {}
+    }
+  },
+  "@s_431dc47d": {
+    "description": "auto-extracted"
+  },
+  "@s_a7b097f6": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "finished": {},
+      "toStringAsFixed": {},
+      "total": {}
+    }
+  },
+  "@s_6b51050c": {
+    "description": "auto-extracted"
+  },
+  "@s_55413cd8": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "finished": {},
+      "wish": {}
+    }
+  },
+  "@s_e60e931c": {
+    "description": "auto-extracted"
+  },
+  "@s_b3549d21": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "abandoned": {},
+      "toStringAsFixed": {}
+    }
+  },
+  "@s_4be15f8c": {
+    "description": "auto-extracted"
+  },
+  "@s_b0a853cf": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "stalled": {}
+    }
+  },
+  "@s_10b9bddd": {
+    "description": "auto-extracted"
+  },
+  "@s_6a469e36": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "ratedCount": {},
+      "toStringAsFixed": {}
+    }
+  },
+  "@s_e67694db": {
+    "description": "auto-extracted"
+  },
+  "@s_30c4cecf": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "ratedCount": {},
+      "toStringAsFixed": {}
+    }
+  },
+  "@s_fe4567e4": {
+    "description": "auto-extracted"
+  },
+  "@s_b1d69175": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "toStringAsFixed": {}
+    }
+  },
+  "@s_fbad19d5": {
+    "description": "auto-extracted"
+  },
+  "@s_8d62979c": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "reread": {}
+    }
+  },
+  "@s_54302bb2": {
+    "description": "auto-extracted"
+  },
+  "@s_bc9dbced": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "round": {}
+    }
+  },
+  "@s_e9eddf51": {
+    "description": "auto-extracted"
+  },
+  "@s_df5bbdba": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "toStringAsFixed": {},
+      "weread": {}
+    }
+  },
+  "@s_ce6517f9": {
+    "description": "auto-extracted"
+  },
+  "@s_75c2fd5a": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "libraryCount": {},
+      "paper": {}
+    }
+  },
+  "@s_8cac22b7": {
+    "description": "auto-extracted"
+  },
+  "@s_72b826e9": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "audio": {}
+    }
+  },
+  "@s_7caeab27": {
+    "description": "auto-extracted"
+  },
+  "@s_a5a44a39": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "comic": {}
+    }
+  },
+  "@s_0e59d960": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "m": {},
+      "y": {}
+    }
+  },
+  "@s_1a2e873e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "month": {}
+    }
+  },
+  "@s_5583162a": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {}
+    }
+  },
+  "@s_628c2132": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {}
+    }
+  },
+  "@s_ebf4bdfb": {
+    "description": "auto-extracted"
+  },
+  "@s_ba1038b1": {
+    "description": "auto-extracted"
+  },
+  "@s_6292a274": {
+    "description": "auto-extracted"
+  },
+  "@s_427e1f0d": {
+    "description": "auto-extracted"
+  },
+  "@s_af041a1b": {
+    "description": "auto-extracted"
+  },
+  "@s_988dd5cb": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "reason": {}
+    }
+  },
+  "@s_a746d189": {
+    "description": "auto-extracted"
+  },
+  "@s_a4ec75fd": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {},
+      "title": {}
+    }
+  },
+  "@s_d2bbf7ce": {
+    "description": "auto-extracted"
+  },
+  "@s_381ca835": {
+    "description": "auto-extracted"
+  },
+  "@s_fce28e56": {
+    "description": "auto-extracted"
+  },
+  "@s_ba5425c5": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "n": {},
+      "scene": {}
+    }
+  },
+  "@s_951042c3": {
+    "description": "auto-extracted"
+  },
+  "@s_29dbdb32": {
+    "description": "auto-extracted"
+  },
+  "@s_9cd6567e": {
+    "description": "auto-extracted"
+  },
+  "@s_a6db1cf4": {
+    "description": "auto-extracted"
+  },
+  "@s_43fca769": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "ocrText": {},
+      "scene": {}
+    }
+  },
+  "@s_cbb756f7": {
+    "description": "auto-extracted"
+  },
+  "@s_95222176": {
+    "description": "auto-extracted"
+  },
+  "@s_5a833930": {
+    "description": "auto-extracted"
+  },
+  "@s_b9bf9b53": {
+    "description": "auto-extracted"
+  },
+  "@s_be5492a5": {
+    "description": "auto-extracted"
+  },
+  "@s_44c14529": {
+    "description": "auto-extracted"
+  },
+  "@s_0872b5b7": {
+    "description": "auto-extracted"
+  },
+  "@s_300a32bd": {
+    "description": "auto-extracted"
+  },
+  "@s_0f4d9c68": {
+    "description": "auto-extracted"
+  },
+  "@s_7675d229": {
+    "description": "auto-extracted"
+  },
+  "@s_285bb37e": {
+    "description": "auto-extracted"
+  },
+  "@s_8f936d11": {
+    "description": "auto-extracted"
+  },
+  "@s_d0c345ec": {
+    "description": "auto-extracted"
+  },
+  "@s_2d3c83a7": {
+    "description": "auto-extracted"
+  },
+  "@s_0686f279": {
+    "description": "auto-extracted"
+  },
+  "@s_5514105a": {
+    "description": "auto-extracted"
+  },
+  "@s_174faffb": {
+    "description": "auto-extracted"
+  },
+  "@s_b13a1237": {
+    "description": "auto-extracted"
+  },
+  "@s_24745e9d": {
+    "description": "auto-extracted"
+  },
+  "@s_0cedc3f4": {
+    "description": "auto-extracted"
+  },
+  "@s_5bdfa6ae": {
+    "description": "auto-extracted"
+  },
+  "@s_58171266": {
+    "description": "auto-extracted"
+  },
+  "@s_1e8c236b": {
+    "description": "auto-extracted"
+  },
+  "@s_89ac54fb": {
+    "description": "auto-extracted"
+  },
+  "@s_132a750b": {
+    "description": "auto-extracted"
+  },
+  "@s_6af25a96": {
+    "description": "auto-extracted"
+  },
+  "@s_a335b25f": {
+    "description": "auto-extracted"
+  },
+  "@s_885dd894": {
+    "description": "auto-extracted"
+  },
+  "@s_620b459e": {
+    "description": "auto-extracted"
+  },
+  "@s_150c7508": {
+    "description": "auto-extracted"
+  },
+  "@s_67df3afd": {
+    "description": "auto-extracted"
+  },
+  "@s_5a09ed37": {
+    "description": "auto-extracted"
+  },
+  "@s_6b631636": {
+    "description": "auto-extracted"
+  },
+  "@s_1dd3f274": {
+    "description": "auto-extracted"
+  },
+  "@s_f547232b": {
+    "description": "auto-extracted"
+  },
+  "@s_fc39b00e": {
+    "description": "auto-extracted"
+  },
+  "@s_eba88d83": {
+    "description": "auto-extracted"
+  },
+  "@s_b6fe7962": {
+    "description": "auto-extracted"
+  },
+  "@s_c7673d27": {
+    "description": "auto-extracted"
+  },
+  "@s_02a1a8ed": {
+    "description": "auto-extracted"
+  },
+  "@s_fe152225": {
+    "description": "auto-extracted"
+  },
+  "@s_2032cbd7": {
+    "description": "auto-extracted"
+  },
+  "@s_12ed007e": {
+    "description": "auto-extracted"
+  },
+  "@s_570bb7c8": {
+    "description": "auto-extracted"
+  },
+  "@s_36bfef2d": {
+    "description": "auto-extracted"
+  },
+  "@s_4139f3b5": {
+    "description": "auto-extracted"
+  },
+  "@s_88cdd7e4": {
+    "description": "auto-extracted"
+  },
+  "@s_6abc44a8": {
+    "description": "auto-extracted"
+  },
+  "@s_67585b8a": {
+    "description": "auto-extracted"
+  },
+  "@s_96009a7e": {
+    "description": "auto-extracted"
+  },
+  "@s_4343b7b3": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "join": {}
+    }
+  },
+  "@s_a6c57a43": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "ok": {}
+    }
+  },
+  "@s_f71dea06": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "failed": {},
+      "ok": {}
+    }
+  },
+  "@s_e93308dd": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "latencyMs": {},
+      "model": {}
+    }
+  },
+  "@s_d2a3748e": {
+    "description": "auto-extracted"
+  },
+  "@s_3abdc334": {
+    "description": "auto-extracted"
+  },
+  "@s_cc72f973": {
+    "description": "auto-extracted"
+  },
+  "@s_9e51ce93": {
+    "description": "auto-extracted"
+  },
+  "@s_c6e18e89": {
+    "description": "auto-extracted"
+  },
+  "@s_8bb45b34": {
+    "description": "auto-extracted"
+  },
+  "@s_8bd59fb2": {
+    "description": "auto-extracted"
+  },
+  "@s_53bea04d": {
+    "description": "auto-extracted"
+  },
+  "@s_1f048ed9": {
+    "description": "auto-extracted"
+  },
+  "@s_38fb1115": {
+    "description": "auto-extracted"
+  },
+  "@s_a14e36dc": {
+    "description": "auto-extracted"
+  },
+  "@s_b36c173d": {
+    "description": "auto-extracted"
+  },
+  "@s_c94ade95": {
+    "description": "auto-extracted"
+  },
+  "@s_5e05e92a": {
+    "description": "auto-extracted"
+  },
+  "@s_be9a1551": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "total": {}
+    }
+  },
+  "@s_ce115766": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "finished": {}
+    }
+  },
+  "@s_8b46a11f": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "reading": {}
+    }
+  },
+  "@s_81e94993": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "wish": {}
+    }
+  },
+  "@s_09b589b4": {
+    "description": "auto-extracted"
+  },
+  "@s_0825e123": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "@s_049eca89": {
+    "description": "auto-extracted"
+  },
+  "@s_50bf9961": {
+    "description": "auto-extracted"
+  },
+  "@s_772cbfcf": {
+    "description": "auto-extracted"
+  },
+  "@s_01955ddf": {
+    "description": "auto-extracted"
+  },
+  "@s_b2a52a3d": {
+    "description": "auto-extracted"
+  },
+  "@s_b233138e": {
+    "description": "auto-extracted"
+  },
+  "@s_877b864d": {
+    "description": "auto-extracted"
+  },
+  "@s_a3dfa2a6": {
+    "description": "auto-extracted"
+  },
+  "@s_66772db6": {
+    "description": "auto-extracted"
+  },
+  "@s_6b198f0b": {
+    "description": "auto-extracted"
+  },
+  "@s_a101fbdd": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "counts": {},
+      "saved": {}
+    }
+  },
+  "@s_6ec2d38e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {}
+    }
+  },
+  "@s_c699263b": {
+    "description": "auto-extracted"
+  },
+  "@s_e34bdbcb": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {}
+    }
+  },
+  "@s_1dedeaa2": {
+    "description": "auto-extracted"
+  },
+  "@s_103c5811": {
+    "description": "auto-extracted"
+  },
+  "@s_674a7957": {
+    "description": "auto-extracted"
+  },
+  "@s_94094e0d": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_a0451c97": {
+    "description": "auto-extracted"
+  },
+  "@s_ec7085ab": {
+    "description": "auto-extracted"
+  },
+  "@s_2296b134": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "counts": {},
+      "first": {}
+    }
+  },
+  "@s_e669bac1": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {}
+    }
+  },
+  "@s_7c0be1cd": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "books": {
+        "type": "int?"
+      }
+    }
+  },
+  "@s_dd2321ce": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "notes": {
+        "type": "int?"
+      }
+    }
+  },
+  "@s_d48aa751": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "reading_logs": {
+        "type": "int?"
+      }
+    }
+  },
+  "@s_d044717e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "llm_reports": {
+        "type": "int?"
+      }
+    }
+  },
+  "@s_f4d248a7": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "settings": {
+        "type": "int?"
+      }
+    }
+  },
+  "@s_8719bf89": {
+    "description": "auto-extracted"
+  },
+  "@s_8fe27f12": {
+    "description": "auto-extracted"
+  },
+  "@s_5d9af0a7": {
+    "description": "auto-extracted"
+  },
+  "@s_582f4cb6": {
+    "description": "auto-extracted"
+  },
+  "@s_091ad5f4": {
+    "description": "auto-extracted"
+  },
+  "@s_3a36f742": {
+    "description": "auto-extracted"
+  },
+  "@s_6f9ab88c": {
+    "description": "auto-extracted"
+  },
+  "@s_f24f63da": {
+    "description": "auto-extracted"
+  },
+  "@s_ecbd7449": {
+    "description": "auto-extracted"
+  },
+  "@s_f98a79dc": {
+    "description": "auto-extracted"
+  },
+  "@s_05712ea1": {
+    "description": "auto-extracted"
+  },
+  "@s_e3fdcb7e": {
+    "description": "auto-extracted"
+  },
+  "@s_c8d8fada": {
+    "description": "auto-extracted"
+  },
+  "@s_f80f4749": {
+    "description": "auto-extracted"
+  },
+  "@s_abfe9512": {
+    "description": "auto-extracted"
+  },
+  "@s_a647c2e0": {
+    "description": "auto-extracted"
+  },
+  "@s_154ada37": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "join": {}
+    }
+  },
+  "@s_904feb6c": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "join": {}
+    }
+  },
+  "@s_1e4c61f8": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "publisher": {}
+    }
+  },
+  "@s_bf93bf6d": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "first": {}
+    }
+  },
+  "@s_def61e8c": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "categoryPrimary": {}
+    }
+  },
+  "@s_d9bdf56b": {
+    "description": "auto-extracted"
+  },
+  "@s_94b27e86": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "toStringAsFixed": {}
+    }
+  },
+  "@s_8331377a": {
+    "description": "auto-extracted"
+  },
+  "@s_205eb716": {
+    "description": "auto-extracted"
+  },
+  "@s_b5e2aa8a": {
+    "description": "auto-extracted"
+  },
+  "@s_3ec1ca86": {
+    "description": "auto-extracted"
+  },
+  "@s_aa5a5d3e": {
+    "description": "auto-extracted"
+  },
+  "@s_fb47d52b": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_18dd30c5": {
+    "description": "auto-extracted"
+  },
+  "@s_4b7d48f2": {
+    "description": "auto-extracted"
+  },
+  "@s_5e52b06a": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "dueAt": {
+        "type": "String?"
+      }
+    }
+  },
+  "@s_ad207008": {
+    "description": "auto-extracted"
+  },
+  "@s_f5d99c16": {
+    "description": "auto-extracted"
+  },
+  "@s_65983593": {
+    "description": "auto-extracted"
+  },
+  "@s_1f0939bc": {
+    "description": "auto-extracted"
+  },
+  "@s_6c7a6cc5": {
+    "description": "auto-extracted"
+  },
+  "@s_31e2aa97": {
+    "description": "auto-extracted"
+  },
+  "@s_eda73905": {
+    "description": "auto-extracted"
+  },
+  "@s_71b10e99": {
+    "description": "auto-extracted"
+  },
+  "@s_2dae8ba5": {
+    "description": "auto-extracted"
+  },
+  "@s_5be7901d": {
+    "description": "auto-extracted"
+  },
+  "@s_a59912dd": {
+    "description": "auto-extracted"
+  },
+  "@s_e2b6c0de": {
+    "description": "auto-extracted"
+  },
+  "@s_22760472": {
+    "description": "auto-extracted"
+  },
+  "@s_5f70e9dd": {
+    "description": "auto-extracted"
+  },
+  "@s_759fb403": {
+    "description": "auto-extracted"
+  },
+  "@s_da1c08d9": {
+    "description": "auto-extracted"
+  },
+  "@s_5ce4e16d": {
+    "description": "auto-extracted"
+  },
+  "@s_b0d7b0de": {
+    "description": "auto-extracted"
+  },
+  "@s_d0dd45ac": {
+    "description": "auto-extracted"
+  },
+  "@s_b32f0afe": {
+    "description": "auto-extracted"
+  },
+  "@s_87635298": {
+    "description": "auto-extracted"
+  },
+  "@s_5aa23087": {
+    "description": "auto-extracted"
+  },
+  "@s_573b6694": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {}
+    }
+  },
+  "@s_28690759": {
+    "description": "auto-extracted"
+  },
+  "@s_d5155b2d": {
+    "description": "auto-extracted"
+  },
+  "@s_e20dac78": {
+    "description": "auto-extracted"
+  },
+  "@s_5fea0487": {
+    "description": "auto-extracted"
+  },
+  "@s_cdda9381": {
+    "description": "auto-extracted"
+  },
+  "@s_b85e4cbc": {
+    "description": "auto-extracted"
+  },
+  "@s_a9698571": {
+    "description": "auto-extracted"
+  },
+  "@s_7ef6b42d": {
+    "description": "auto-extracted"
+  },
+  "@s_319b9488": {
+    "description": "auto-extracted"
+  },
+  "@s_37588c9c": {
+    "description": "auto-extracted"
+  },
+  "@s_04a1b347": {
+    "description": "auto-extracted"
+  },
+  "@s_a9fe3793": {
+    "description": "auto-extracted"
+  },
+  "@s_3db59388": {
+    "description": "auto-extracted"
+  },
+  "@s_9e160a69": {
+    "description": "auto-extracted"
+  },
+  "@s_d4b7c3c7": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_649320a3": {
+    "description": "auto-extracted"
+  },
+  "@s_e53774ba": {
+    "description": "auto-extracted"
+  },
+  "@s_8151aa42": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_9b37038a": {
+    "description": "auto-extracted"
+  },
+  "@s_c4f36bd6": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "added": {},
+      "duplicated": {},
+      "failed": {}
+    }
+  },
+  "@s_28ab46d9": {
+    "description": "auto-extracted"
+  },
+  "@s_6d61442b": {
+    "description": "auto-extracted"
+  },
+  "@s_a26c53db": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {},
+      "updated": {}
+    }
+  },
+  "@s_3a0cf870": {
+    "description": "auto-extracted"
+  },
+  "@s_1cbe2507": {
+    "description": "auto-extracted"
+  },
+  "@s_1df9fbd5": {
+    "description": "auto-extracted"
+  },
+  "@s_874053cb": {
+    "description": "auto-extracted"
+  },
+  "@s_58652b51": {
+    "description": "auto-extracted"
+  },
+  "@s_cb2558f7": {
+    "description": "auto-extracted"
+  },
+  "@s_24b715f3": {
+    "description": "auto-extracted"
+  },
+  "@s_4f062f79": {
+    "description": "auto-extracted"
+  },
+  "@s_6e464c0e": {
+    "description": "auto-extracted"
+  },
+  "@s_a5452d46": {
+    "description": "auto-extracted"
+  },
+  "@s_d40e2a14": {
+    "description": "auto-extracted"
+  },
+  "@s_af94a367": {
+    "description": "auto-extracted"
+  },
+  "@s_59d2efab": {
+    "description": "auto-extracted"
+  },
+  "@s_fa52186c": {
+    "description": "auto-extracted"
+  },
+  "@s_2c78f2b8": {
+    "description": "auto-extracted"
+  },
+  "@s_238b14fc": {
+    "description": "auto-extracted"
+  },
+  "@s_ed4b0551": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_ec50ebde": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_18307d56": {
+    "description": "auto-extracted"
+  },
+  "@s_cc0eef03": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_0f466d7a": {
+    "description": "auto-extracted"
+  },
+  "@s_42b2fafa": {
+    "description": "auto-extracted"
+  },
+  "@s_7feb7674": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "keptLines": {},
+      "repairedTitles": {},
+      "totalLines": {},
+      "usedLlm": {}
+    }
+  },
+  "@s_4d52323f": {
+    "description": "auto-extracted"
+  },
+  "@s_0f40975c": {
+    "description": "auto-extracted"
+  },
+  "@s_fdc0acd1": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_4443bd2c": {
+    "description": "auto-extracted"
+  },
+  "@s_7af46a28": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "progressPercent": {}
+    }
+  },
+  "@s_4737de25": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "toStringAsFixed": {}
+    }
+  },
+  "@s_2df91ffc": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "rawText": {}
+    }
+  },
+  "@s_7bbe0f10": {
+    "description": "auto-extracted"
+  },
+  "@s_bd13cf0b": {
+    "description": "auto-extracted"
+  },
+  "@s_c048f107": {
+    "description": "auto-extracted"
+  },
+  "@s_89c61e4a": {
+    "description": "auto-extracted"
+  },
+  "@s_9da15a74": {
+    "description": "auto-extracted"
+  },
+  "@s_130a42ae": {
+    "description": "auto-extracted"
+  },
+  "@s_98f42577": {
+    "description": "auto-extracted"
+  },
+  "@s_5e8ebbe6": {
+    "description": "auto-extracted"
+  },
+  "@s_5182e58a": {
+    "description": "auto-extracted"
+  },
+  "@s_50bcc778": {
+    "description": "auto-extracted"
+  },
+  "@s_59c5e73a": {
+    "description": "auto-extracted"
+  },
+  "@s_48529b9f": {
+    "description": "auto-extracted"
+  },
+  "@s_7be1388c": {
+    "description": "auto-extracted"
+  },
+  "@s_992d7786": {
+    "description": "auto-extracted"
+  },
+  "@s_eead3bcd": {
+    "description": "auto-extracted"
+  },
+  "@s_b9da6464": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {},
+      "length_1": {}
+    }
+  },
+  "@s_89829921": {
+    "description": "auto-extracted"
+  },
+  "@s_0f8acec9": {
+    "description": "auto-extracted"
+  },
+  "@s_93aebfd1": {
+    "description": "auto-extracted"
+  },
+  "@s_bca518fd": {
+    "description": "auto-extracted"
+  },
+  "@s_284dfaab": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "text": {}
+    }
+  },
+  "@s_8eb8d18d": {
+    "description": "auto-extracted"
+  },
+  "@s_35c48d07": {
+    "description": "auto-extracted"
+  },
+  "@s_724386f0": {
+    "description": "auto-extracted"
+  },
+  "@s_fdd8c684": {
+    "description": "auto-extracted"
+  },
+  "@s_7b328e58": {
+    "description": "auto-extracted"
+  },
+  "@s_b9a4d4ef": {
+    "description": "auto-extracted"
+  },
+  "@s_0fcef2c8": {
+    "description": "auto-extracted"
+  },
+  "@s_e97565e5": {
+    "description": "auto-extracted"
+  },
+  "@s_783e43af": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {}
+    }
+  },
+  "@s_14f92b04": {
+    "description": "auto-extracted"
+  },
+  "@s_a17c4e02": {
+    "description": "auto-extracted"
+  },
+  "@s_3f81d5b6": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {}
+    }
+  },
+  "@s_c6d1e7a3": {
+    "description": "auto-extracted"
+  },
+  "@s_b8e4c9a1": {
+    "description": "auto-extracted"
+  },
+  "@s_51ebc0d1": {
+    "description": "auto-extracted"
+  },
+  "@s_6c64acc5": {
+    "description": "auto-extracted"
+  },
+  "@s_03bf36af": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_a789d74f": {
+    "description": "auto-extracted"
+  },
+  "@s_a1d885c1": {
+    "description": "auto-extracted"
+  },
+  "@s_64bff158": {
+    "description": "auto-extracted"
+  },
+  "@s_84bf2c49": {
+    "description": "auto-extracted"
+  },
+  "@s_5a251fee": {
+    "description": "auto-extracted"
+  },
+  "@s_18be3bbe": {
+    "description": "auto-extracted"
+  },
+  "@s_7ae84af3": {
+    "description": "auto-extracted"
+  },
+  "@s_aeed65e7": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_f2a9e2a4": {
+    "description": "auto-extracted"
+  },
+  "@s_abd0dab0": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "stamp": {}
+    }
+  },
+  "@s_7ea8e671": {
+    "description": "auto-extracted"
+  },
+  "@s_d1a58b2f": {
+    "description": "auto-extracted"
+  },
+  "@s_a38881a0": {
+    "description": "auto-extracted"
+  },
+  "@s_20fde694": {
+    "description": "auto-extracted"
+  },
+  "@s_9fe34cff": {
+    "description": "auto-extracted"
+  },
+  "@s_d9579b73": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "bookCount": {},
+      "rangeLabel": {}
+    }
+  },
+  "@s_bfc50de8": {
+    "description": "auto-extracted"
+  },
+  "@s_ab5cc063": {
+    "description": "auto-extracted"
+  },
+  "@s_9de44e0f": {
+    "description": "auto-extracted"
+  },
+  "@s_20a63774": {
+    "description": "auto-extracted"
+  },
+  "@s_d507abff": {
+    "description": "auto-extracted"
+  },
+  "@s_ff31410d": {
+    "description": "auto-extracted"
+  },
+  "@s_72cca1f6": {
+    "description": "auto-extracted"
+  },
+  "@s_b6477017": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "@s_533f5118": {
+    "description": "auto-extracted"
+  },
+  "@s_648219b9": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "@s_baf95794": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_e37cab47": {
+    "description": "auto-extracted"
+  },
+  "@s_c17c1a05": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "latencyMs": {},
+      "model": {},
+      "reply": {}
+    }
+  },
+  "@s_5df0d12b": {
+    "description": "auto-extracted"
+  },
+  "@s_bd245b07": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "n": {}
+    }
+  },
+  "@s_73f89115": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "host": {}
+    }
+  },
+  "@s_9038e16e": {
+    "description": "auto-extracted"
+  },
+  "@s_e0710bf5": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "e": {},
+      "statusCode": {
+        "type": "int?"
+      }
+    }
+  },
+  "@s_24d6c7ae": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "@s_4d3eb2b3": {
+    "description": "auto-extracted"
+  },
+  "@s_17d94005": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_a48ae43a": {
+    "description": "auto-extracted"
+  },
+  "@s_b5c7b82d": {
+    "description": "auto-extracted"
+  },
+  "@s_bc90fa59": {
+    "description": "auto-extracted"
+  },
+  "@s_e44e9f26": {
+    "description": "auto-extracted"
+  },
+  "@s_75bf6943": {
+    "description": "auto-extracted"
+  },
+  "@s_9e8f6691": {
+    "description": "auto-extracted"
+  },
+  "@s_cc3c9556": {
+    "description": "auto-extracted"
+  },
+  "@s_9021b9f9": {
+    "description": "auto-extracted"
+  },
+  "@s_1fd51aaa": {
+    "description": "auto-extracted"
+  },
+  "@s_209e1f28": {
+    "description": "auto-extracted"
+  },
+  "@s_ab135d7c": {
+    "description": "auto-extracted"
+  },
+  "@s_a46a5664": {
+    "description": "auto-extracted"
+  },
+  "@s_e4f7e107": {
+    "description": "auto-extracted"
+  },
+  "@s_b13be56e": {
+    "description": "auto-extracted"
+  },
+  "@s_9ac01f6b": {
+    "description": "auto-extracted"
+  },
+  "@s_0001747c": {
+    "description": "auto-extracted"
+  },
+  "@s_3f5cbdbf": {
+    "description": "auto-extracted"
+  },
+  "@s_9130a4ed": {
+    "description": "auto-extracted"
+  },
+  "@s_b79fc99c": {
+    "description": "auto-extracted"
+  },
+  "@s_9695a603": {
+    "description": "auto-extracted"
+  },
+  "@s_267118b5": {
+    "description": "auto-extracted"
+  },
+  "@s_6d7e1f9f": {
+    "description": "auto-extracted"
+  },
+  "@s_ed144a76": {
+    "description": "auto-extracted"
+  },
+  "@s_c7bab837": {
+    "description": "auto-extracted"
+  },
+  "@s_d8f3da2a": {
+    "description": "auto-extracted"
+  },
+  "@s_f22e4cd2": {
+    "description": "auto-extracted"
+  },
+  "@s_67677b3d": {
+    "description": "auto-extracted"
+  },
+  "@s_d596ba9b": {
+    "description": "auto-extracted"
+  },
+  "@s_39239742": {
+    "description": "auto-extracted"
+  },
+  "@s_3c21597a": {
+    "description": "auto-extracted"
+  },
+  "@s_68885a92": {
+    "description": "auto-extracted"
+  },
+  "@s_9b3c95d4": {
+    "description": "auto-extracted"
+  },
+  "@s_97428491": {
+    "description": "auto-extracted"
+  },
+  "@s_8f38c041": {
+    "description": "auto-extracted"
+  },
+  "@s_50a7317f": {
+    "description": "auto-extracted"
+  },
+  "@s_b5538557": {
+    "description": "auto-extracted"
+  },
+  "@s_e3cd14ba": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "@s_296fc9b4": {
+    "description": "auto-extracted"
+  },
+  "@s_a444b428": {
+    "description": "auto-extracted"
+  },
+  "@s_fa0a5cdd": {
+    "description": "auto-extracted"
+  },
+  "@s_cb4a4231": {
+    "description": "auto-extracted"
+  },
+  "@s_78966c42": {
+    "description": "auto-extracted"
+  },
+  "@s_8ed41c6c": {
+    "description": "auto-extracted"
+  },
+  "@s_bd33274a": {
+    "description": "auto-extracted"
+  },
+  "@s_0cd6d0f8": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_ff7e02df": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "finished": {},
+      "reading": {}
+    }
+  },
+  "@s_68022ee7": {
+    "description": "auto-extracted"
+  },
+  "@s_542b67cc": {
+    "description": "auto-extracted"
+  },
+  "@s_ec977df0": {
+    "description": "auto-extracted"
+  },
+  "@s_50d471b2": {
+    "description": "auto-extracted"
+  },
+  "@s_fe93ef35": {
+    "description": "auto-extracted"
+  },
+  "@s_0d65fca2": {
+    "description": "auto-extracted"
+  },
+  "@s_9380d869": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "daysUntilDue": {
+        "type": "int?"
+      }
+    }
+  },
+  "@s_0e13c16f": {
+    "description": "auto-extracted"
+  },
+  "@s_3ad4c4c8": {
+    "description": "auto-extracted"
+  },
+  "@s_7c6c253b": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "@s_88c0b751": {
+    "description": "auto-extracted"
+  },
+  "@s_50ba5fd5": {
+    "description": "auto-extracted"
+  },
+  "@s_cc4556af": {
+    "description": "auto-extracted"
+  },
+  "@s_3509a9f8": {
+    "description": "auto-extracted"
+  },
+  "@s_a7e9ff0f": {
+    "description": "auto-extracted"
+  },
+  "@s_58d90b89": {
+    "description": "auto-extracted"
+  },
+  "@s_c3bb899b": {
+    "description": "auto-extracted"
+  },
+  "@s_563edd9d": {
+    "description": "auto-extracted"
+  },
+  "@s_0d8d3eb3": {
+    "description": "auto-extracted"
+  },
+  "@s_4ab30c5b": {
+    "description": "auto-extracted"
+  },
+  "@s_b563f985": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "@s_a7e09561": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_c6cc650b": {
+    "description": "auto-extracted"
+  },
+  "@s_8137585d": {
+    "description": "auto-extracted"
+  },
+  "@s_f92480e2": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_50feb68a": {
+    "description": "auto-extracted"
+  },
+  "@s_750a3b1c": {
+    "description": "auto-extracted"
+  },
+  "@s_4d7dd157": {
+    "description": "auto-extracted"
+  },
+  "@s_5a78dc03": {
+    "description": "auto-extracted"
+  },
+  "@s_5b37ad6b": {
+    "description": "auto-extracted"
+  },
+  "@s_3c0e984b": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "toStringAsFixed": {},
+      "unratedCount": {}
+    }
+  },
+  "@s_3c1cb8ee": {
+    "description": "auto-extracted"
+  },
+  "@s_01d886c7": {
+    "description": "auto-extracted"
+  },
+  "@s_ecf53f5a": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "readingInRange": {}
+    }
+  },
+  "@s_faf98ba4": {
+    "description": "auto-extracted"
+  },
+  "@s_77030fdc": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "length": {}
+    }
+  },
+  "@s_cea9cf70": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "first": {}
+    }
+  },
+  "@s_c4e530bb": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "first": {},
+      "last": {}
+    }
+  },
+  "@s_00fbaae1": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "scope": {},
+      "toStringAsFixed": {}
+    }
+  },
+  "@s_e7b115df": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "join": {}
+    }
+  },
+  "@s_9ef861db": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "name": {},
+      "toInt": {}
+    }
+  },
+  "@s_2cf3ef4e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "i": {},
+      "toInt": {}
+    }
+  },
+  "@s_e241a8ef": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "i": {},
+      "toStringAsFixed": {}
+    }
+  },
+  "@s_1597bc27": {
+    "description": "auto-extracted"
+  },
+  "@s_5024726e": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "reportCount": {}
+    }
+  },
+  "@s_73f01b82": {
+    "description": "auto-extracted"
+  },
+  "@s_530f5951": {
+    "description": "auto-extracted"
+  },
+  "@s_d51cd7ae": {
+    "description": "auto-extracted"
+  },
+  "@s_f8525cf2": {
+    "description": "auto-extracted"
+  },
+  "@s_854a34ca": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "author": {}
+    }
+  },
+  "@s_edf331af": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "detail": {}
+    }
+  },
+  "@s_50018e2c": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "hint": {}
+    }
+  },
+  "@s_a537d6ac": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "first": {}
+    }
+  },
+  "@s_acd7a061": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "failed": {}
+    }
+  },
+  "@s_da4d4d27": {
+    "description": "auto-extracted"
+  },
+  "@s_af735e5a": {
+    "description": "auto-extracted",
+    "placeholders": {
+      "repairedTitles": {}
+    }
+  },
+  "settingsLanguage": "界面语言",
+  "settingsLanguageDesc": "选择应用显示的语言。默认跟随系统设置。",
+  "settingsLanguageSystem": "跟随系统",
+  "langZh": "简体中文",
+  "langEn": "English",
+  "langDe": "Deutsch",
+  "langFr": "Français",
+  "langEs": "Español",
+  "settingsAppearance": "外观",
+  "settingsAppearanceDesc": "选择皮肤与明暗模式。",
+  "statusWishHint": "还没开始读的书。",
+  "statusReadingHint": "正在读，还没读完。进度到 100% 会自动变成「已读完」。",
+  "statusFinishedHint": "已经读完的书。把进度拖到 100% 就会自动标成这个状态。",
+  "statusShelvedHint": "读了一部分但暂时不打算继续的书。以后想接着读，改回「阅读中」即可。",
+  "borrowTitle": "借阅",
+  "borrowDesc": "标记这本书是借来的，可以填借阅来源和应还日期。",
+  "borrowFlag": "这是借来的书",
+  "borrowFrom": "借阅来源",
+  "borrowFromHint": "例：市图书馆、某某同事",
+  "borrowDue": "应还日期",
+  "borrowDueUnset": "未设置",
+  "borrowDueIn": "还有 {days} 天到期",
+  "@borrowDueIn": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "borrowOverdue": "已逾期 {days} 天",
+  "@borrowOverdue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "borrowClearDue": "清除日期",
+  "borrowReturn": "标记已归还",
+  "borrowReturnDesc": "还回后会清除借阅标记、来源与应还日期，并取消还书提醒。",
+  "borrowReturned": "已标记为归还",
+  "statusSectionTitle": "阅读状态",
+  "planSectionTitle": "阅读计划",
+  "planSectionDesc": "给自己定一个能坚持的目标。计划只存在这台设备上。",
+  "planEmpty": "还没有计划。定一个小目标，比如每天 20 分钟。",
+  "planAdd": "新建计划",
+  "planEdit": "编辑计划",
+  "planKindDaily": "每天阅读",
+  "planKindFinishBook": "读完一本书",
+  "planKindDailyDesc": "设定每天的阅读时长目标，按日均值判定达成。",
+  "planKindFinishBookDesc": "选一本书和截止日期，读到 100% 即达成。",
+  "planDailyTarget": "每天目标",
+  "planMinutesUnit": "{n} 分钟",
+  "@planMinutesUnit": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "planPickBook": "选择一本书",
+  "planDueLabel": "截止日期",
+  "planDueUnset": "未设置",
+  "planRemind": "到期前提醒我",
+  "planRemindOff": "开启后会请求通知权限。完成计划后提醒会自动取消。",
+  "planTitleLabel": "计划名称（可选）",
+  "planTitleHint": "留空则自动使用默认名称",
+  "planSave": "保存",
+  "planDelete": "删除计划",
+  "planDeleteConfirm": "删除这条计划？已有的阅读记录不受影响。",
+  "planMarkDone": "标记完成",
+  "planAchieved": "已达成",
+  "planMarkToday": "今天读完了",
+  "planDoneToday": "今天已完成",
+  "planDailyCycleHint": "每天都是新的一天——勾选只代表今天完成，明天照旧提醒。",
+  "planReminderUnavailable": "系统没能排上提醒（可能是省电策略拦了）。计划本身已保存。",
+  "planProgressDaily": "日均 {current} / {target} 分钟",
+  "@planProgressDaily": {
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "planProgressBook": "进度 {current}% · 目标 100%",
+  "@planProgressBook": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      }
+    }
+  },
+  "planDaysLeft": "还有 {days} 天",
+  "@planDaysLeft": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "planOverdue": "已逾期 {days} 天",
+  "@planOverdue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "planDueToday": "今天到期",
+  "planBookGone": "目标书已不在书架",
+  "planDoneSection": "已结束",
+  "planReminderDenied": "通知权限被拒绝，提醒无法送达。可在系统设置里开启。",
+  "planReminderDailyTitle": "今天的阅读目标还没完成",
+  "planReminderDailyBody": "目标是 {minutes} 分钟，现在还来得及。",
+  "@planReminderDailyBody": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "planReminderBookTitle": "这本书快到期了",
+  "planReminderBookBody": "距离计划截止还有 {days} 天，加油读完吧。",
+  "@planReminderBookBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPlanReminder": "阅读提醒",
+  "reportSettings": "报告设置",
+  "reportBackfill": "补生成缺失的报告",
+  "reportNothingToBackfill": "所有该生成的报告都已存在，没有需要补的。",
+  "reportHistoryEmpty": "还没有报告。选好周期，点下面的按钮生成第一份。",
+  "reportNoKey": "还没有配置大模型，无法生成报告。请先到「设置」里填入 Key。",
+  "settingsTheme": "皮肤",
+  "settingsBrightness": "明暗模式",
+  "brightnessSystem": "跟随系统",
+  "brightnessLight": "浅色",
+  "brightnessDark": "深色",
+  "themeGreen": "绿意",
+  "themeInk": "墨韵",
+  "themeAmber": "暖阳",
+  "themeBlue": "远山",
+  "themeRose": "樱粉",
+  "settingsChannels": "第三方渠道",
+  "settingsChannelsDesc": "从其他阅读平台同步书架与进度。目前支持微信读书；其他平台开放接口后会陆续加入。",
+  "settingsChannelsHint": "密钥只保存在本机系统密钥库，不会上传到任何服务器。",
+  "settingsChannelAddHint": "更多渠道正在接入中。",
+  "importAccuracyTitle": "识别结果可能有偏差",
+  "importAccuracyDesc": "书名与作者由 OCR 与大模型推断，可能读错字或认错书，保存前请核对一遍。",
+  "importFromImageTitle": "截图导入书架",
+  "importFromImageDesc": "从相册选一张书架截图，自动识别其中的书目。",
+  "importFromCameraTitle": "拍照导入书架",
+  "importFromCameraDesc": "对着书架拍一张，自动识别其中的书目。",
+  "insights": "阅读档案",
+  "insightsDesc": "你的长期阅读画像，以及按月、按年生成的分析报告。",
+  "chronology": "阅历",
+  "chronologyDesc": "按月回看你读过的书。点一张卡片可以直接打开这本书。",
+  "chronologyEmpty": "这一年还没有读完或正在读的书。",
+  "chronologyFinished": "已读完",
+  "chronologyReading": "阅读中",
+  "chronologyShelved": "搁置",
+  "chronologyWish": "想看",
+  "chronologyMore": "另有 {n} 本（点开看整月）",
+  "@chronologyMore": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "reportStyle": "报告风格",
+  "reportStyleDesc": "选择生成报告的语气与结构，也可自定义提示词。",
+  "reportStyleRational": "理性罗列",
+  "reportStyleRationalDesc": "客观陈述数据，不评价、不煽动，条目清晰。",
+  "reportStyleWarm": "温和鼓励",
+  "reportStyleWarmDesc": "肯定你的坚持，用温和的语气给出建议。",
+  "reportStyleDirect": "直率犀利",
+  "reportStyleDirectDesc": "指出问题不留情面，适合想要实话的人。",
+  "reportStyleConcise": "简洁速览",
+  "reportStyleConciseDesc": "只讲结论，控制在最短篇幅。",
+  "reportStyleCustom": "自定义",
+  "reportStyleCustomDesc": "自己写提示词，完全掌控报告的样子。",
+  "reportStyleCustomHint": "例如：用第二人称，像朋友聊天一样点评我的阅读。",
+  "reportReadMore": "查看全文",
+  "reportNoContent": "（这份报告没有正文）"
+}

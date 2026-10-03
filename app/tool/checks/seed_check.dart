@@ -43,7 +43,7 @@ void main() {
       .map((m) => Book.fromMap(Map<String, dynamic>.from(m)))
       .toList();
 
-  check(books.length == 38, '书本总数应为 38', '实际 ${books.length}');
+  check(books.length == 134, '书本总数应为 134', '实际 ${books.length}');
 
   // 必填字段不能丢
   final noTitle = books.where((b) => b.title.trim().isEmpty).length;

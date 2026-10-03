@@ -48,6 +48,16 @@ class Book {
 
   final String? startedAt;
   final String? finishedAt;
+
+  /// 这本书是借来的。
+  ///
+  /// 刻意做成**独立布尔字段**，而不是 [BookStatus] 的一个取值：
+  /// 「借阅」回答的是「书是不是我的」，与「读没读完」是两个正交的问题。
+  /// 借来的书同样可以「在读」或「已读」，把它们塞进同一个枚举
+  /// 会逼用户在两个不相干的选项里二选一（旧版本就是这么做的，
+  /// 用户反馈「借阅中很突兀」正是这个原因）。
+  final bool isBorrowed;
+
   final String? borrowedFrom;
   final String? dueAt;      // 图书馆应还日期
   final int rereadCount;
@@ -88,6 +98,7 @@ class Book {
     this.highlights,
     this.startedAt,
     this.finishedAt,
+    this.isBorrowed = false,
     this.borrowedFrom,
     this.dueAt,
     this.rereadCount = 0,
@@ -114,8 +125,6 @@ class Book {
     final a = authors.isNotEmpty ? authors.first.trim().toLowerCase() : '';
     return 'ta:$t|$a';
   }
-
-  bool get isBorrowed => status == BookStatus.borrowed;
 
   /// 归一化分类：把 `categoryRaw`（数据源原始分类）过一遍受控词表，
   /// 结果写进 `categoryPrimary`，原始值原样保留。
@@ -184,6 +193,10 @@ class Book {
     String? highlights,
     String? startedAt,
     String? finishedAt,
+    /// ⚠️ 这里用 `bool?` 三态：`null` = 不改，`true`/`false` = 显式设置。
+    /// 若写成 `bool isBorrowed = false`，任何一次 `copyWith(status: ...)`
+    /// 都会把借阅标记抹成 false——「改个进度就把借阅状态弄丢了」。
+    bool? isBorrowed,
     String? borrowedFrom,
     String? dueAt,
     int? rereadCount,
@@ -221,6 +234,7 @@ class Book {
       highlights: highlights ?? this.highlights,
       startedAt: startedAt ?? this.startedAt,
       finishedAt: finishedAt ?? this.finishedAt,
+      isBorrowed: isBorrowed ?? this.isBorrowed,
       borrowedFrom: borrowedFrom ?? this.borrowedFrom,
       dueAt: dueAt ?? this.dueAt,
       rereadCount: rereadCount ?? this.rereadCount,
@@ -262,6 +276,7 @@ class Book {
         'highlights': highlights,
         'startedAt': startedAt,
         'finishedAt': finishedAt,
+        'isBorrowed': isBorrowed ? 1 : 0,
         'borrowedFrom': borrowedFrom,
         'dueAt': dueAt,
         'rereadCount': rereadCount,
@@ -302,6 +317,8 @@ class Book {
         highlights: m['highlights'] as String?,
         startedAt: m['startedAt'] as String?,
         finishedAt: m['finishedAt'] as String?,
+        // SQLite 没有布尔类型，存 0/1。老库没有这一列 → null → false。
+        isBorrowed: (m['isBorrowed'] as int? ?? 0) != 0,
         borrowedFrom: m['borrowedFrom'] as String?,
         dueAt: m['dueAt'] as String?,
         rereadCount: m['rereadCount'] as int? ?? 0,
@@ -424,4 +441,23 @@ class Note {
         source: BookSource.fromString(m['source'] as String?),
         createdAt: m['createdAt'] as String? ?? DateTime.now().toIso8601String(),
       );
+}
+
+/// 笔记 + 其所属书籍的组合。
+///
+/// 为什么需要它：笔记页要按时间倒序展示**全库**笔记，而 `notes` 表里
+/// 只有 `bookId`——界面上却要显示书名和作者。逐条回查书名会产生
+/// N+1 次查询，所以一次性把书捞出来建成索引再拼装（见 `BookRepository.allNotes`）。
+///
+/// [book] 可能为 `null`：书被删了而笔记还留着（本版本不做级联删除）。
+/// 界面必须能显示「书籍已不存在」而不是崩在 `book!.title` 上——
+/// 笔记是用户手打的内容，比书籍记录更不该丢。
+class NoteWithBook {
+  final Note note;
+  final Book? book;
+
+  const NoteWithBook({required this.note, required this.book});
+
+  /// 书名，书籍缺失时给一个明确的占位文案。
+  String title(String fallback) => book?.title ?? fallback;
 }
