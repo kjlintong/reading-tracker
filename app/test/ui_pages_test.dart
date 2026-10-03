@@ -876,6 +876,11 @@ void main() {
 
   group('设置页', () {
     testWidgets('渲染配置项与保存按钮', (tester) async {
+      // 设置页是长列表：默认 800×600 视口只构建首屏，
+      // 下面的 TextField（WeRead Key / LLM 三连）压根没渲染，
+      // find.byType(TextField) 会假红。放大视口再断言——
+      // 和其它长页面测试（AI 报告页）保持一致的做法。
+      bigViewport(tester);
       await render(tester, const SettingsPage());
       expect(find.text('设置'), findsOneWidget);
       // 配置页是长列表，「保存配置」按钮在首屏之外，未渲染前 find 不到，
