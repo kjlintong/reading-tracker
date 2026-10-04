@@ -27,11 +27,21 @@ import '../models/enums.dart';
 /// 在累计数上是一样的。近 30 天是一个既能反映当下、又不至于样本太小的口径。
 const int kRecencyDays = 30;
 
+/// 稍宽的一档：近半年。
+///
+/// 30 天太短时会把「两个月前读完一批」误判成停读；180 天能看出趋势，
+/// 又不至于被一年前的旧事稀释。两档并存，读者才知道自己是「这一阵没读」
+/// 还是「大半年没读」。
+const int kHalfYearDays = 180;
+
 /// 周期至少跨这么天才单独统计近期窗口。
 ///
 /// 月报里窗口和周期本身几乎重合，再给一份「近 30 天读完 3 本」只是把
 /// 「本月读完 3 本」换个说法，还容易让模型写出重复的两句。
 const int kRecencyMinSpanDays = 60;
+
+/// 半年档只在更长的周期里给：跨度不到 8 个月时，它和周期本身也差不多。
+const int kHalfYearMinSpanDays = 240;
 
 // ---------------------------------------------------------------------------
 // 段 1 · 切片
@@ -71,12 +81,22 @@ class ReportSlice {
   });
 }
 
-/// 文件名导进来的脏标题：这类条目进了书单只会让模型瞎点名。
+/// 导入残条：这类条目进了书单只会让模型瞎点名（「近期加入的《Jiao Yi Xi
+/// Tong Yu Fang Fa (Yua》」——那是被截断的文件名，不是一本书）。
+///
+/// 注意它只拦**阅读行为分组**，不拦书架口径：书架规模必须和 App 书架页
+/// 上显示的数字对得上，否则用户会比着数，发现报告少算几十本。
 bool _isJunkTitle(String t) {
   final s = t.trim();
   if (s.length <= 1) return true;
   const junk = {'目录', '新建文件夹', '新建文本文档', 'untitled', 'new folder'};
-  return junk.contains(s.toLowerCase());
+  if (junk.contains(s.toLowerCase())) return true;
+  // 括号没闭合（"…(Yua"）或被截掉的尾巴（"(rary)" 是 Library 的残骸）
+  final open = '('.allMatches(s).length;
+  final close = ')'.allMatches(s).length;
+  if (open != close) return true;
+  if (s.contains('(rary)')) return true;
+  return false;
 }
 
 /// ISO 字符串取日期部分（`2026-05-01T12:30:00` → `2026-05-01`）。
@@ -110,8 +130,9 @@ ReportSlice sliceBooks({
   final shelf = <Book>[];
 
   for (final b in books) {
-    if (_isJunkTitle(b.title)) continue;
+    // 书架口径先收全量：规模数字要和 App 书架页一致，不能因为标题脏就少算
     shelf.add(b);
+    if (_isJunkTitle(b.title)) continue;
     if (b.status == BookStatus.finished) {
       // 完成时间必须落在周期内才算「本期读完」：缺 finishedAt 的书无法
       // 归属到某个周期，硬塞进去会让「本月读了 N 本」这个数字失真。
@@ -146,7 +167,8 @@ ReportSlice sliceBooks({
 /// 节奏」是逼它编，不如干脆不给这个维度。
 ///
 /// `recencyDays > 0` 时才带近期指标：月报里它们和周期本身重合，多给一份
-/// 只会让模型把同一句话写两遍。
+/// 只会让模型把同一句话写两遍。半年档同理，只在跨度 ≥ `kHalfYearMinSpanDays`
+/// 时才出现——30 天说「这一阵」，180 天说「这半年」，两者不同就说明趋势在变。
 Map<String, dynamic> buildReportFacts(
   ReportSlice s, {
   int readingMinutes = 0,
@@ -157,6 +179,9 @@ Map<String, dynamic> buildReportFacts(
   int recencyDays = 0,
   int finishedRecent = 0,
   int wishAddedRecent = 0,
+  int halfYearDays = 0,
+  int finishedHalfYear = 0,
+  int wishAddedHalfYear = 0,
 }) {
   double avgRating = 0;
   if (s.rated.isNotEmpty) {
@@ -194,6 +219,11 @@ Map<String, dynamic> buildReportFacts(
       'finishedRecent': finishedRecent,
       'wishAddedRecent': wishAddedRecent,
     },
+    if (halfYearDays > 0) ...{
+      'halfYearDays': halfYearDays,
+      'finishedHalfYear': finishedHalfYear,
+      'wishAddedHalfYear': wishAddedHalfYear,
+    },
     'categoryTop': [
       for (final e in cats.take(6)) {'name': categoryLabel(e.key), 'count': e.value},
     ],
@@ -220,10 +250,13 @@ Map<String, dynamic> _bookEntry(Book b, {DateTime? recentSince}) {
   final finished = _moment(b.finishedAt);
   final started = _moment(b.startedAt);
   final added = _moment(b.createdAt);
-  final recent = recentSince != null &&
-      (_since(finished, recentSince) ||
-          _since(started, recentSince) ||
-          _since(added, recentSince));
+  // 「近期」说的是**阅读行为**，不是入库时间。
+  //
+  // 一次批量导入会把几百本书的 createdAt 刷成同一天；拿它判近期，五月
+  // 读完的书也会被标成「刚读的」，标记就失去了区分度。所以有行为时间就
+  // 看行为时间，实在没有（想读的书还没动过）才退回加入时间。
+  final touched = finished ?? started ?? added;
+  final recent = recentSince != null && _since(touched, recentSince);
   return {
     'id': b.id,
     'title': b.title,
@@ -386,15 +419,28 @@ Future<ReportBundle> buildReportBundle({
     plans.add(pr.toReportJson());
   }
 
-  // 近期窗口：只在周期足够长时才单独统计，否则它和周期本身是同一件事。
-  final end = range.to ?? DateTime.now();
+  // 近期窗口的锚点取「周期末」与「现在」中较早的那个。
+  //
+  // 直接用周期末会出事：今年年报的 `to` 是明年 1 月 1 日，减 30 天得到
+  // 12 月初——一个未来的日期，于是「近 30 天读完」恒为 0，而刚读完的书
+  // 一条都进不来。真实口径是「截止到今天」。
+  final now = DateTime.now();
+  final end = range.to ?? now;
+  final anchor = end.isBefore(now) ? end : now;
   final spanDays = range.from == null ? 1 << 30 : end.difference(range.from!).inDays;
   final useRecency = spanDays >= kRecencyMinSpanDays;
-  final recentSince = end.subtract(const Duration(days: kRecencyDays));
+  final useHalfYear = spanDays >= kHalfYearMinSpanDays;
+  final recentSince = anchor.subtract(const Duration(days: kRecencyDays));
+  final halfSince = anchor.subtract(const Duration(days: kHalfYearDays));
+  // 书单的 recent 标记只用短窗口：它是「眼下」的同义词，宽窗口会把它稀释掉
   final recent = useRecency ? recentSince : null;
-  int countRecent(Iterable<Book> src, String? Function(Book) at) => useRecency
-      ? src.where((b) => _since(_moment(at(b)), recentSince)).length
-      : 0;
+  int countSince(
+    Iterable<Book> src,
+    String? Function(Book) at,
+    DateTime since,
+    bool on,
+  ) =>
+      on ? src.where((b) => _since(_moment(at(b)), since)).length : 0;
 
   final facts = buildReportFacts(
     slice,
@@ -402,10 +448,17 @@ Future<ReportBundle> buildReportBundle({
     streakDays: streak,
     hasLogs: hasLogs,
     plans: plans.isEmpty ? null : plans,
-    periodEnd: _day(end.toIso8601String()),
+    periodEnd: _day(anchor.toIso8601String()),
     recencyDays: useRecency ? kRecencyDays : 0,
-    finishedRecent: countRecent(slice.finished, (b) => b.finishedAt),
-    wishAddedRecent: countRecent(slice.wishAdded, (b) => b.createdAt),
+    finishedRecent:
+        countSince(slice.finished, (b) => b.finishedAt, recentSince, useRecency),
+    wishAddedRecent:
+        countSince(slice.wishAdded, (b) => b.createdAt, recentSince, useRecency),
+    halfYearDays: useHalfYear ? kHalfYearDays : 0,
+    finishedHalfYear:
+        countSince(slice.finished, (b) => b.finishedAt, halfSince, useHalfYear),
+    wishAddedHalfYear:
+        countSince(slice.wishAdded, (b) => b.createdAt, halfSince, useHalfYear),
   );
   final bookList = buildBookList(slice, recentSince: recent);
   final nextCandidates = buildNextCandidates(slice, recentSince: recent);
@@ -440,6 +493,9 @@ const List<String> kFactPlaceholders = [
   'recentDays',
   'finishedRecent',
   'wishAddedRecent',
+  'halfYearDays',
+  'finishedHalfYear',
+  'wishAddedHalfYear',
   'minutes',
   'streak',
 ];
@@ -474,13 +530,29 @@ String buildInsightsPrompt({
     timeNote.write(' The period ends on $periodEnd. A book added years ago is '
         'not the same signal as one added days ago.');
   }
-  final recencyNote = facts['recentDays'] is int
-      ? '\n- RECENCY: "recent": true marks a book touched within the last '
-          '[[recentDays]] days. Those describe where the reader is NOW. '
-          'Prefer them when naming books and when planning next reads. '
-          'A wishlist entry with no activity since long before the window is '
-          'old backlog — never present it as a current intention.'
-      : '';
+  // 近期窗口可能只有一档（月报/季报），也可能两档（年报、全部时间）。
+  // 两档的数字不一样本身就是信息：近 30 天为 0 而近半年有 10 本，说的是
+  // 「这一阵停了」，与「一直在读但最近慢下来」是两回事。
+  final windows = <String>[];
+  if (facts['recentDays'] is int) {
+    windows.add('[[recentDays]] days ([[finishedRecent]] finished, '
+        '[[wishAddedRecent]] wishlist added)');
+  }
+  if (facts['halfYearDays'] is int) {
+    windows.add('[[halfYearDays]] days ([[finishedHalfYear]] finished, '
+        '[[wishAddedHalfYear]] wishlist added)');
+  }
+  final recencyNote = windows.isEmpty
+      ? ''
+      : '\n- RECENCY: the period is also measured over shorter windows — '
+          '${windows.join('; ')}. '
+          'A book entry marked "recent": true was touched inside the shortest '
+          'window; those describe where the reader is NOW, prefer them when '
+          'naming books and planning next reads. '
+          'When the short window shows far less than the long one, say so — '
+          'that gap is the most useful thing in the data. '
+          'A wishlist entry untouched through the longest window is old '
+          'backlog — never present it as a current intention.';
 
   // 只列事实表里真实存在的键：缺了却仍写在列表里，模型会照着写一个
   // 渲染时变成破折号的占位符。
@@ -533,6 +605,10 @@ String buildInsightsPrompt({
         'no taste judgments.')
     ..writeln('- "nextPlan" must be concrete: pick from NEXT-CANDIDATES, '
         'put the in-progress books first, and say why in that order.')
+    ..writeln('- A spike in "wishAdded" usually means a one-off bulk import, '
+        'not a change of appetite. Cross-check "sourceTop": when most of the '
+        'shelf came from a single source, describe it as an import, not as '
+        'what the reader wants to read.')
     ..writeln('- Stay inside reading: what to read, how to read, how to record. '
         'Never comment on how books were acquired, never push reviews, '
         'sharing, or streaks, and pass no judgment beyond reading.')
@@ -717,7 +793,8 @@ String renderReport(
     out.writeln('## ${appLoc.s_4b7e2a19}');
     for (final n in p.naming) {
       final t = titleById[n.id] ?? '';
-      out.writeln('- 《$t》${_fill(n.line, facts)}');
+      // 破折号在这里补：模型只给一句话，让它自己带标点会时有时无
+      out.writeln('- 《$t》— ${_fill(n.line, facts)}');
     }
     out.writeln();
   }

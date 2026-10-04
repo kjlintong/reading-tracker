@@ -99,12 +99,26 @@ void main() {
       expect(slice.reading.length, 2);
     });
 
-    test('脏标题不进切片', () {
+    test('脏标题不进阅读分组，但仍算书架上的一本', () {
       final slice = sliceBooks(
         books: [_book('目录'), _book('x'), _book('正常的书')],
         range: range,
       );
-      expect(slice.shelf.map((b) => b.title), ['正常的书']);
+      // 书架规模必须和 App 书架页对得上，不能因为标题脏就少算几本
+      expect(slice.shelf.length, 3);
+      expect(slice.wishAdded.map((b) => b.title), ['正常的书']);
+    });
+
+    test('截断的导入残条不进书单', () {
+      final slice = sliceBooks(
+        books: [
+          _book('Jiao Yi Xi Tong Yu Fang Fa (Yua'),
+          _book('哈耶克作品集 (哈耶克) (rary)'),
+          _book('交易系统与方法'),
+        ],
+        range: range,
+      );
+      expect(slice.wishAdded.map((b) => b.title), ['交易系统与方法']);
     });
   });
 
@@ -224,24 +238,59 @@ void main() {
       // 老存货不带这个标记：不标，模型就不会把它当作「现在想读」
       expect(byTitle['两年前加的']!.containsKey('recent'), isFalse);
     });
+
+    test('recent 看的是阅读行为，不是入库时间', () {
+      // 一次批量导入会把几百本书的 createdAt 刷成同一天：拿它判近期的话，
+      // 五月读完的书也会变成「刚读的」，标记就没有区分度了。
+      final since = DateTime.now().subtract(const Duration(days: 30));
+      final list = buildBookList(
+        ReportSlice(
+          finished: [
+            _bookAt('年初读完、上周才导入', status: BookStatus.finished,
+                finishedAt: '2026-02-01', createdAt: _isoDaysAgo(3)),
+            _bookAt('上周读完的', status: BookStatus.finished,
+                finishedAt: _isoDaysAgo(5), createdAt: _isoDaysAgo(3)),
+          ],
+          reading: const [],
+          stalled: const [],
+          wishAdded: const [],
+          rated: const [],
+          shelf: const [],
+        ),
+        recentSince: since,
+      );
+      final byTitle = {for (final e in list) e['title']: e};
+      expect(byTitle['年初读完、上周才导入']!.containsKey('recent'), isFalse);
+      expect(byTitle['上周读完的']!['recent'], true);
+    });
   });
 
   group('近期窗口：只在长周期里单独统计', () {
-    test('年报带近 30 天口径，月报不带', () {
+    test('年报带近 30 天与近半年两档，月报都不带', () {
       final slice = sliceBooks(books: const [], range: StatsRange.all);
-      final yearly = buildReportFacts(slice, recencyDays: 30,
-          finishedRecent: 2, wishAddedRecent: 5);
+      final yearly = buildReportFacts(
+        slice,
+        recencyDays: 30,
+        finishedRecent: 2,
+        wishAddedRecent: 5,
+        halfYearDays: 180,
+        finishedHalfYear: 9,
+        wishAddedHalfYear: 40,
+      );
       expect(yearly['recentDays'], 30);
       expect(yearly['finishedRecent'], 2);
       expect(yearly['wishAddedRecent'], 5);
+      expect(yearly['halfYearDays'], 180);
+      expect(yearly['finishedHalfYear'], 9);
 
       // 月报里窗口和周期本身重合，再给一份只会让模型把同一句写两遍
       final monthly = buildReportFacts(slice);
       expect(monthly.containsKey('recentDays'), isFalse);
       expect(monthly.containsKey('finishedRecent'), isFalse);
+      expect(monthly.containsKey('halfYearDays'), isFalse);
     });
 
-    test('年报里近 30 天读完的才计入 finishedRecent', () async {
+    test('年报里两档窗口各算各的', () async {
       final raw = await databaseFactory.openDatabase(inMemoryDatabasePath);
       addTearDown(() => raw.close());
       final db = AppDatabase.forTest(raw);
@@ -268,6 +317,59 @@ void main() {
       expect(bundle.facts['finished'], 3);
       // 累计 3 本看不出「现在还读不读」，近 30 天的 2 本才说明问题
       expect(bundle.facts['finishedRecent'], 2);
+      // 200 天前那本落在半年窗口之外：两档数字不同，说的正是趋势
+      expect(bundle.facts['finishedHalfYear'], 2);
+    });
+
+    test('近期窗口的锚点是今天，不是周期末', () async {
+      // 「今年」的 to 是明年 1 月 1 日：拿周期末减 30 天会得到一个未来的
+      // 日期，近 30 天恒为 0，刚读完的书一条都进不来。
+      final raw = await databaseFactory.openDatabase(inMemoryDatabasePath);
+      addTearDown(() => raw.close());
+      final db = AppDatabase.forTest(raw);
+      await db.createSchema(raw);
+      final repo = BookRepository(db);
+
+      final bundle = await buildReportBundle(
+        repo: repo,
+        books: [
+          _bookAt('上周读完的', status: BookStatus.finished,
+              finishedAt: _isoDaysAgo(7)),
+        ],
+        range: StatsRange(
+          label: '2026',
+          from: DateTime(DateTime.now().year, 1, 1),
+          to: DateTime(DateTime.now().year + 1, 1, 1),
+        ),
+      );
+      expect(bundle.facts['finishedRecent'], 1);
+      expect(bundle.facts['finishedHalfYear'], 1);
+      // periodEnd 也得是「今天」，否则模型会以为现在是明年
+      expect(bundle.facts['periodEnd'].toString().startsWith('2027'), isFalse);
+    });
+
+    test('跨度不到半年的周期只给 30 天档', () async {
+      final raw = await databaseFactory.openDatabase(inMemoryDatabasePath);
+      addTearDown(() => raw.close());
+      final db = AppDatabase.forTest(raw);
+      await db.createSchema(raw);
+      final repo = BookRepository(db);
+
+      final bundle = await buildReportBundle(
+        repo: repo,
+        books: [
+          _bookAt('读完的', status: BookStatus.finished,
+              finishedAt: _isoDaysAgo(10)),
+        ],
+        range: StatsRange(
+          label: '近三个月',
+          from: DateTime.now().subtract(const Duration(days: 100)),
+          to: DateTime.now().add(const Duration(days: 1)),
+        ),
+      );
+      expect(bundle.facts['recentDays'], 30);
+      // 窗口比周期还宽的话，它和「本期读完」是同一件事，没有额外信息
+      expect(bundle.facts.containsKey('halfYearDays'), isFalse);
     });
   });
 
@@ -431,8 +533,11 @@ void main() {
           'finished': 12,
           'hasLogs': false,
           'recentDays': 30,
-          'finishedRecent': 2,
+          'finishedRecent': 0,
           'wishAddedRecent': 5,
+          'halfYearDays': 180,
+          'finishedHalfYear': 9,
+          'wishAddedHalfYear': 40,
         },
         bookList: const [],
         nextCandidates: const [],
@@ -440,6 +545,9 @@ void main() {
       );
       expect(p.contains('RECENCY'), isTrue);
       expect(p.contains('old backlog'), isTrue);
+      // 近 30 天挂零而近半年有 9 本——这个落差是数据里最该说的一句话
+      expect(p.contains('short window shows far less'), isTrue);
+      expect(p.contains('[[finishedHalfYear]]'), isTrue);
     });
   });
 
