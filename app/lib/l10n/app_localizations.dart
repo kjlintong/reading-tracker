@@ -164,13 +164,13 @@ abstract class S {
   /// No description provided for @openTipDomestic.
   ///
   /// In en, this message translates to:
-  /// **'Domestic support · Afdian'**
+  /// **'Support · Afdian (China)'**
   String get openTipDomestic;
 
   /// No description provided for @openTipForeign.
   ///
   /// In en, this message translates to:
-  /// **'International support · Ko-fi'**
+  /// **'Support · Ko-fi (International)'**
   String get openTipForeign;
 
   /// Settings section title for app/developer information

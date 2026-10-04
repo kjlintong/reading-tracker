@@ -37,10 +37,10 @@ class SEs extends S {
   String get openTipPage => 'Buy me a coffee · Ko-fi';
 
   @override
-  String get openTipDomestic => 'Domestic support · Afdian';
+  String get openTipDomestic => 'Apoyo · Afdian (China)';
 
   @override
-  String get openTipForeign => 'International support · Ko-fi';
+  String get openTipForeign => 'Apoyo · Ko-fi (Internacional)';
 
   @override
   String get about => 'About';

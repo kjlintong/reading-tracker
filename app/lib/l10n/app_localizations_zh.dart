@@ -37,10 +37,10 @@ class SZh extends S {
   String get openTipPage => '请我喝杯咖啡 · Ko-fi';
 
   @override
-  String get openTipDomestic => '国内赞助 · 爱发电';
+  String get openTipDomestic => '赞助 · 爱发电（中国）';
 
   @override
-  String get openTipForeign => '国外赞助 · Ko-fi';
+  String get openTipForeign => '赞助 · Ko-fi（国际）';
 
   @override
   String get about => '关于';

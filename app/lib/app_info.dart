@@ -48,7 +48,7 @@ class AppInfo {
   /// 等于打赏入口根本不可用。
   static const String tipUrl = 'https://ko-fi.com/ryanlin65969';
 
-  /// 打赏页（国内）。爱发电主页；留空则不显示国内入口，便于没有国内渠道时只保留 Ko-fi。
+  /// 打赏页（中国）。爱发电主页；留空则不显示该入口，便于没有中国渠道时只保留 Ko-fi。
   static const String tipUrlDomestic = 'https://afdian.com/a/ryanlintong';
 
   /// 隐私政策。两个地址都由 `store/web/` 生成，必须与商店后台填写的一致。

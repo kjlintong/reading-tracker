@@ -37,10 +37,10 @@ class SDe extends S {
   String get openTipPage => 'Kaufen Sie mir einen Kaffee · Ko-fi';
 
   @override
-  String get openTipDomestic => 'Häusliche Unterstützung · Afdian';
+  String get openTipDomestic => 'Unterstützung · Afdian (China)';
 
   @override
-  String get openTipForeign => 'Internationaler Support · Ko-fi';
+  String get openTipForeign => 'Unterstützung · Ko-fi (International)';
 
   @override
   String get about => 'Über';
