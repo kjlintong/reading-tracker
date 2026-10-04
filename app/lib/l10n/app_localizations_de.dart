@@ -217,15 +217,7 @@ class SDe extends S {
   }
 
   @override
-  String get s_735e2d59 => '6. Namen benennen: Wählen Sie 3–5 spezifische Bücher aus der bookList aus, um zu besprechen (welches Sie beendet haben, welches Sie begonnen haben, aber nicht fortgesetzt haben, welches am höchsten bewertet wird) und geben Sie ihren Titeln.\nJeder im Bericht erwähnte Titel muss aus bookList stammen — erfinde keinen.\n';
-
-  @override
   String get s_99acf9a4 => 'Sie sind ein persönlicher Leseberater. Analysieren Sie die Daten objektiv, vermeiden Sie vages Lob und weisen Sie auf die strukturellen Probleme hin, die übersehen werden.';
-
-  @override
-  String s_414278bd({required Object data, required Object listHint, required Object period}) {
-    return 'Here is my reading data for $period (JSON):\n$data\n\nWrite a reading report covering:\n1. Overview: books finished, total time, daily average\n2. Structure: category breakdown, source platform breakdown, format mix\n3. Habits: reading rhythm, consecutive days, abandonment rate\n4. Profile: what kind of reader I might be\n5. Suggestions: 3 concrete, actionable next steps based on the gaps. Suggestions must stay within reading itself (what to read, how to read, how to record reflections): never comment on where or how I acquire books, never push me to write reviews, share, or keep streaks, and pass no judgment beyond reading.\n${listHint}Format rules (follow strictly - the report is rendered as Markdown inside the app):\n- Open each of the six sections with a level-2 heading such as ## Overview. No numbers inside headings.\n- Bold every key figure: finished **12 books**, **37 minutes** a day.\n- Use - bullets for parallel observations, and a numbered list for the suggestions.\n- Put every book title in italics, like *The Road to Serfdom*.\n- No HTML tags, and no headings deeper than level 3.';
-  }
 
   @override
   String s_46e5ebef({required Object host}) {
@@ -2621,4 +2613,25 @@ class SDe extends S {
 
   @override
   String get reportNoContent => '(this report has no body text)';
+
+  @override
+  String get s_9f2c1d4e => 'Overview';
+
+  @override
+  String get s_0f2b6c1a => 'Reading this period';
+
+  @override
+  String get s_7d1a4e35 => 'Shelf structure';
+
+  @override
+  String get s_3c58b0d2 => 'Reading habits';
+
+  @override
+  String get s_4b7e2a19 => 'Books worth naming';
+
+  @override
+  String get s_6e39f7c4 => 'Reader profile';
+
+  @override
+  String get s_1a8d53f6 => 'What to read next';
 }

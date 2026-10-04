@@ -64,9 +64,7 @@
   "s_4304f539": "Known title \"{title}\"{author}.\nPlease fill in:\n- categoryPrimary: must be one of: {vocab}\n- description: a neutral 80–150 character summary of the book's content, stating facts without evaluation\n- tags: 3–5 keyword tags\n- authors: an array if the author can be determined, otherwise an empty array\nOutput format: {\"categoryPrimary\":\"\",\"description\":\"\",\"tags\":[],\"authors\":[]}",
   "s_cbe8aa6b": "You are a reading-profile analyst. Output JSON only, no explanations.",
   "s_3864d3b4": "Here is my reading data (JSON):\n{summary}\n\nGive me 10 personality tags, each 2–6 words, like the nicknames a book club gives people.\nRequirements:\n1. Every tag must be supported by the data above — don't make things up\n2. Style reference: Learning Is My Joy / In Tune with Nature / Beauty Above All / Erudite Across the Ages / The Lonely Sage\n3. Don't use empty words like \"reader\", \"enthusiast\" or \"aficionado\"\n4. No explanations, no markdown code blocks\nOutput format: {\"tags\":[\"tag1\",\"tag2\"]}",
-  "s_735e2d59": "6. Naming names: pick 3–5 specific books from bookList to discuss (which one you finished, which you started but didn't continue, which is rated highest) and give their titles.\nEvery title mentioned in the report must come from bookList — don't invent any.\n",
   "s_99acf9a4": "You are a personal reading advisor. Analyse the data objectively, avoid vague praise, and point out the structural problems that are being overlooked.",
-  "s_414278bd": "Here is my reading data for {period} (JSON):\n{data}\n\nWrite a reading report covering:\n1. Overview: books finished, total time, daily average\n2. Structure: category breakdown, source platform breakdown, format mix\n3. Habits: reading rhythm, consecutive days, abandonment rate\n4. Profile: what kind of reader I might be\n5. Suggestions: 3 concrete, actionable next steps based on the gaps. Suggestions must stay within reading itself (what to read, how to read, how to record reflections): never comment on where or how I acquire books, never push me to write reviews, share, or keep streaks, and pass no judgment beyond reading.\n{listHint}Format rules (follow strictly - the report is rendered as Markdown inside the app):\n- Open each of the six sections with a level-2 heading such as ## Overview. No numbers inside headings.\n- Bold every key figure: finished **12 books**, **37 minutes** a day.\n- Use - bullets for parallel observations, and a numbered list for the suggestions.\n- Put every book title in italics, like *The Road to Serfdom*.\n- No HTML tags, and no headings deeper than level 3.",
   "s_46e5ebef": "Connection timed out: couldn't reach {host} within 20 seconds",
   "s_3c836870": "Check the network or the base URL; some overseas services need a proxy from mainland China",
   "s_84264711": "Send timed out",
@@ -913,19 +911,8 @@
       "summary": {}
     }
   },
-  "@s_735e2d59": {
-    "description": "auto-extracted"
-  },
   "@s_99acf9a4": {
     "description": "auto-extracted"
-  },
-  "@s_414278bd": {
-    "description": "auto-extracted",
-    "placeholders": {
-      "data": {},
-      "listHint": {},
-      "period": {}
-    }
   },
   "@s_46e5ebef": {
     "description": "auto-extracted",
@@ -3297,5 +3284,12 @@
   "reportStyleCustomDesc": "Write the prompt yourself and control exactly how reports read.",
   "reportStyleCustomHint": "e.g. Talk to me in second person, like a friend commenting on my reading.",
   "reportReadMore": "Read full report",
-  "reportNoContent": "(this report has no body text)"
+  "reportNoContent": "(this report has no body text)",
+  "s_9f2c1d4e": "Overview",
+  "s_0f2b6c1a": "Reading this period",
+  "s_7d1a4e35": "Shelf structure",
+  "s_3c58b0d2": "Reading habits",
+  "s_4b7e2a19": "Books worth naming",
+  "s_6e39f7c4": "Reader profile",
+  "s_1a8d53f6": "What to read next"
 }

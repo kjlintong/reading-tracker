@@ -64,9 +64,7 @@
   "s_4304f539": "Bekannter Titel \"@@PH0@@\"@@PH1@@.\nBitte füllen Sie Folgendes aus:@ @ NL @ @- categoryPrimary: must be one of: @ @ PH2 @@@ @ NL @ @- description: a neutral 80–150 character summary of the book's content, stating facts without evaluation@ @ NL @ @- tags: 3–5 keyword tags\n- authors: an array if the author can be determined, otherwise an empty array\nOutput format: @@PH3@@",
   "s_cbe8aa6b": "Sie sind ein Leseprofilanalytiker. Nur json ausgeben, keine Erklärungen.",
   "s_3864d3b4": "Here is my reading data (JSON):\n{summary}\n\nGive me 10 personality tags, each 2–6 words, like the nicknames a book club gives people.\nRequirements:\n1. Every tag must be supported by the data above — don't make things up\n2. Style reference: Learning Is My Joy / In Tune with Nature / Beauty Above All / Erudite Across the Ages / The Lonely Sage\n3. Don't use empty words like \"reader\", \"enthusiast\" or \"aficionado\"\n4. No explanations, no markdown code blocks\nOutput format: {\"tags\":[\"tag1\",\"tag2\"]}",
-  "s_735e2d59": "6. Namen benennen: Wählen Sie 3–5 spezifische Bücher aus der bookList aus, um zu besprechen (welches Sie beendet haben, welches Sie begonnen haben, aber nicht fortgesetzt haben, welches am höchsten bewertet wird) und geben Sie ihren Titeln.\nJeder im Bericht erwähnte Titel muss aus bookList stammen — erfinde keinen.\n",
   "s_99acf9a4": "Sie sind ein persönlicher Leseberater. Analysieren Sie die Daten objektiv, vermeiden Sie vages Lob und weisen Sie auf die strukturellen Probleme hin, die übersehen werden.",
-  "s_414278bd": "Here is my reading data for {period} (JSON):\n{data}\n\nWrite a reading report covering:\n1. Overview: books finished, total time, daily average\n2. Structure: category breakdown, source platform breakdown, format mix\n3. Habits: reading rhythm, consecutive days, abandonment rate\n4. Profile: what kind of reader I might be\n5. Suggestions: 3 concrete, actionable next steps based on the gaps. Suggestions must stay within reading itself (what to read, how to read, how to record reflections): never comment on where or how I acquire books, never push me to write reviews, share, or keep streaks, and pass no judgment beyond reading.\n{listHint}Format rules (follow strictly - the report is rendered as Markdown inside the app):\n- Open each of the six sections with a level-2 heading such as ## Overview. No numbers inside headings.\n- Bold every key figure: finished **12 books**, **37 minutes** a day.\n- Use - bullets for parallel observations, and a numbered list for the suggestions.\n- Put every book title in italics, like *The Road to Serfdom*.\n- No HTML tags, and no headings deeper than level 3.",
   "s_46e5ebef": "Zeitüberschreitung der Verbindung: @ @ PH0 @@ konnte nicht innerhalb von 20 Sekunden erreicht werden",
   "s_3c836870": "Überprüfen Sie das Netzwerk oder die Basis-URL; einige ausländische Dienste benötigen einen Proxy vom chinesischen Festland",
   "s_84264711": "Zeitüberschreitung",
@@ -913,19 +911,8 @@
       "summary": {}
     }
   },
-  "@s_735e2d59": {
-    "description": "auto-extracted"
-  },
   "@s_99acf9a4": {
     "description": "auto-extracted"
-  },
-  "@s_414278bd": {
-    "description": "auto-extracted",
-    "placeholders": {
-      "data": {},
-      "listHint": {},
-      "period": {}
-    }
   },
   "@s_46e5ebef": {
     "description": "auto-extracted",

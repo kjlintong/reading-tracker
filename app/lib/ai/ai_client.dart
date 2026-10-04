@@ -3,6 +3,7 @@ import '../l10n/app_loc.dart';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import '../data/report_pipeline.dart';
 import '../data/report_style.dart';
 import '../models/enums.dart';
 import 'llm_protocol.dart';
@@ -1022,91 +1023,63 @@ class LlmClient {
     return out.take(12).toList();
   }
 
-  /// 生成定期阅读报告
-  /// 生成阅读报告。
+  /// 让模型把事实表解读成结构化洞察。
   ///
-  /// [data] 里除了聚合统计，还带一份 `bookList`（书名 / 作者 / 分类 /
-  /// 状态 / 评分）。**报告必须能点名具体的书**——一份只谈「你读了 12 本，
-  /// 社科占 40%」的报告，换成任何人的数据都能套上去；只有指出
-  /// 《置身事内》读到 30% 就停了，才是「你的」报告。
+  /// 与旧实现「一次调用同时算数 + 解读 + 排版」的根本区别：事实表和书单
+  /// 由 [report_pipeline.dart] 在本地算好，这里只让模型输出 JSON，排版
+  /// 交给本地模板——于是报告结构恒定，数字不可能与库里的不一致。
   ///
-  /// 清单默认只发周期内**变化过的书**（读完 / 在读 / 新增），不发全库，
-  /// 也不发笔记正文——阅读记录是私密数据，标题层面足够支撑分析。
+  /// [bookList] / [nextCandidates] 是模型**唯一**允许点名与推荐的书：
+  /// 校验层拿它们的 id 做白名单，模型凭空编出来的书会被整条丢掉。
   ///
-  /// [style]：报告风格。不同风格换的是**语气与结构侧重**，
-  /// 而结构化标记（Markdown 标题、书名《》）与内容边界由
-  /// [kReportFormatRules] / [kReportContentBoundary] 统一附加，
-  /// 任何风格都改不掉——否则页面排版会散架、越界建议会回来。
-  ///
-  /// [customPrompt]：仅当 [style] 是自定义时使用；为空白则退回默认风格。
-  Future<String> generateReport(
-    String period,
-    Map<String, dynamic> data, {
+  /// 返回模型原始输出（JSON 文本），解析校验由调用方走 [parseReportPayload]。
+  /// 两次都拿不到可用内容时返回 null。
+  Future<String?> generateReportInsights({
+    required Map<String, dynamic> facts,
+    required List<Map<String, dynamic>> bookList,
+    required List<Map<String, dynamic>> nextCandidates,
     ReportStyle? style,
     String? customPrompt,
     String? languageCode,
   }) async {
     final s = style ?? reportStyles.first;
-    final hasList = (data['bookList'] as List?)?.isNotEmpty ?? false;
-    final listHint = hasList ? appLoc.s_735e2d59 : '';
-
-    // 自定义风格且用户确实写了内容时，用他的提示词替代预设的写作要求
     final custom = customPrompt?.trim() ?? '';
     final useCustom = s.isCustom && custom.isNotEmpty;
     final extra = useCustom ? custom : (s.instruction ?? '');
 
-    final userPrompt = StringBuffer()
-      ..writeln(appLoc.s_414278bd(
-        period: period,
-        data: jsonEncode(data),
-        listHint: listHint,
-      ));
-    if (extra.isNotEmpty) {
-      userPrompt
-        ..writeln()
-        ..writeln(extra);
-    }
-    // 语言锁死：报告正文必须与该周期生成时 App 的界面语言一致，
-    // 否则会出现「中文界面却冒出英文段落 / 中英混排」。这条是用户实测的高频反馈。
     final lang = languageCode ?? appLoc.localeName;
-    final langRule = lang.toLowerCase().startsWith('zh')
-        ? '【语言】整篇报告（所有小标题、正文与总结）必须用简体中文撰写。'
-            '外文书名可保留原文，但叙述语言必须是简体中文，严禁中英混排。'
-        : '【Language】Write the entire report (all headings, body, and summary) '
-            'in English. Foreign book titles may stay in their original script, '
-            'but the narrative must be English only — never mix Chinese and English.';
-    userPrompt
-      ..writeln()
-      ..writeln(langRule)
-      ..writeln()
-      ..writeln(kReportFormatRules)
-      ..writeln()
-      ..writeln(kReportContentBoundary);
-    // 只有数据里真的带了计划才附加这段要求：否则模型会对着一个
-    // 不存在的字段硬凑一节「关于阅读计划」，纯属幻觉。
-    final hasPlans = (data['readingPlans'] as List?)?.isNotEmpty ?? false;
-    if (hasPlans) {
-      userPrompt
+    final zh = lang.toLowerCase().startsWith('zh');
+
+    final prompt = StringBuffer(
+      buildInsightsPrompt(
+        facts: facts,
+        bookList: bookList,
+        nextCandidates: nextCandidates,
+        zh: zh,
+      ),
+    );
+    if (extra.isNotEmpty) {
+      prompt
         ..writeln()
-        ..writeln(kReportPlanRules);
+        ..writeln('STYLE (tone only - never change the JSON shape): $extra');
     }
 
-    return chat(
-      [
-        {
-          'role': 'system',
-          // 角色始终取预设；自定义风格只改「写作要求」，不改角色——
-          // 让用户同时定义角色与要求，提示词会变得很长且容易自相矛盾
-          'content': s.persona,
-        },
-        {
-          'role': 'user',
-          'content': userPrompt.toString(),
-        },
-      ],
-      temperature: 0.6,
-      maxTokens: 8192,
-    );
+    Future<String?> attempt(double temperature) async {
+      final raw = await chat(
+        [
+          {'role': 'system', 'content': s.persona},
+          {'role': 'user', 'content': prompt.toString()},
+        ],
+        temperature: temperature,
+        jsonMode: true,
+        maxTokens: 4096,
+      );
+      return raw.trim().isEmpty ? null : raw;
+    }
+
+    // 拿不到内容就降温度重试一次。旧实现没有重试：模型一次抽风
+    // 就直接变成一份空报告，用户只能干等。
+    return await attempt(0.6) ?? await attempt(0.3);
   }
 
   /* ----------------------------- 内部工具 ----------------------------- */

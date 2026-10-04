@@ -1,4 +1,3 @@
-import 'dart:convert';
 import '../l10n/app_loc.dart';
 
 import 'package:flutter/material.dart';
@@ -6,15 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../ai/ai_client.dart';
-import '../data/database.dart';
 import '../data/date_range.dart';
 import '../data/encouragement.dart';
+import '../data/report_pipeline.dart';
 import '../data/report_style.dart';
 import '../l10n/app_localizations.dart';
 import '../models/enums.dart';
 import '../providers.dart';
 import '../data/report_period.dart';
-import '../models/book.dart';
 import 'markdown_view.dart';
 
 /// AI 阅读报告 —— **全 App 唯一的报告入口**。
@@ -210,42 +208,48 @@ class _AiReportPanelState extends ConsumerState<AiReportPanel> {
     // 用目标周期自身的口径重建摘要，而不是复用当前页面的 _period——
     // 用户可能正停在上个月的月报上，却让系统补今年的年报。
     // 摘要构建走共享实现，保证与设置页的补生成口径一致。
-    final summary = await buildReportSummary(
+    final bundle = await buildReportBundle(
       repo: repo,
       books: books,
       range: p.range,
-      periodLabel: p.label,
     );
 
-    final text = await ref.read(llmClientProvider).generateReport(
-          p.label,
-          summary,
+    final text = await ref.read(llmClientProvider).generateReportInsights(
+          facts: bundle.facts,
+          bookList: bundle.bookList,
+          nextCandidates: bundle.nextCandidates,
           style: _style,
           customPrompt: _customPrompt,
         );
-    if (text.trim().isEmpty) {
+    final rendered = renderReport(
+      parseReportPayload(text ?? '', knownBookIds: bundle.knownIds),
+      facts: bundle.facts,
+      titleById: bundle.titleById,
+    );
+    if (rendered.trim().isEmpty) {
       throw LlmException(appLoc.s_d2a3748e,
           hint: appLoc.s_3abdc334);
     }
     await repo.saveReport(
       period: p.key,
       model: ref.read(llmModelProvider),
-      content: text,
-      metrics: summary,
+      content: rendered,
+      // 顺手存下模型原始 JSON：将来换风格重渲染不必再调一次模型
+      metrics: {...bundle.facts, 'raw': text},
     );
     if (!silent && mounted) {
       // 只保留指标 chips；正文交给独立页面展示，不在面板里留副本
-      setState(() => _metrics = summary);
+      setState(() => _metrics = bundle.facts);
       // 生成完成直接进正文页：用户点「生成」就是想看报告，
       // 让他再回列表里找一次是多余的一步。
       _showReport(
         title: p.label,
-        content: text,
+        content: rendered,
         model: ref.read(llmModelProvider),
         generatedAt: DateTime.now().toIso8601String(),
       );
     }
-    return text;
+    return rendered;
   }
 
   Future<void> _generate() async {
@@ -726,26 +730,31 @@ class _ReportSettingsPageState extends ConsumerState<ReportSettingsPage> {
       final books = all.where(p.range.containsBook).toList();
       if (books.isEmpty) return null;
 
-      final summary = await buildReportSummary(
+      final bundle = await buildReportBundle(
         repo: repo,
         books: books,
         range: p.range,
-        periodLabel: p.label,
       );
-      final text = await ref.read(llmClientProvider).generateReport(
-            p.label,
-            summary,
+      final text = await ref.read(llmClientProvider).generateReportInsights(
+            facts: bundle.facts,
+            bookList: bundle.bookList,
+            nextCandidates: bundle.nextCandidates,
             style: _style,
             customPrompt: _customPrompt,
           );
-      if (text.trim().isEmpty) return null;
+      final rendered = renderReport(
+        parseReportPayload(text ?? '', knownBookIds: bundle.knownIds),
+        facts: bundle.facts,
+        titleById: bundle.titleById,
+      );
+      if (rendered.trim().isEmpty) return null;
       await repo.saveReport(
         period: p.key,
         model: ref.read(llmModelProvider),
-        content: text,
-        metrics: summary,
+        content: rendered,
+        metrics: {...bundle.facts, 'raw': text},
       );
-      return text;
+      return rendered;
     } catch (_) {
       return null;
     }
@@ -1082,92 +1091,3 @@ class _StatChip extends StatelessWidget {
 /// 报告数据摘要。**面板与设置页共用同一实现**——
 /// 两处各算一遍，很容易出现「首页生成的报告」与「补生成的报告」
 /// 口径不同（比如一个带计划数据、一个不带）。
-Future<Map<String, dynamic>> buildReportSummary({
-  required BookRepository repo,
-  required List<Book> books,
-  required StatsRange range,
-  required String periodLabel,
-}) async {
-  final status = <String, int>{};
-    final categoryCount = <String, int>{};
-    final sourceCount = <String, int>{};
-    for (final b in books) {
-      status[b.status.label] = (status[b.status.label] ?? 0) + 1;
-      final k = b.categoryPrimary ?? kUncategorized;
-      categoryCount[k] = (categoryCount[k] ?? 0) + 1;
-      sourceCount[b.source.label] = (sourceCount[b.source.label] ?? 0) + 1;
-    }
-    final categories = categoryCount.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final sources = sourceCount.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    final rated = books.where((b) => b.rating > 0).toList();
-    final avgRating = rated.isEmpty
-        ? 0.0
-        : rated.map((b) => b.rating).reduce((a, b) => a + b) / rated.length;
-
-    final finished = books.where((b) => b.status == BookStatus.finished).length;
-    final reading = books.where((b) => b.status == BookStatus.reading).length;
-    final wish = books.where((b) => b.status == BookStatus.wish).length;
-
-    // 在读但进度极低 = 开了坑没填，是阅读结构里最值得指出的部分
-    final stalled = books
-        .where((b) => b.status == BookStatus.reading && b.progressPercent < 15)
-        .length;
-
-    Map<String, dynamic>? wereadStats;
-    final raw = await repo.getSetting('wereadAnnualStats');
-    if (raw != null) {
-      try {
-        wereadStats = jsonDecode(raw) as Map<String, dynamic>;
-      } catch (_) {}
-    }
-
-    // 阅读计划的达成情况。只取**这个周期内仍然有效**的计划：
-    // 报告是「这段时间读得怎么样」的复盘，把一条 2023 年就删掉的计划
-    // 塞进去，模型会拿它当成近况来分析。
-    // 完成快照走 repo.planProgress —— 与计划卡片同一入口，避免两处口径打架。
-    final plans = <Map<String, dynamic>>[];
-    for (final pr in await repo.activePlanProgress()) {
-      final created = DateTime.tryParse(pr.plan.createdAt);
-      if (created != null && !range.containsIso(pr.plan.createdAt)) {
-        continue;
-      }
-      plans.add(pr.toReportJson());
-    }
-
-    return {
-      'period': periodLabel,
-      'total': books.length,
-      'finished': finished,
-      'reading': reading,
-      'wish': wish,
-      'stalledReading': stalled,
-      'statusCounts': status,
-      'categoryDistribution':
-          categories.map((e) => {'name': e.key, 'count': e.value}).toList(),
-      'sourceDistribution':
-          sources.map((e) => {'name': e.key, 'count': e.value}).toList(),
-      'avgRating': double.parse(avgRating.toStringAsFixed(2)),
-      'readingMinutes': await repo.totalReadingMinutes(),
-      'streakDays': await repo.readingStreakDays(),
-      if (plans.isNotEmpty) 'readingPlans': plans,
-      // 书名清单：没有它，报告只能说「你读了 12 本」这种谁都能套的话。
-      // 只发标题层面的字段，不发笔记正文与划线内容。
-      'bookList': [
-        for (final b in books.take(60))
-          {
-            'title': b.title,
-            if (b.authors.isNotEmpty) 'author': b.authors.first,
-            if (b.categoryPrimary != null) 'category': categoryLabel(b.categoryPrimary!),
-            'status': b.status.label,
-            if (b.rating > 0) 'rating': b.rating,
-            if (b.progressPercent > 0)
-              'progress': b.progressPercent.toStringAsFixed(0),
-            if (b.finishedAt != null) 'finishedAt': b.finishedAt,
-          },
-      ],
-      if (wereadStats != null) 'wereadAnnual': wereadStats,
-    };
-}

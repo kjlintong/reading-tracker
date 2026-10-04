@@ -317,37 +317,41 @@ void main() {
     /// 抓出发给模型的 user 报文正文。
     /// 报告是「一段时间读得怎么样」的复盘，阅读计划是这段时间里
     /// 用户自己下的注，模型不看到它就只能泛泛而谈。
-    Future<String> promptFor(Map<String, dynamic> data) async {
+    Future<String> promptFor(Map<String, dynamic> facts) async {
       final adapter = _FakeAdapter((_) => _json({
             'choices': [
               {
-                'message': {'content': '## 概览\n写得不错'}
+                'message': {'content': '{"headline":"ok"}'}
               }
             ]
           }));
       final dio = Dio()..httpClientAdapter = adapter;
       final client = LlmClient(
           dio: dio, apiKey: 'k', baseUrl: 'https://api.example.com/v1', model: 'm');
-      await client.generateReport('2026 年报', data);
+      await client.generateReportInsights(
+        facts: facts,
+        bookList: const [],
+        nextCandidates: const [],
+      );
       final messages = (adapter.captured.single.data as Map)['messages'] as List;
       return (messages.last as Map)['content'] as String;
     }
 
     test('没有计划时完全不提这一节，避免模型硬凑', () async {
-      final p = await promptFor({'total': 1, 'bookList': []});
-      expect(p.contains('阅读计划'), isFalse);
+      final p = await promptFor({'finished': 1, 'hasLogs': false});
+      expect(p.contains('"plans" holds goals'), isFalse);
     });
 
     test('计划为空数组同样不注入：空数组不等于「有计划」', () async {
-      final p = await promptFor({'total': 1, 'bookList': [], 'readingPlans': []});
-      expect(p.contains('阅读计划'), isFalse);
+      final p = await promptFor({'finished': 1, 'hasLogs': false, 'plans': []});
+      expect(p.contains('"plans" holds goals'), isFalse);
     });
 
     test('有计划时注入分析要求，且要求用具体数字而非下判断', () async {
       final p = await promptFor({
-        'total': 1,
-        'bookList': [],
-        'readingPlans': [
+        'finished': 1,
+        'hasLogs': false,
+        'plans': [
           {
             'kind': 'dailyMinutes',
             'target': 30,
@@ -358,24 +362,27 @@ void main() {
           }
         ],
       });
-      expect(p.contains('阅读计划'), isTrue);
+      expect(p.contains('"plans" holds goals'), isTrue);
       // 底线：没完成不等于失败，模型不许把未达成写成道德问题
-      expect(p.contains('不要因为没完成计划就贬低读者'), isTrue);
+      expect(p.contains('missing a goal is not a failure'), isTrue);
       // 要分析规律而不是下判断
-      expect(p.contains('分析**规律**'), isTrue);
+      expect(p.contains('describe the'), isTrue);
     });
 
-    test('有计划时，达成情况仍然落在「内容边界」之内', () async {
-      // 边界段与计划段必须同时在场：用户此前明确反感越界建议，
-      // 新增计划段不能成为绕过边界那条附加通道。
-      final p = await promptFor({
-        'total': 1,
-        'bookList': [],
-        'readingPlans': [
-          {'kind': 'finishBook', 'target': 100, 'current': 100, 'achieved': true}
-        ],
-      });
-      expect(p.contains('不要评论书籍的来源或获取渠道'), isTrue);
+    test('没有阅读记录时不下发时长维度：不让模型对着 0 编节奏', () async {
+      final p = await promptFor({'finished': 1, 'hasLogs': false});
+      expect(p.contains('NO reading-time logs'), isTrue);
+    });
+
+    test('有阅读记录时不再写「没有记录」那句', () async {
+      final p = await promptFor(
+          {'finished': 1, 'hasLogs': true, 'minutes': 300, 'streak': 5});
+      expect(p.contains('NO reading-time logs'), isFalse);
+    });
+
+    test('内容边界始终在场，计划段不能成为绕过边界的通道', () async {
+      final p = await promptFor({'finished': 1, 'hasLogs': false});
+      expect(p.contains('Never comment on how books were acquired'), isTrue);
     });
   });
 

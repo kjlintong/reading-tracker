@@ -217,15 +217,7 @@ class SZh extends S {
   }
 
   @override
-  String get s_735e2d59 => '6. 点名环节：从 bookList 里挑 3~5 本具体谈（哪本读完了、哪本开了头没继续、哪本评分最高），给出书名。\n报告中出现的书名必须来自 bookList，不要编造。\n';
-
-  @override
   String get s_99acf9a4 => '你是私人阅读顾问。基于数据做客观分析，避免空泛赞美，指出被忽视的结构性问题。';
-
-  @override
-  String s_414278bd({required Object data, required Object listHint, required Object period}) {
-    return '以下是我$period的阅读数据（JSON）：\n$data\n\n请生成一份中文阅读报告，包含：\n1. 概览：读完本数、总时长、日均时长\n2. 结构分析：分类分布、来源平台分布、形态占比\n3. 习惯洞察：阅读节奏、连续天数、弃读率\n4. 偏好画像：我可能是什么类型的读者\n5. 建议：基于缺口给出 3 条具体可执行的下一步建议。建议只围绕阅读本身（读什么、怎么读、读后如何记录）：不要评论书籍的来源或获取渠道，不要催促写书评、分享或打卡，不要做阅读之外的评判。\n$listHint格式要求（严格遵守，报告会在 App 里按 Markdown 排版呈现）：\n- 六个部分都用二级标题开头（例如「## 概览」），标题里不要带编号。\n- 关键数字一律加粗，例如「共读完 **12 本**」「日均 **37 分钟**」。\n- 并列要点用 - 开头的无序列表；给读者的行动建议用 1. 2. 3. 有序列表。\n- 所有书名一律用《》包裹，例如《置身事内》。\n- 不要写 HTML 标签，不要使用四级及更深的标题。';
-  }
 
   @override
   String s_46e5ebef({required Object host}) {
@@ -2621,4 +2613,25 @@ class SZh extends S {
 
   @override
   String get reportNoContent => '（这份报告没有正文）';
+
+  @override
+  String get s_9f2c1d4e => '概览';
+
+  @override
+  String get s_0f2b6c1a => '本期阅读';
+
+  @override
+  String get s_7d1a4e35 => '书架结构';
+
+  @override
+  String get s_3c58b0d2 => '习惯洞察';
+
+  @override
+  String get s_4b7e2a19 => '点名';
+
+  @override
+  String get s_6e39f7c4 => '偏好画像';
+
+  @override
+  String get s_1a8d53f6 => '下一步计划';
 }
