@@ -43,6 +43,7 @@ Book _bookAt(
   String? finishedAt,
   String? startedAt,
   String? createdAt,
+  String? category,
 }) =>
     Book(
       id: title,
@@ -54,6 +55,7 @@ Book _bookAt(
       startedAt: startedAt,
       createdAt: createdAt ?? '2026-01-01T00:00:00.000',
       updatedAt: createdAt ?? '2026-01-01T00:00:00.000',
+      categoryPrimary: category,
     );
 
 String _isoDaysAgo(int d) =>
@@ -370,6 +372,106 @@ void main() {
       expect(bundle.facts['recentDays'], 30);
       // 窗口比周期还宽的话，它和「本期读完」是同一件事，没有额外信息
       expect(bundle.facts.containsKey('halfYearDays'), isFalse);
+    });
+  });
+
+  group('衍生指标：把计数换算成读者自己算不出来的数', () {
+    final year = StatsRange(
+      label: '2026',
+      from: DateTime(2026, 1, 1),
+      to: DateTime(2027, 1, 1),
+    );
+
+    test('沉寂天数、完成月份数、清空书架需要的年数', () {
+      final now = DateTime.now();
+      final books = [
+        _bookAt('一月读完的', status: BookStatus.finished, finishedAt: _isoDaysAgo(150)),
+        _bookAt('五月读完的', status: BookStatus.finished, finishedAt: _isoDaysAgo(40)),
+        for (var i = 0; i < 48; i++) _bookAt('想读$i'),
+      ];
+      final slice = sliceBooks(books: books, range: year);
+      final d = derivedInsights(
+        slice: slice, range: year, anchor: now, spanDays: 365,
+      );
+      // 「最后一本是 40 天前」比「近半年读完 2 本」直白
+      expect(d['silenceDays'], greaterThanOrEqualTo(39));
+      // 两本书只落在两个不同的月份：9 本读完≠读了 9 个月
+      expect(d['finishedMonths'], 2);
+      // 一年 2 本、想读 48 本 -> 24 年。「48 本想读」是不可感的数字
+      expect(d['backlogYears'], 24);
+    });
+
+    test('跨度过大时不给外推年数，但沉寂天数照给', () {
+      // 「全部时间」没有起点，跨度是个天文数字，外推出来的年数荒谬到
+      // 模型会照着写一句「按这个速度你要读 4000 年」
+      final slice = sliceBooks(
+        books: [_bookAt('读完的', status: BookStatus.finished, finishedAt: _isoDaysAgo(30))],
+        range: StatsRange.all,
+      );
+      final d = derivedInsights(
+        slice: slice,
+        range: StatsRange.all,
+        anchor: DateTime.now(),
+        spanDays: 1 << 30,
+      );
+      expect(d.containsKey('backlogYears'), isFalse);
+      // 不依赖跨度的指标照常给
+      expect(d.containsKey('silenceDays'), isTrue);
+    });
+
+    test('高分书与本期高分书分开给，能看出口味分叉', () {
+      final books = [
+        _bookAt('往年高分甲', status: BookStatus.finished, rating: 5, finishedAt: _isoDaysAgo(500)),
+        _bookAt('往年高分乙', status: BookStatus.finished, rating: 4, finishedAt: _isoDaysAgo(400)),
+        _bookAt('本期高分', status: BookStatus.finished, rating: 5, finishedAt: _isoDaysAgo(20)),
+        _bookAt('读完没评分', status: BookStatus.finished, finishedAt: _isoDaysAgo(30)),
+      ];
+      final slice = sliceBooks(books: books, range: year);
+      final d = derivedInsights(
+        slice: slice, range: year, anchor: DateTime.now(), spanDays: 365,
+      );
+      expect(d['highRated'], 3);
+      // 3 本 4 星以上只有 1 本出自本期：今年的阅读偏离了拿高分的那条线
+      expect(d['highRatedPeriod'], 1);
+      expect(d['unratedFinished'], 1);
+      expect('${d['ratingSpread']}', contains('5★×2'));
+    });
+
+    test('在读的平均开坑天数与最大分类占比', () {
+      final books = [
+        _bookAt('开了三个月的坑', status: BookStatus.reading, startedAt: _isoDaysAgo(90)),
+        _bookAt('上个月开的坑', status: BookStatus.reading, startedAt: _isoDaysAgo(30)),
+        for (var i = 0; i < 3; i++) _bookAt('社科$i', category: '社科'),
+        for (var i = 0; i < 2; i++) _bookAt('文学$i', category: '文学'),
+      ];
+      final slice = sliceBooks(books: books, range: year);
+      final d = derivedInsights(
+        slice: slice, range: year, anchor: DateTime.now(), spanDays: 365,
+      );
+      expect(d['readingAgeDays'], 60);
+      // 分母是**整个书架**（7 本，含两本在读），不是只数已分类的
+      expect(d['topCategoryShare'], 43);
+    });
+
+    test('衍生指标进了占位符清单，模型才引用得到', () {
+      final p = buildInsightsPrompt(
+        facts: {
+          'finished': 2,
+          'hasLogs': false,
+          'backlogYears': 24,
+          'silenceDays': 40,
+        },
+        bookList: const [],
+        nextCandidates: const [],
+        languageCode: 'zh',
+      );
+      expect(p.contains('[[backlogYears]]'), isTrue);
+      expect(p.contains('[[silenceDays]]'), isTrue);
+      // 「无聊」的病根是复述数字，这两条规则是直接对着它开的
+      expect(p.contains('NEVER just restate'), isTrue);
+      expect(p.contains('DERIVED facts'), isTrue);
+      // 事实表里没有的键绝不列，否则模型照写就渲染成破折号
+      expect(p.contains('[[topCategoryShare]]'), isFalse);
     });
   });
 

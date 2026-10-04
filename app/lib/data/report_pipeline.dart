@@ -238,6 +238,115 @@ Map<String, dynamic> buildReportFacts(
 }
 
 // ---------------------------------------------------------------------------
+// 段 2b · 衍生指标
+// ---------------------------------------------------------------------------
+
+/// 把原始计数换算成**读者自己不知道的**那几个数。
+///
+/// 这是「报告读着无聊」的解药。原样下发 `finished: 9 / wish: 452`，模型
+/// 只能复述一遍——「你今年读了 9 本，还有 452 本想读」，这句话读者打开
+/// App 一秒就能自己看出来，读完等于没读。真正有信息量的是换算后的东西：
+/// 按这个速度清空想读要 50 年；最后一次读完是 148 天前；9 本其实只落在
+/// 3 个月里。这些模型**算不出来**（它拿不到周期跨度与「今天」），必须由
+/// 本地算好喂进去。
+///
+/// 算不出或没意义的指标整个不下发，绝不塞 0——模型对着 0 也要硬写一句。
+Map<String, dynamic> derivedInsights({
+  required ReportSlice slice,
+  required StatsRange range,
+  required DateTime anchor,
+  required int spanDays,
+}) {
+  final out = <String, dynamic>{};
+
+  // 最后一次读完距今多久。比「近半年读完 2 本」直白得多。
+  DateTime? lastFinish;
+  for (final b in slice.finished) {
+    final d = _moment(b.finishedAt);
+    if (d != null && (lastFinish == null || d.isAfter(lastFinish))) {
+      lastFinish = d;
+    }
+  }
+  if (lastFinish != null) {
+    final days = anchor.difference(lastFinish).inDays;
+    if (days > 0) out['silenceDays'] = days;
+  }
+
+  // 完成记录落在几个不同的月份。9 本铺在 9 个月与挤在 1 个月是完全
+  // 不同的两种人，累计数字看不出这个差别。
+  if (slice.finished.isNotEmpty) {
+    final months = <String>{};
+    for (final b in slice.finished) {
+      final at = b.finishedAt;
+      if (at != null && at.length >= 7) months.add(at.substring(0, 7));
+    }
+    if (months.isNotEmpty) out['finishedMonths'] = months.length;
+  }
+
+  // 按本期速度清空想读要几年。「452 本想读」是不可感的数字，
+  // 「按今年的速度要 50 年」才是。
+  final wish = slice.shelf.where((b) => b.status == BookStatus.wish).length;
+  // 跨度过大（「全部时间」没有起点）或过小都算不出有意义的年化速度
+  if (slice.finished.isNotEmpty && wish > 0 && spanDays >= 28 && spanDays <= 3660) {
+    final perYear = slice.finished.length * 365.0 / spanDays;
+    final years = wish / perYear;
+    if (years.isFinite && years > 0) {
+      out['backlogYears'] =
+          years >= 10 ? years.round() : double.parse(years.toStringAsFixed(1));
+    }
+  }
+
+  // 最大分类占书架的比例：说明书架是「围绕一条主线」还是「什么都收」。
+  if (slice.shelf.isNotEmpty) {
+    final counts = <String, int>{};
+    for (final b in slice.shelf) {
+      final c = b.categoryPrimary ?? kUncategorized;
+      counts[c] = (counts[c] ?? 0) + 1;
+    }
+    final top = counts.values.reduce((a, b) => a > b ? a : b);
+    out['topCategoryShare'] = (top * 100 / slice.shelf.length).round();
+  }
+
+  // 在读的书平均躺了多久：区分「正在读」与「开过头就放着」。
+  if (slice.reading.isNotEmpty) {
+    var sum = 0;
+    for (final b in slice.reading) {
+      final from = _moment(b.startedAt) ?? _moment(b.createdAt) ?? anchor;
+      sum += anchor.difference(from).inDays;
+    }
+    final age = (sum / slice.reading.length).round();
+    if (age > 0) out['readingAgeDays'] = age;
+  }
+
+  // 评分分布：只有平均分看不出「给分很松」还是「很少打高分」。
+  if (slice.rated.isNotEmpty) {
+    final byStar = <String>{};
+    for (final star in [5, 4, 3, 2, 1]) {
+      final n = slice.rated.where((b) => b.rating == star).length;
+      if (n > 0) byStar.add('$star★×$n');
+    }
+    if (byStar.isNotEmpty) out['ratingSpread'] = byStar.join(' ');
+  }
+
+  // 读完却没评分：读了不做记录的比例，比「平均几分」更能说明习惯。
+  final unrated = slice.finished.where((b) => b.rating <= 0).length;
+  if (unrated > 0) out['unratedFinished'] = unrated;
+
+  // 高分书里有多少是本期读完的：口味与正在读的东西是不是同一条线。
+  // 给过 8 本 4 分以上、其中只有 1 本出自本期，说的是「今年的阅读已经
+  // 偏离了你真正喜欢的那条线」——这是全篇最值得说的一句，且只有本地算得出。
+  final high = slice.rated.where((b) => b.rating >= 4);
+  if (high.isNotEmpty) {
+    out['highRated'] = high.length;
+    final inPeriod = high.where((b) =>
+        b.finishedAt != null && range.containsIso(b.finishedAt!)).length;
+    out['highRatedPeriod'] = inPeriod;
+  }
+
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // 书单：按相关性排序，不是按更新时间
 // ---------------------------------------------------------------------------
 
@@ -460,6 +569,13 @@ Future<ReportBundle> buildReportBundle({
     wishAddedHalfYear:
         countSince(slice.wishAdded, (b) => b.createdAt, halfSince, useHalfYear),
   );
+  // 衍生指标最后合并：它们依赖窗口锚点与周期跨度，只有这里才算得出来
+  facts.addAll(derivedInsights(
+    slice: slice,
+    range: range,
+    anchor: anchor,
+    spanDays: spanDays,
+  ));
   final bookList = buildBookList(slice, recentSince: recent);
   final nextCandidates = buildNextCandidates(slice, recentSince: recent);
 
@@ -498,6 +614,16 @@ const List<String> kFactPlaceholders = [
   'wishAddedHalfYear',
   'minutes',
   'streak',
+  // 衍生指标：模型只有引用它们，报告才说得出现成数字说不出的话
+  'silenceDays',
+  'finishedMonths',
+  'backlogYears',
+  'topCategoryShare',
+  'readingAgeDays',
+  'ratingSpread',
+  'unratedFinished',
+  'highRated',
+  'highRatedPeriod',
 ];
 
 String buildInsightsPrompt({
@@ -578,7 +704,7 @@ String buildInsightsPrompt({
     ..writeln()
     ..writeln('OUTPUT this exact JSON shape:')
     ..writeln('''{
-  "headline": "one sentence on the period",
+  "headline": "one sentence that judges the period - never a number restatement",
   "overview": ["..."],
   "activity": ["..."],
   "shelf": ["..."],
@@ -593,6 +719,23 @@ String buildInsightsPrompt({
 }''')
     ..writeln()
     ..writeln('RULES:')
+    // 「无聊」的病根就在这两条：模型最省力的写法是把 FACTS 复述一遍，
+    // 而复述出来的东西读者打开 App 一秒就能自己看到，读完等于没读。
+    ..writeln('- NEVER just restate a count. "You finished [[finished]] books" '
+        'is not an insight. Say what the number MEANS.')
+    ..writeln('- Prefer the DERIVED facts (silenceDays, backlogYears, '
+        'finishedMonths, topCategoryShare, readingAgeDays, ratingSpread, '
+        'highRated vs highRatedPeriod). They are conversions the reader '
+        'cannot do in their head — that is where the insight lives.')
+    ..writeln('- Each section answers its own question: "overview" = one '
+        'judgement on the period; "activity" = when reading happened and '
+        'when it stopped; "shelf" = what the composition implies for '
+        'choosing what to read; "habits" = a pattern that REPEATED, not a '
+        'summary of the numbers.')
+    ..writeln('- Never repeat the same fact in two sections, and never use '
+        'the same sentence shape twice in a row.')
+    ..writeln('- Two specific observations beat five generic ones. If a '
+        'section can only produce filler, leave it empty.')
     ..writeln('- Every "id" MUST come from BOOKS or NEXT-CANDIDATES. '
         'Never invent a book or an id.')
     ..writeln('- Every claim must be traceable to FACTS or to a listed book. '
@@ -608,7 +751,10 @@ String buildInsightsPrompt({
     ..writeln('- A spike in "wishAdded" usually means a one-off bulk import, '
         'not a change of appetite. Cross-check "sourceTop": when most of the '
         'shelf came from a single source, describe it as an import, not as '
-        'what the reader wants to read.')
+        'what the reader wants to read. The same caveat applies to '
+        '"readingAgeDays": right after a bulk import it means the books were '
+        'marked as reading the day they arrived, not that they have been '
+        'read for days.')
     ..writeln('- Stay inside reading: what to read, how to read, how to record. '
         'Never comment on how books were acquired, never push reviews, '
         'sharing, or streaks, and pass no judgment beyond reading.')
@@ -619,7 +765,8 @@ String buildInsightsPrompt({
     ..write(planNote);
 
   // 报告语言跟随 App 语言：App 支持的语言都能用，不是只有中英两档。
-  // persona 与风格指令来自 ARB，本来就随语言走，这里只需锁住正文。
+  // persona 与风格指令故意写英文（给模型看，遵循度更高），所以正文语言
+  // 只能靠这一段锁死。
   final name = languageName(languageCode);
   b.write('\n\nLANGUAGE: write every field value in $name '
       '(language code "$languageCode"). Foreign book titles may stay in their '

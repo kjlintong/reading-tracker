@@ -882,7 +882,7 @@ class _ReportSettingsPageState extends ConsumerState<ReportSettingsPage> {
                       color: s.id == _style.id
                           ? cs.onSecondaryContainer
                           : cs.onSurfaceVariant),
-                  label: Text(reportStyleName(s.id).split(' · ').first),
+                  label: Text(reportStyleName(s.id, l10n)),
                   onSelected: (_) {
                     setState(() => _style = s);
                     _saveStyle();
