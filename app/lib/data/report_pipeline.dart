@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'database.dart';
 import 'date_range.dart';
 import '../l10n/app_loc.dart';
+import '../l10n/language_names.dart';
 import '../models/book.dart';
 import '../models/enums.dart';
 
@@ -18,6 +19,19 @@ import '../models/enums.dart';
 ///
 /// 所以这里把报告拆成四段，模型只做中间那段：
 ///   切片（本地） → 事实表（本地） → 解读（模型，输出 JSON） → 校验+渲染（本地）
+
+/// 近期窗口天数。
+///
+/// 为什么需要它：年报和「全部时间」里，累计数字看不出读者**现在**还在不在
+/// 读——去年读掉 40 本、今年一本没动的书架，「已读 40 本」和「一本没读」
+/// 在累计数上是一样的。近 30 天是一个既能反映当下、又不至于样本太小的口径。
+const int kRecencyDays = 30;
+
+/// 周期至少跨这么天才单独统计近期窗口。
+///
+/// 月报里窗口和周期本身几乎重合，再给一份「近 30 天读完 3 本」只是把
+/// 「本月读完 3 本」换个说法，还容易让模型写出重复的两句。
+const int kRecencyMinSpanDays = 60;
 
 // ---------------------------------------------------------------------------
 // 段 1 · 切片
@@ -65,6 +79,25 @@ bool _isJunkTitle(String t) {
   return junk.contains(s.toLowerCase());
 }
 
+/// ISO 字符串取日期部分（`2026-05-01T12:30:00` → `2026-05-01`）。
+///
+/// 精确到秒的时间戳对判断「什么时候读的」没有额外价值，只会让书单变长、
+/// 让模型在无关的细节上分心。
+String _day(String? iso) {
+  if (iso == null) return '';
+  final s = iso.trim();
+  return s.length >= 10 ? s.substring(0, 10) : s;
+}
+
+/// 解析时间点，脏数据返回 null（不该让一条坏记录毁掉整份报告）。
+DateTime? _moment(String? iso) {
+  if (iso == null || iso.isEmpty) return null;
+  return DateTime.tryParse(iso);
+}
+
+/// 是否落在 [since] 之后（含起点）。解析不出来的算「不在窗口内」。
+bool _since(DateTime? t, DateTime since) => t != null && !t.isBefore(since);
+
 ReportSlice sliceBooks({
   required List<Book> books,
   required StatsRange range,
@@ -111,12 +144,19 @@ ReportSlice sliceBooks({
 ///
 /// `hasLogs` 为 false 时不下发时长与连续天数——让模型对着 0 写「你的阅读
 /// 节奏」是逼它编，不如干脆不给这个维度。
+///
+/// `recencyDays > 0` 时才带近期指标：月报里它们和周期本身重合，多给一份
+/// 只会让模型把同一句话写两遍。
 Map<String, dynamic> buildReportFacts(
   ReportSlice s, {
   int readingMinutes = 0,
   int streakDays = 0,
   bool hasLogs = false,
   List<Map<String, dynamic>>? plans,
+  String periodEnd = '',
+  int recencyDays = 0,
+  int finishedRecent = 0,
+  int wishAddedRecent = 0,
 }) {
   double avgRating = 0;
   if (s.rated.isNotEmpty) {
@@ -148,6 +188,12 @@ Map<String, dynamic> buildReportFacts(
     'shelfTotal': s.shelf.length,
     'ratedCount': s.rated.length,
     'avgRating': double.parse(avgRating.toStringAsFixed(1)),
+    if (periodEnd.isNotEmpty) 'periodEnd': periodEnd,
+    if (recencyDays > 0) ...{
+      'recentDays': recencyDays,
+      'finishedRecent': finishedRecent,
+      'wishAddedRecent': wishAddedRecent,
+    },
     'categoryTop': [
       for (final e in cats.take(6)) {'name': categoryLabel(e.key), 'count': e.value},
     ],
@@ -165,27 +211,47 @@ Map<String, dynamic> buildReportFacts(
 // 书单：按相关性排序，不是按更新时间
 // ---------------------------------------------------------------------------
 
-Map<String, dynamic> _bookEntry(Book b) => {
-      'id': b.id,
-      'title': b.title,
-      if (b.authors.isNotEmpty) 'author': b.authors.first,
-      if (b.categoryPrimary != null) 'category': categoryLabel(b.categoryPrimary!),
-      'status': b.status.name,
-      if (b.rating > 0) 'rating': b.rating,
-      if (b.progressPercent > 0) 'progress': b.progressPercent.round(),
-      if (b.finishedAt != null) 'finishedAt': b.finishedAt,
-    };
+/// 一条书单条目。
+///
+/// 带上时间是刻意的：同样标着「想读」，上周加进去的和两年前加进去的完全
+/// 不是一回事——前者说明现在想读，后者多半只是当年随手收的。没有日期，
+/// 模型只能把它们当成同等的「当前意图」，结论自然会跑偏。
+Map<String, dynamic> _bookEntry(Book b, {DateTime? recentSince}) {
+  final finished = _moment(b.finishedAt);
+  final started = _moment(b.startedAt);
+  final added = _moment(b.createdAt);
+  final recent = recentSince != null &&
+      (_since(finished, recentSince) ||
+          _since(started, recentSince) ||
+          _since(added, recentSince));
+  return {
+    'id': b.id,
+    'title': b.title,
+    if (b.authors.isNotEmpty) 'author': b.authors.first,
+    if (b.categoryPrimary != null) 'category': categoryLabel(b.categoryPrimary!),
+    'status': b.status.name,
+    if (b.rating > 0) 'rating': b.rating,
+    if (b.progressPercent > 0) 'progress': b.progressPercent.round(),
+    if (b.finishedAt != null) 'finishedAt': _day(b.finishedAt),
+    if (b.startedAt != null) 'startedAt': _day(b.startedAt),
+    'addedAt': _day(b.createdAt),
+    // 模型不擅长拿两个日期比大小，本地算好直接给结论。
+    if (recent) 'recent': true,
+  };
+}
 
 /// 供模型点名的书单：已读 > 在读 > 有评分 > 新入库。
 ///
 /// 排序逻辑是修掉旧实现的关键——旧实现取 `books.take(60)`，而列表默认
 /// 按 `updatedAt` 降序，批量导入后拿到的是最后导入的一批想读书。
+/// 组内再按**时间倒序**：最近读完、最近加进来的排在最前，它们才代表当下。
 List<Map<String, dynamic>> buildBookList(
   ReportSlice s, {
   int finishedCap = 12,
   int readingCap = 10,
   int ratedCap = 8,
   int wishCap = 6,
+  DateTime? recentSince,
 }) {
   final out = <Map<String, dynamic>>[];
   final seen = <String>{};
@@ -195,17 +261,20 @@ List<Map<String, dynamic>> buildBookList(
       if (out.length >= 40) break;
       if (!seen.add(b.id)) continue;
       if (cap-- <= 0) break;
-      out.add(_bookEntry(b));
+      out.add(_bookEntry(b, recentSince: recentSince));
     }
   }
 
-  add(s.finished, finishedCap);
+  add([...s.finished]
+    ..sort((a, b) => (b.finishedAt ?? '').compareTo(a.finishedAt ?? '')),
+      finishedCap);
   // 先拷贝再排序：切片可能来自 const 列表（测试里常见），就地 sort 会抛
   // "Cannot modify an unmodifiable list"。
   add([...s.reading]..sort((a, b) => b.progressPercent.compareTo(a.progressPercent)),
       readingCap);
   add([...s.rated]..sort((a, b) => b.rating.compareTo(a.rating)), ratedCap);
-  add(s.wishAdded, wishCap);
+  add([...s.wishAdded]..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
+      wishCap);
   return out;
 }
 
@@ -213,7 +282,10 @@ List<Map<String, dynamic>> buildBookList(
 ///
 /// 有了这份清单，模型推荐的是**你书架上真实存在的书**；没有它，模型会
 /// 凭空推荐一本《XXX》，而那本书你根本没有。
-List<Map<String, dynamic>> buildNextCandidates(ReportSlice s) {
+List<Map<String, dynamic>> buildNextCandidates(
+  ReportSlice s, {
+  DateTime? recentSince,
+}) {
   final out = <Map<String, dynamic>>[];
   final seen = <String>{};
 
@@ -221,7 +293,7 @@ List<Map<String, dynamic>> buildNextCandidates(ReportSlice s) {
     for (final b in src) {
       if (!seen.add(b.id)) continue;
       if (cap-- <= 0) break;
-      out.add(_bookEntry(b));
+      out.add(_bookEntry(b, recentSince: recentSince));
     }
   }
 
@@ -314,15 +386,29 @@ Future<ReportBundle> buildReportBundle({
     plans.add(pr.toReportJson());
   }
 
+  // 近期窗口：只在周期足够长时才单独统计，否则它和周期本身是同一件事。
+  final end = range.to ?? DateTime.now();
+  final spanDays = range.from == null ? 1 << 30 : end.difference(range.from!).inDays;
+  final useRecency = spanDays >= kRecencyMinSpanDays;
+  final recentSince = end.subtract(const Duration(days: kRecencyDays));
+  final recent = useRecency ? recentSince : null;
+  int countRecent(Iterable<Book> src, String? Function(Book) at) => useRecency
+      ? src.where((b) => _since(_moment(at(b)), recentSince)).length
+      : 0;
+
   final facts = buildReportFacts(
     slice,
     readingMinutes: minutes,
     streakDays: streak,
     hasLogs: hasLogs,
     plans: plans.isEmpty ? null : plans,
+    periodEnd: _day(end.toIso8601String()),
+    recencyDays: useRecency ? kRecencyDays : 0,
+    finishedRecent: countRecent(slice.finished, (b) => b.finishedAt),
+    wishAddedRecent: countRecent(slice.wishAdded, (b) => b.createdAt),
   );
-  final bookList = buildBookList(slice);
-  final nextCandidates = buildNextCandidates(slice);
+  final bookList = buildBookList(slice, recentSince: recent);
+  final nextCandidates = buildNextCandidates(slice, recentSince: recent);
 
   return ReportBundle(
     slice: slice,
@@ -351,6 +437,9 @@ const List<String> kFactPlaceholders = [
   'shelfTotal',
   'ratedCount',
   'avgRating',
+  'recentDays',
+  'finishedRecent',
+  'wishAddedRecent',
   'minutes',
   'streak',
 ];
@@ -359,7 +448,7 @@ String buildInsightsPrompt({
   required Map<String, dynamic> facts,
   required List<Map<String, dynamic>> bookList,
   required List<Map<String, dynamic>> nextCandidates,
-  required bool zh,
+  required String languageCode,
 }) {
   final hasLogs = facts['hasLogs'] == true;
   // 没有阅读记录时干脆不提时长类维度：让模型对着 0 写「你的阅读节奏」，
@@ -377,6 +466,25 @@ String buildInsightsPrompt({
           'pattern (e.g. "every Wednesday dropped out"), never moralize — '
           'missing a goal is not a failure.'
       : '';
+  // 时间口径：书单里的日期说的是「什么时候发生的」，不代表同等重要。
+  final timeNote = StringBuffer('\n- Every book entry carries dates: '
+      '"addedAt" (when it entered the shelf), "finishedAt"/"startedAt" when present.');
+  final periodEnd = facts['periodEnd'];
+  if (periodEnd is String && periodEnd.isNotEmpty) {
+    timeNote.write(' The period ends on $periodEnd. A book added years ago is '
+        'not the same signal as one added days ago.');
+  }
+  final recencyNote = facts['recentDays'] is int
+      ? '\n- RECENCY: "recent": true marks a book touched within the last '
+          '[[recentDays]] days. Those describe where the reader is NOW. '
+          'Prefer them when naming books and when planning next reads. '
+          'A wishlist entry with no activity since long before the window is '
+          'old backlog — never present it as a current intention.'
+      : '';
+
+  // 只列事实表里真实存在的键：缺了却仍写在列表里，模型会照着写一个
+  // 渲染时变成破折号的占位符。
+  final usable = kFactPlaceholders.where((k) => facts.containsKey(k)).toList();
 
   final b = StringBuffer()
     ..writeln('You turn a reader\'s data into insight. Output JSON only.')
@@ -385,11 +493,12 @@ String buildInsightsPrompt({
     ..writeln(jsonEncode(facts))
     ..writeln()
     ..writeln('PLACEHOLDERS: when a sentence needs a number from FACTS, write '
-        'the placeholder instead: ${kFactPlaceholders.map((k) => '[[$k]]').join(', ')}.')
+        'the placeholder instead: ${usable.map((k) => '[[$k]]').join(', ')}.')
     ..writeln('Example: "You finished [[finished]] books this period." '
         'Never invent a number, and never leave an unresolved placeholder.')
     ..writeln()
-    ..writeln('BOOKS (id / title / author / category / status / rating / progress):')
+    ..writeln('BOOKS (id / title / author / category / status / rating / '
+        'progress / dates):')
     ..writeln(jsonEncode(bookList))
     ..writeln()
     ..writeln('NEXT-CANDIDATES (books on the shelf to consider for the next plan):')
@@ -428,17 +537,18 @@ String buildInsightsPrompt({
         'Never comment on how books were acquired, never push reviews, '
         'sharing, or streaks, and pass no judgment beyond reading.')
     ..writeln('- Do not write Markdown, headings, or book brackets. Plain text only.')
+    ..write(timeNote)
+    ..write(recencyNote)
     ..write(missing)
     ..write(planNote);
 
-  final lang = zh
-      ? '\n\nLANGUAGE: write every field value in Simplified Chinese. '
-          'Foreign book titles may stay in their original script, but the '
-          'narrative must be Chinese only — never mix languages.'
-      : '\n\nLANGUAGE: write every field value in English. Foreign book '
-          'titles may stay in their original script, but the narrative must '
-          'be English only — never mix languages.';
-  b.write(lang);
+  // 报告语言跟随 App 语言：App 支持的语言都能用，不是只有中英两档。
+  // persona 与风格指令来自 ARB，本来就随语言走，这里只需锁住正文。
+  final name = languageName(languageCode);
+  b.write('\n\nLANGUAGE: write every field value in $name '
+      '(language code "$languageCode"). Foreign book titles may stay in their '
+      'original script, but the narrative must be in $name only — never mix '
+      'languages.');
   return b.toString();
 }
 

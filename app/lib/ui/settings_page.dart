@@ -12,6 +12,7 @@ import '../l10n/app_localizations.dart';
 import '../providers.dart';
 import 'backup_page.dart';
 import 'theme.dart';
+import '../l10n/language_names.dart';
 
 /// 设置页。
 ///
@@ -906,18 +907,3 @@ class _ThemePicker extends StatelessWidget {
   }
 }
 
-/// 语言代码 → 该语言的自称。
-///
-/// 用「自称」（Deutsch 而不是「德语」）是本地化界面的通行做法：
-/// 用户在自己看不懂的语言里找「德语」这两个汉字，是找不到的。
-/// 未知语言码回落到大写代码，至少不是空白。
-String languageName(String code) => switch (code) {
-      'zh' => '简体中文',
-      'en' => 'English',
-      'de' => 'Deutsch',
-      'fr' => 'Français',
-      'es' => 'Español',
-      'ja' => '日本語',
-      'ko' => '한국어',
-      _ => code.toUpperCase(),
-    };

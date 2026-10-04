@@ -1,11 +1,14 @@
 // 报告流水线的单元测试。
 //
-// 这里锁的是三条保证，它们正是旧实现做不到的：
+// 这里锁的是四条保证，它们正是旧实现做不到的：
 //   1. 结构恒定 —— 排版由本地模板决定，模型只影响措辞；
 //   2. 点名不编造 —— 模型提到的书必须来自下发的清单；
-//   3. 数字可溯源 —— 数字走占位符，渲染时本地替换，不可能与库里不一致。
+//   3. 数字可溯源 —— 数字走占位符，渲染时本地替换，不可能与库里不一致；
+//   4. 时间可区分 —— 书单带日期、近期的书优先，旧存货不会被当成当下意图。
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:reading_tracker/data/database.dart';
 import 'package:reading_tracker/data/date_range.dart';
 import 'package:reading_tracker/data/report_pipeline.dart';
 import 'package:reading_tracker/models/book.dart';
@@ -31,7 +34,35 @@ Book _book(
   );
 }
 
+/// 时间可控的书：`Book.create` 的 createdAt 恒为「现在」，测不了时间口径。
+Book _bookAt(
+  String title, {
+  BookStatus status = BookStatus.wish,
+  double rating = 0,
+  double progress = 0,
+  String? finishedAt,
+  String? startedAt,
+  String? createdAt,
+}) =>
+    Book(
+      id: title,
+      title: title,
+      status: status,
+      rating: rating,
+      progressPercent: progress,
+      finishedAt: finishedAt,
+      startedAt: startedAt,
+      createdAt: createdAt ?? '2026-01-01T00:00:00.000',
+      updatedAt: createdAt ?? '2026-01-01T00:00:00.000',
+    );
+
+String _isoDaysAgo(int d) =>
+    DateTime.now().subtract(Duration(days: d)).toIso8601String();
+
 void main() {
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfiNoIsolate;
+
   group('切片：书架规模不等于阅读行为', () {
     final range = StatsRange(
       label: '2026',
@@ -107,6 +138,136 @@ void main() {
       final titles = list.map((e) => e['title']).toList();
       expect(titles.where((t) => t.toString().startsWith('已读')).length, 5);
       expect(titles.contains('在读的书'), isTrue);
+    });
+  });
+
+  group('书单：带时间，近期的优先', () {
+    test('条目带上加入日期与完成日期', () {
+      final list = buildBookList(
+        ReportSlice(
+          finished: [
+            _bookAt('读完的', status: BookStatus.finished,
+                finishedAt: '2026-03-02T10:00:00.000',
+                createdAt: '2026-01-05T10:00:00.000'),
+          ],
+          reading: const [],
+          stalled: const [],
+          wishAdded: [
+            _bookAt('想读的', createdAt: '2026-04-01T10:00:00.000'),
+          ],
+          rated: const [],
+          shelf: const [],
+        ),
+      );
+      final byTitle = {for (final e in list) e['title']: e};
+      expect(byTitle['读完的']!['finishedAt'], '2026-03-02');
+      expect(byTitle['读完的']!['addedAt'], '2026-01-05');
+      expect(byTitle['想读的']!['addedAt'], '2026-04-01');
+    });
+
+    test('最近读完的排在最前', () {
+      // 输入顺序故意反着给：排序必须看 finishedAt，不能看列表顺序。
+      // 年报里「读了 20 本」看不出哪本刚读完，顺序决定了模型先点谁。
+      final list = buildBookList(
+        ReportSlice(
+          finished: [
+            _bookAt('三月读完的', status: BookStatus.finished,
+                finishedAt: '2026-03-01T00:00:00.000'),
+            _bookAt('一月读完的', status: BookStatus.finished,
+                finishedAt: '2026-01-01T00:00:00.000'),
+          ],
+          reading: const [],
+          stalled: const [],
+          wishAdded: const [],
+          rated: const [],
+          shelf: const [],
+        ),
+      );
+      expect(list.first['title'], '三月读完的');
+    });
+
+    test('最近加进书架的想读排在最前', () {
+      final list = buildBookList(
+        ReportSlice(
+          finished: const [],
+          reading: const [],
+          stalled: const [],
+          wishAdded: [
+            _bookAt('年初加的', createdAt: '2026-01-02T00:00:00.000'),
+            _bookAt('昨天加的', createdAt: '2026-06-28T00:00:00.000'),
+          ],
+          rated: const [],
+          shelf: const [],
+        ),
+      );
+      expect(list.first['title'], '昨天加的');
+    });
+
+    test('recent 只标近期动过的书', () {
+      final since = DateTime.now().subtract(const Duration(days: 30));
+      final list = buildBookList(
+        ReportSlice(
+          finished: const [],
+          reading: const [],
+          stalled: const [],
+          wishAdded: [
+            _bookAt('上周加的', createdAt: _isoDaysAgo(7)),
+            _bookAt('两年前加的', createdAt: _isoDaysAgo(730)),
+          ],
+          rated: const [],
+          shelf: const [],
+        ),
+        recentSince: since,
+      );
+      final byTitle = {for (final e in list) e['title']: e};
+      expect(byTitle['上周加的']!['recent'], true);
+      // 老存货不带这个标记：不标，模型就不会把它当作「现在想读」
+      expect(byTitle['两年前加的']!.containsKey('recent'), isFalse);
+    });
+  });
+
+  group('近期窗口：只在长周期里单独统计', () {
+    test('年报带近 30 天口径，月报不带', () {
+      final slice = sliceBooks(books: const [], range: StatsRange.all);
+      final yearly = buildReportFacts(slice, recencyDays: 30,
+          finishedRecent: 2, wishAddedRecent: 5);
+      expect(yearly['recentDays'], 30);
+      expect(yearly['finishedRecent'], 2);
+      expect(yearly['wishAddedRecent'], 5);
+
+      // 月报里窗口和周期本身重合，再给一份只会让模型把同一句写两遍
+      final monthly = buildReportFacts(slice);
+      expect(monthly.containsKey('recentDays'), isFalse);
+      expect(monthly.containsKey('finishedRecent'), isFalse);
+    });
+
+    test('年报里近 30 天读完的才计入 finishedRecent', () async {
+      final raw = await databaseFactory.openDatabase(inMemoryDatabasePath);
+      addTearDown(() => raw.close());
+      final db = AppDatabase.forTest(raw);
+      await db.createSchema(raw);
+      final repo = BookRepository(db);
+
+      final books = [
+        _bookAt('刚读完一', status: BookStatus.finished,
+            finishedAt: _isoDaysAgo(3)),
+        _bookAt('刚读完二', status: BookStatus.finished,
+            finishedAt: _isoDaysAgo(20)),
+        _bookAt('年初读完', status: BookStatus.finished,
+            finishedAt: _isoDaysAgo(200)),
+      ];
+      final bundle = await buildReportBundle(
+        repo: repo,
+        books: books,
+        range: StatsRange(
+          label: '全部',
+          from: DateTime(2020, 1, 1),
+          to: DateTime.now().add(const Duration(days: 1)),
+        ),
+      );
+      expect(bundle.facts['finished'], 3);
+      // 累计 3 本看不出「现在还读不读」，近 30 天的 2 本才说明问题
+      expect(bundle.facts['finishedRecent'], 2);
     });
   });
 
@@ -225,7 +386,7 @@ void main() {
         facts: {'finished': 5, 'hasLogs': false},
         bookList: const [],
         nextCandidates: const [],
-        zh: true,
+        languageCode: 'zh',
       );
       expect(p.contains('NO reading-time logs'), isTrue);
       expect(p.contains('"minutes"'), isFalse);
@@ -236,7 +397,7 @@ void main() {
         facts: {'finished': 5, 'hasLogs': true, 'minutes': 600, 'streak': 9},
         bookList: const [],
         nextCandidates: const [],
-        zh: true,
+        languageCode: 'zh',
       );
       expect(p.contains('NO reading-time logs'), isFalse);
     });
@@ -246,9 +407,73 @@ void main() {
         facts: {'finished': 5, 'hasLogs': false},
         bookList: const [],
         nextCandidates: const [],
-        zh: true,
+        languageCode: 'zh',
       );
       expect(p.contains('Never infer taste from the wishlist'), isTrue);
+    });
+
+    test('占位符只列事实表里真的有的键', () {
+      // 列出了却没有值，模型照写就会渲染成破折号
+      final p = buildInsightsPrompt(
+        facts: {'finished': 5, 'hasLogs': false},
+        bookList: const [],
+        nextCandidates: const [],
+        languageCode: 'zh',
+      );
+      expect(p.contains('[[finished]]'), isTrue);
+      expect(p.contains('[[minutes]]'), isFalse);
+      expect(p.contains('[[finishedRecent]]'), isFalse);
+    });
+
+    test('有近期窗口时明确要求区分新旧', () {
+      final p = buildInsightsPrompt(
+        facts: {
+          'finished': 12,
+          'hasLogs': false,
+          'recentDays': 30,
+          'finishedRecent': 2,
+          'wishAddedRecent': 5,
+        },
+        bookList: const [],
+        nextCandidates: const [],
+        languageCode: 'zh',
+      );
+      expect(p.contains('RECENCY'), isTrue);
+      expect(p.contains('old backlog'), isTrue);
+    });
+  });
+
+  group('提示词：语言跟随 App 语言', () {
+    String prompt(String code) => buildInsightsPrompt(
+          facts: {'finished': 1, 'hasLogs': false},
+          bookList: const [],
+          nextCandidates: const [],
+          languageCode: code,
+        );
+
+    test('中文界面出中文报告', () {
+      final p = prompt('zh');
+      expect(p.contains('简体中文'), isTrue);
+      expect(p.contains('LANGUAGE'), isTrue);
+    });
+
+    test('德语界面出德语报告，不是退回英文', () {
+      // 旧实现只有中英两档：选 Deutsch 的时候正文照样是英文
+      final p = prompt('de');
+      expect(p.contains('Deutsch'), isTrue);
+      expect(p.contains('"de"'), isTrue);
+      expect(p.contains('English only'), isFalse);
+    });
+
+    test('法语与西语同样按语言码走', () {
+      expect(prompt('fr').contains('Français'), isTrue);
+      expect(prompt('es').contains('Español'), isTrue);
+    });
+
+    test('未知语言码也不至于写出空指令', () {
+      final p = prompt('xx');
+      expect(p.contains('XX'), isTrue);
+      expect(p.contains('LANGUAGE'), isTrue);
     });
   });
 }

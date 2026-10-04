@@ -1047,15 +1047,16 @@ class LlmClient {
     final useCustom = s.isCustom && custom.isNotEmpty;
     final extra = useCustom ? custom : (s.instruction ?? '');
 
+    // 报告语言跟随 App 语言：localeName 形如 "de"/"zh"，直接交给提示词，
+    // 由 languageName 换成该语言的自称（Deutsch / 简体中文）。
     final lang = languageCode ?? appLoc.localeName;
-    final zh = lang.toLowerCase().startsWith('zh');
 
     final prompt = StringBuffer(
       buildInsightsPrompt(
         facts: facts,
         bookList: bookList,
         nextCandidates: nextCandidates,
-        zh: zh,
+        languageCode: lang,
       ),
     );
     if (extra.isNotEmpty) {

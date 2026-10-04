@@ -235,7 +235,7 @@ class _AiReportPanelState extends ConsumerState<AiReportPanel> {
       model: ref.read(llmModelProvider),
       content: rendered,
       // 顺手存下模型原始 JSON：将来换风格重渲染不必再调一次模型
-      metrics: {...bundle.facts, 'raw': text},
+      metrics: {...bundle.facts, 'raw': text, 'lang': appLoc.localeName},
     );
     if (!silent && mounted) {
       // 只保留指标 chips；正文交给独立页面展示，不在面板里留副本
@@ -752,7 +752,7 @@ class _ReportSettingsPageState extends ConsumerState<ReportSettingsPage> {
         period: p.key,
         model: ref.read(llmModelProvider),
         content: rendered,
-        metrics: {...bundle.facts, 'raw': text},
+        metrics: {...bundle.facts, 'raw': text, 'lang': appLoc.localeName},
       );
       return rendered;
     } catch (_) {
