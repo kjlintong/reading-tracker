@@ -1,7 +1,7 @@
 name: reading_tracker
 description: 个人阅读管理 App — 多平台书架导入、本地优先存储、AI 阅读分析
 publish_to: 'none'
-version: 1.1.2+13
+version: 1.0.0+14
 
 environment:
   sdk: '>=3.5.0 <4.0.0'

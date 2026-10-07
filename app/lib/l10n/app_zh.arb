@@ -3089,6 +3089,8 @@
   "settingsLanguage": "界面语言",
   "settingsLanguageDesc": "选择应用显示的语言。默认跟随系统设置。",
   "settingsLanguageSystem": "跟随系统",
+  "settingsCategoryPick": "选择分类",
+  "settingsCategoryEmpty": "没有可管理的分类了，先新增一个或恢复默认。",
   "langZh": "简体中文",
   "langEn": "English",
   "langDe": "Deutsch",

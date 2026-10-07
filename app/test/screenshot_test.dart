@@ -199,6 +199,30 @@ void main() {
     await shoot(tester, '05-settings');
   });
 
+  /// 设置页首屏之外还有大模型 / 截图识别 / 第三方渠道 / 数据 / 关于五节。
+  /// 整页顺序刚按「多久会用到一次」重排过，只拍首屏等于没验收这次改动。
+  testWidgets('11 设置-功能配置', (tester) async {
+    phone(tester);
+    await openTab(tester, Icons.settings_outlined);
+    await tester.drag(find.byType(ListView).first, const Offset(0, -1150));
+    await settleAsync(tester);
+    await shoot(tester, '11-settings-config');
+  });
+
+  /// 分类管理收成下拉之后，得看一眼「展开」长什么样——
+  /// 词表有二十来项，菜单会不会被屏幕截断、当前值显不显眼，都得看图。
+  testWidgets('12 设置-分类下拉', (tester) async {
+    phone(tester);
+    await openTab(tester, Icons.settings_outlined);
+    await settleAsync(tester);
+    await tester.tap(find.byWidgetPredicate((w) =>
+        w is DropdownButtonFormField<String> &&
+        w.decoration.labelText == '选择分类'));
+    await tester.pumpAndSettle();
+    await settleAsync(tester);
+    await shoot(tester, '12-settings-category');
+  });
+
   /// 统计页是高过长屏的长页：首屏只有指标卡，七张图表全在下面。
   /// 只拍首屏等于什么都没验收，所以专门滚到图表区再拍一张。
   ///

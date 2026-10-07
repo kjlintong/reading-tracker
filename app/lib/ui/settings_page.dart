@@ -337,8 +337,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             padding: const EdgeInsets.all(16),
             children: [
               /* ---------------------- 外观 ---------------------- */
-              // 外观与语言排在配置类项目前面：它们是「看一眼就想调」的，
-              // 而 API Key 是装完基本不再碰的一次性配置。
+              // 整页顺序按「多久会用到一次」排，不按功能归属排：
+              //   ① 外观 / 语言 / 分类 —— 装完就想调的，一屏之内；
+              //   ② 大模型 / 截图识别 —— 用得上的能力配置，且识别依赖 ① 之外
+              //      的同一把 Key，放在一起省得来回找；
+              //   ③ 第三方渠道 —— 凭据类，装完基本不碰，压到功能配置之后；
+              //   ④ 数据 / 支持 / 关于 —— 偶尔为之，留在最下面。
+              // 每一节内部也遵循同一条：先看后改（摘要、说明），再给控件。
               _Section(
                 title: l10n.settingsAppearance,
                 subtitle: l10n.settingsAppearanceDesc,
@@ -383,31 +388,39 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 children: [
                   // 选项从 supportedLocales 动态生成：将来往 l10n/ 里放一个
                   // app_de.arb，德语就自动出现在这里，无需改本页代码。
-                  RadioListTile<String?>(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    value: null,
-                    groupValue: locale?.languageCode,
-                    onChanged: (_) async {
-                      await saveSetting(ref, 'app_locale', '');
+                  //
+                  // 原来这里是 6 行 RadioListTile（跟随系统 + 5 种语言），
+                  // 光这一个设置就吃掉大半屏，而它恰恰是「装完基本只调一次」
+                  // 的那一类。收成下拉：一行占位，点开才展开。
+                  DropdownButtonFormField<String?>(
+                    value: locale?.languageCode,
+                    isDense: true,
+                    isExpanded: true,
+                    // 不给 label：卡片标题就是「界面语言」，再挂一个同名
+                    // floating label 纯属重复，还多占一行高度。
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text(l10n.settingsLanguageSystem,
+                            overflow: TextOverflow.ellipsis),
+                      ),
+                      for (final l in S.supportedLocales)
+                        DropdownMenuItem<String?>(
+                          value: l.languageCode,
+                          child: Text(languageName(l.languageCode),
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                    ],
+                    onChanged: (v) async {
+                      // 空串 = 跟随系统，与老数据里 app_locale 的写法一致
+                      await saveSetting(ref, 'app_locale', v ?? '');
                       if (mounted) setState(() {});
                     },
-                    title: Text(l10n.settingsLanguageSystem,
-                        style: const TextStyle(fontSize: 14)),
                   ),
-                  for (final l in S.supportedLocales)
-                    RadioListTile<String?>(
-                      contentPadding: EdgeInsets.zero,
-                      dense: true,
-                      value: l.languageCode,
-                      groupValue: locale?.languageCode,
-                      onChanged: (_) async {
-                        await saveSetting(ref, 'app_locale', l.languageCode);
-                        if (mounted) setState(() {});
-                      },
-                      title: Text(languageName(l.languageCode),
-                          style: const TextStyle(fontSize: 14)),
-                    ),
                 ],
               ),
 
@@ -418,60 +431,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 title: appLoc.s_4b2c9e58,
                 subtitle: appLoc.s_8d3f6a12,
                 children: const [_CategoryManager()],
-              ),
-
-              /* ------------------- 第三方渠道（高级） ------------------- */
-              // 从「设置第一屏的微信读书专属 Key」降级成通用渠道分组：
-              //  1) 不同平台的对接方式千差万别（微信读书走官方 Skill 网关，
-              //     国际平台多靠 CSV 导出），把它们塞进同一个「Key 输入框」
-              //     的模型本身就是错的；
-              //  2) 首位放一个国内平台，对国际用户是噪音。
-              // 导入页仍是这些渠道的实际使用入口，这里只负责凭据。
-              _Section(
-                title: l10n.settingsChannels,
-                subtitle: l10n.settingsChannelsDesc,
-                children: [
-                  TextField(
-                    controller: _wereadKey,
-                    obscureText: _obscure,
-                    onChanged: (_) => _scheduleSave(),
-                    decoration: const InputDecoration(
-                      labelText: 'WeRead API Key',
-                      hintText: 'wrk-xxxxxxxx',
-                      helperText:
-                          '在微信读书 App「我 → 设置 → 微信读书 Skill」获取',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: _busy != null ? null : _testWeread,
-                    icon: const Icon(Icons.wifi_tethering, size: 18),
-                    label:  Text(appLoc.s_e44e9f26),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Icon(Icons.add_circle_outline,
-                          size: 15,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          l10n.settingsChannelAddHint,
-                          style: TextStyle(
-                              fontSize: 11,
-                              color:
-                                  Theme.of(context).colorScheme.onSurfaceVariant),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (_wereadText != null) ...[
-                    const SizedBox(height: 10),
-                    _ResultBanner(ok: _wereadOk, text: _wereadText!),
-                  ],
-                ],
               ),
 
               _Section(
@@ -662,6 +621,60 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     appLoc.s_f22e4cd2,
                     style: TextStyle(fontSize: 11, color: Colors.grey),
                   ),
+                ],
+              ),
+
+              /* ------------------- 第三方渠道（高级） ------------------- */
+              // 从「设置第一屏的微信读书专属 Key」降级成通用渠道分组：
+              //  1) 不同平台的对接方式千差万别（微信读书走官方 Skill 网关，
+              //     国际平台多靠 CSV 导出），把它们塞进同一个「Key 输入框」
+              //     的模型本身就是错的；
+              //  2) 首位放一个国内平台，对国际用户是噪音。
+              // 导入页仍是这些渠道的实际使用入口，这里只负责凭据。
+              _Section(
+                title: l10n.settingsChannels,
+                subtitle: l10n.settingsChannelsDesc,
+                children: [
+                  TextField(
+                    controller: _wereadKey,
+                    obscureText: _obscure,
+                    onChanged: (_) => _scheduleSave(),
+                    decoration: const InputDecoration(
+                      labelText: 'WeRead API Key',
+                      hintText: 'wrk-xxxxxxxx',
+                      helperText:
+                          '在微信读书 App「我 → 设置 → 微信读书 Skill」获取',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _busy != null ? null : _testWeread,
+                    icon: const Icon(Icons.wifi_tethering, size: 18),
+                    label:  Text(appLoc.s_e44e9f26),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Icon(Icons.add_circle_outline,
+                          size: 15,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          l10n.settingsChannelAddHint,
+                          style: TextStyle(
+                              fontSize: 11,
+                              color:
+                                  Theme.of(context).colorScheme.onSurfaceVariant),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_wereadText != null) ...[
+                    const SizedBox(height: 10),
+                    _ResultBanner(ok: _wereadOk, text: _wereadText!),
+                  ],
                 ],
               ),
 
@@ -933,6 +946,13 @@ class _CategoryManager extends ConsumerStatefulWidget {
 class _CategoryManagerState extends ConsumerState<_CategoryManager> {
   final _ctrl = TextEditingController();
 
+  /// 下拉里当前选中的分类；「改名 / 删除」都作用于它。
+  ///
+  /// 默认分类就有二十来个，逐行铺开能把整页设置撑到三屏，而分类管理
+  /// 本身是低频操作——绝大多数人一辈子只改两三个词条。所以改成
+  /// 「下拉选一个 → 对它做操作」，词表整体收进下拉里。
+  String? _picked;
+
   @override
   void dispose() {
     _ctrl.dispose();
@@ -1008,6 +1028,8 @@ class _CategoryManagerState extends ConsumerState<_CategoryManager> {
     renameCategory(old, next);
     final moved = await ref.read(repoProvider).recategorize(old, next);
     await _persist();
+    // 旧名已经不在词表里，选中项要跟着走，否则下拉会断言 value 不在 items 中
+    if (mounted) setState(() => _picked = next);
     _snack(appLoc.s_9d2e7f13(name: next, count: '$moved'));
   }
 
@@ -1042,6 +1064,7 @@ class _CategoryManagerState extends ConsumerState<_CategoryManager> {
     }
     removeCategory(name);
     await _persist();
+    if (mounted) setState(() => _picked = null);
     _snack(appLoc.s_3b7f2d64(name: name));
   }
 
@@ -1054,38 +1077,79 @@ class _CategoryManagerState extends ConsumerState<_CategoryManager> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10nPick = S.of(context).settingsCategoryPick;
+    final l10nEmpty = S.of(context).settingsCategoryEmpty;
     final active = categoryVocabulary.active;
+    // 每次 build 都校准一次选中项：改名 / 删除之后旧名已经不在词表里，
+    // 而 DropdownButton 的 value 必须命中 items 中某一项，否则直接抛断言。
+    // 词表非空时默认落在第一项，省掉一次无谓的点击。
+    if (_picked != null && !active.contains(_picked)) _picked = null;
+    if (_picked == null && active.isNotEmpty) _picked = active.first;
+    final picked = _picked;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 不用 ListView：外面已经是可滚动的设置页，嵌套可滚动组件
-        // 会让这一块的高度算不出来（shrinkWrap 在这里也不解决问题）。
-        for (final c in active)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            dense: true,
-            title: Row(
-              children: [
-                Flexible(child: Text(categoryLabel(c))),
-                if (categoryVocabulary.isCustom(c)) ...[
-                  const SizedBox(width: 6),
-                  Text(appLoc.s_9c3f5d21,
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: theme.colorScheme.onSurfaceVariant)),
-                ],
-              ],
+        if (active.isEmpty)
+          Text(l10nEmpty,
+              style: TextStyle(
+                  fontSize: 12, color: theme.colorScheme.onSurfaceVariant))
+        else ...[
+          // 不用 ListView：外面已经是可滚动的设置页，嵌套可滚动组件
+          // 会让这一块的高度算不出来（shrinkWrap 在这里也不解决问题）。
+          DropdownButtonFormField<String>(
+            value: picked,
+            isDense: true,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: l10nPick,
+              isDense: true,
+              border: const OutlineInputBorder(),
             ),
-            trailing: PopupMenuButton<String>(
-              onSelected: (v) =>
-                  v == 'rename' ? _rename(c) : _delete(c),
-              itemBuilder: (ctx) => [
-                PopupMenuItem(value: 'rename', child: Text(appLoc.s_6a9e4c27)),
-                PopupMenuItem(value: 'delete', child: Text(appLoc.s_ecbd7449)),
-              ],
-            ),
+            items: [
+              for (final c in active)
+                DropdownMenuItem(
+                  value: c,
+                  child: Row(
+                    children: [
+                      Flexible(
+                          child: Text(categoryLabel(c),
+                              overflow: TextOverflow.ellipsis)),
+                      if (categoryVocabulary.isCustom(c)) ...[
+                        const SizedBox(width: 6),
+                        Text(appLoc.s_9c3f5d21,
+                            style: TextStyle(
+                                fontSize: 10,
+                                color: theme.colorScheme.onSurfaceVariant)),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+            onChanged: (v) => setState(() => _picked = v),
           ),
-        const Divider(height: 12),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: picked == null ? null : () => _rename(picked),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: Text(appLoc.s_6a9e4c27),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: picked == null ? null : () => _delete(picked),
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: Text(appLoc.s_ecbd7449),
+                ),
+              ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(

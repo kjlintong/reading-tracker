@@ -2245,6 +2245,12 @@ class SDe extends S {
   String get settingsLanguageSystem => 'Systemstandard';
 
   @override
+  String get settingsCategoryPick => 'Kategorie auswählen';
+
+  @override
+  String get settingsCategoryEmpty => 'Keine Kategorien mehr — füge eine hinzu oder stelle die Standardwerte wieder her.';
+
+  @override
   String get langZh => '简体中文';
 
   @override

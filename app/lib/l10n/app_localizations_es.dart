@@ -2245,6 +2245,12 @@ class SEs extends S {
   String get settingsLanguageSystem => 'Idioma del sistema';
 
   @override
+  String get settingsCategoryPick => 'Elegir una categoría';
+
+  @override
+  String get settingsCategoryEmpty => 'No quedan categorías: añade una o restaura las predeterminadas.';
+
+  @override
   String get langZh => '简体中文';
 
   @override

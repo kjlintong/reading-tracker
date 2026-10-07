@@ -3953,6 +3953,18 @@ abstract class S {
   /// **'System default'**
   String get settingsLanguageSystem;
 
+  /// No description provided for @settingsCategoryPick.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a category'**
+  String get settingsCategoryPick;
+
+  /// No description provided for @settingsCategoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No categories left — add one, or restore the defaults.'**
+  String get settingsCategoryEmpty;
+
   /// No description provided for @langZh.
   ///
   /// In en, this message translates to:

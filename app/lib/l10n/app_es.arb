@@ -3089,6 +3089,8 @@
   "settingsLanguage": "Idioma",
   "settingsLanguageDesc": "Elige el idioma de la app. Por defecto sigue el del sistema.",
   "settingsLanguageSystem": "Idioma del sistema",
+  "settingsCategoryPick": "Elegir una categoría",
+  "settingsCategoryEmpty": "No quedan categorías: añade una o restaura las predeterminadas.",
   "langZh": "简体中文",
   "langEn": "English",
   "langDe": "Deutsch",

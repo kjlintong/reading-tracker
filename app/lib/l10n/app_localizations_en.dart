@@ -2245,6 +2245,12 @@ class SEn extends S {
   String get settingsLanguageSystem => 'System default';
 
   @override
+  String get settingsCategoryPick => 'Pick a category';
+
+  @override
+  String get settingsCategoryEmpty => 'No categories left — add one, or restore the defaults.';
+
+  @override
   String get langZh => '简体中文';
 
   @override

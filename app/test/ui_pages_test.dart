@@ -887,6 +887,83 @@ void main() {
       // 因此这里断言首屏一定存在的输入框，而不是滚到底部去找按钮
       expect(find.byType(TextField), findsWidgets);
     });
+
+    /// 长选项收成下拉后的回归。
+    ///
+    /// 语言和分类曾是整页里最占地方的两块：语言 6 行单选、分类二十来行
+    /// 列表（还不算每行一个弹菜单），设置页因此被撑到三屏以上。
+    /// 现在两者都必须只占一行，展开才看到选项。
+    testWidgets('语言与分类收成下拉，选项不再逐行铺开', (tester) async {
+      bigViewport(tester);
+      await render(tester, const SettingsPage());
+      await settleAsync(tester);
+      // 分类：下拉只显示当前选中的那一项（默认落在词表第一项）
+      expect(find.text('选择分类'), findsOneWidget);
+      expect(find.text('文学'), findsOneWidget);
+      // 词表里其余分类不再占行——没点开下拉就不该在树里
+      expect(find.text('宗教'), findsNothing);
+      expect(find.text('计算机'), findsNothing);
+      // 语言：6 行单选收成 1 行。当前值「跟随系统」照常显示在按钮上，
+      // 但其余语言不该还在树里——它们只在展开后才构建。
+      expect(find.byType(DropdownButtonFormField<String?>), findsOneWidget);
+      expect(find.text('Deutsch'), findsNothing);
+      expect(find.text('界面语言'), findsWidgets);
+    });
+
+    testWidgets('分类下拉里是完整词表，选中后才能改名或删除', (tester) async {
+      bigViewport(tester);
+      await render(tester, const SettingsPage());
+      await settleAsync(tester);
+      // 「识别模式」的下拉也是 DropdownButtonFormField<String>，按 labelText 认人
+      final dropdown = find.byWidgetPredicate((w) =>
+          w is DropdownButtonFormField<String> &&
+          w.decoration.labelText == '选择分类');
+      expect(dropdown, findsOneWidget);
+
+      await tester.tap(dropdown);
+      await settleAsync(tester);
+      // 展开后才是完整词表
+      expect(find.text('宗教'), findsWidgets);
+      await tester.tap(find.text('宗教').last);
+      await settleAsync(tester);
+      // 收起后只剩当前值，操作按钮针对它生效
+      expect(find.text('宗教'), findsOneWidget);
+      expect(find.text('重命名'), findsOneWidget);
+      expect(find.text('删除'), findsOneWidget);
+
+      await tester.tap(find.text('删除'));
+      await settleAsync(tester);
+      // 删除不可逆：必须先确认，且要说明有多少书会移到未分类
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.textContaining('未分类'), findsWidgets);
+      await tester.tap(find.text('取消'));
+      await settleAsync(tester);
+      // 取消后词表原样不动
+      expect(find.text('宗教'), findsOneWidget);
+    });
+
+    testWidgets('语言下拉列出全部语言并可切换', (tester) async {
+      bigViewport(tester);
+      await render(tester, const SettingsPage());
+      await settleAsync(tester);
+      // 语言下拉的泛型是 String?（「跟随系统」= null），与其它下拉不重样
+      await tester.tap(find.byType(DropdownButtonFormField<String?>));
+      await settleAsync(tester);
+      for (final name in [
+        '跟随系统',
+        '简体中文',
+        'English',
+        'Deutsch',
+        'Français',
+        'Español',
+      ]) {
+        expect(find.text(name), findsWidgets, reason: '语言下拉缺少「$name」');
+      }
+      await tester.tap(find.text('Deutsch').last);
+      await settleAsync(tester);
+      // 选完即收起，控件上留下的是当前语言的自称
+      expect(find.text('Deutsch'), findsOneWidget);
+    });
   });
 
   group('AI 报告页', () {

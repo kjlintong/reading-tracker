@@ -2245,6 +2245,12 @@ class SZh extends S {
   String get settingsLanguageSystem => '跟随系统';
 
   @override
+  String get settingsCategoryPick => '选择分类';
+
+  @override
+  String get settingsCategoryEmpty => '没有可管理的分类了，先新增一个或恢复默认。';
+
+  @override
   String get langZh => '简体中文';
 
   @override

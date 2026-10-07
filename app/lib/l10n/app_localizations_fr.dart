@@ -2245,6 +2245,12 @@ class SFr extends S {
   String get settingsLanguageSystem => 'Langue du système';
 
   @override
+  String get settingsCategoryPick => 'Choisir une catégorie';
+
+  @override
+  String get settingsCategoryEmpty => 'Plus aucune catégorie — ajoutez-en une ou restaurez les valeurs par défaut.';
+
+  @override
   String get langZh => '简体中文';
 
   @override
