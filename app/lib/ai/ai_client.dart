@@ -589,12 +589,20 @@ class LlmClient {
   /// [modelOverride] 只给连通性测试用：测试要验证的是「这个模型能不能用」，
   /// 而此时候选模型未必已经写回设置。直接改实例字段会在并发调用时互相踩，
   /// 所以走参数传递。
+  ///
+  /// [disableThinking] 显式请求模型**关闭思考**（OpenAI 兼容协议下附带
+  /// `thinking: {'type': 'disabled'}`，Anthropic 协议忽略）。背景：推理型
+  /// 模型（商汤 2026-10 起给 flash 系默认开思考）会把 `max_tokens` 整个
+  /// 烧在 reasoning 上，正文一个字不剩、`finish_reason: length`——降温
+  /// 救不了它，关掉思考才救得了。该字段不是 OpenAI 标准参数，个别严格
+  /// 网关会 400，底层会自动去掉这个字段重试，等于「能关就关，不能关拉倒」。
   Future<String> chat(
     List<Map<String, String>> messages, {
     double temperature = 0.3,
     bool jsonMode = false,
     int? maxTokens,
     String? modelOverride,
+    bool disableThinking = false,
   }) async {
     if (!available) {
       throw LlmException(appLoc.s_ad86a5ca, hint: appLoc.s_8a853cbe);
@@ -616,7 +624,8 @@ class LlmClient {
           useModel: useModel,
           temperature: temperature,
           jsonMode: jsonMode,
-          maxTokens: maxTokens);
+          maxTokens: maxTokens,
+          disableThinking: disableThinking);
     } on DioException catch (e) {
       throw _wrap(e);
     }
@@ -728,20 +737,23 @@ class LlmClient {
     required double temperature,
     required bool jsonMode,
     int? maxTokens,
+    bool disableThinking = false,
   }) async {
     if (!jsonMode) {
       return _postOpenAi(messages,
           useModel: useModel,
           temperature: temperature,
           jsonMode: false,
-          maxTokens: maxTokens);
+          maxTokens: maxTokens,
+          disableThinking: disableThinking);
     }
     try {
       return await _postOpenAi(messages,
           useModel: useModel,
           temperature: temperature,
           jsonMode: true,
-          maxTokens: maxTokens);
+          maxTokens: maxTokens,
+          disableThinking: disableThinking);
     } on DioException catch (e) {
       // 不少轻量模型根本不认 response_format，直接 400。
       // 这时降级重试一次——模型自己硬输出 JSON 也还有 parseJsonLoose 兜底，
@@ -751,7 +763,8 @@ class LlmClient {
           useModel: useModel,
           temperature: temperature,
           jsonMode: false,
-          maxTokens: maxTokens);
+          maxTokens: maxTokens,
+          disableThinking: disableThinking);
     }
   }
 
@@ -761,19 +774,35 @@ class LlmClient {
     required double temperature,
     required bool jsonMode,
     int? maxTokens,
+    bool disableThinking = false,
   }) async {
-    final res = await _dio.post(
-      chatUri.toString(),
-      options: Options(headers: _headers),
-      data: {
-        'model': useModel,
-        'messages': messages,
-        'temperature': temperature,
-        if (jsonMode) 'response_format': {'type': 'json_object'},
-        if (maxTokens != null) 'max_tokens': maxTokens,
-      },
-    );
-    return _unpack(res.data);
+    Future<String> post({required bool askNoThinking}) async {
+      final res = await _dio.post(
+        chatUri.toString(),
+        options: Options(headers: _headers),
+        data: {
+          'model': useModel,
+          'messages': messages,
+          'temperature': temperature,
+          if (jsonMode) 'response_format': {'type': 'json_object'},
+          if (maxTokens != null) 'max_tokens': maxTokens,
+          // 推理型模型会把 max_tokens 烧光在 reasoning 上、正文为空，
+          // 所以要显式关。字段不在 OpenAI 标准里，严格网关会 400。
+          if (askNoThinking) 'thinking': {'type': 'disabled'},
+        },
+      );
+      return _unpack(res.data);
+    }
+
+    if (!disableThinking) return post(askNoThinking: false);
+    try {
+      return await post(askNoThinking: true);
+    } on DioException catch (e) {
+      // 400 未必是 thinking 引起的（模型名写错也是 400），但去掉重试一次
+      // 总没坏处：真因是 thinking 就成功，真因是别的就原样再炸一次。
+      if (e.response?.statusCode != 400) rethrow;
+      return post(askNoThinking: false);
+    }
   }
 
   /// 服务端明确表示不支持 `response_format` 时才认为可以降级重试。
@@ -1068,7 +1097,7 @@ class LlmClient {
         ..writeln('STYLE (tone only - never change the JSON shape): $extra');
     }
 
-    Future<String?> attempt(double temperature) async {
+    Future<String?> attempt(double temperature, {bool disableThinking = false}) async {
       final raw = await chat(
         [
           {'role': 'system', 'content': s.persona},
@@ -1077,13 +1106,29 @@ class LlmClient {
         temperature: temperature,
         jsonMode: true,
         maxTokens: 4096,
+        disableThinking: disableThinking,
       );
-      return raw.trim().isEmpty ? null : raw;
+      final t = raw.trim();
+      // 有效与否的判定标准不是「非空」而是「能解析出 JSON 对象」。
+      // 推理模型的「空内容」有两种长相，交出去都只会让解析层报错：
+      // 1. 正文整个缺失（思考把 max_tokens 烧光）；
+      // 2. 兜底逻辑把 reasoning 思考文本当成回复（实测商汤 2026-10：
+      //    'Let me analyze...' 开头一大段），里面经常还带着花括号，
+      //    字符判断挡不住，所以直接用解析器验收。
+      if (parseJsonLoose(t) == null) return null;
+      return t;
     }
 
     // 拿不到内容就降温度重试一次。旧实现没有重试：模型一次抽风
     // 就直接变成一份空报告，用户只能干等。
-    return await attempt(0.6) ?? await attempt(0.3);
+    //
+    // 两次尝试都**显式关掉思考**：2026-10 起商汤把 flash 系服务端默认
+    // 开成推理模式，思考 + 正文一起挤 max_tokens=4096，思考一长正文
+    // 就变成 reasoning 文本甚至整个缺失——降温救不了，关思考才是
+    // 对症药。不支持该参数的网关会 400，底层自动去掉重发，只是多花
+    // 一次请求，行为不会比旧版差。
+    return await attempt(0.6, disableThinking: true) ??
+        await attempt(0.3, disableThinking: true);
   }
 
   /* ----------------------------- 内部工具 ----------------------------- */
