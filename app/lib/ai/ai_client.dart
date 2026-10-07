@@ -967,8 +967,11 @@ class LlmClient {
     // 候选词表给的是「当前语言的可读名」：这样模型照抄回来的分类与它写的
     // 简介 / 标签语言一致。落库前会经 Book.withNormalizedCategory()
     // 反查回规范值（categoryLabel 的逆映射），不会把显示名写进数据库。
-    final vocab = (categories ?? defaultCategories.map(categoryLabel).toList())
-        .join(' / ');
+    // 用生效词表：用户自己加的分类也要在候选里，否则模型永远猜不到它，
+    // 只能把书塞进「其他」。
+    final vocab =
+        (categories ?? categoryVocabulary.active.map(categoryLabel).toList())
+            .join(' / ');
     final raw = await chat(
       [
         {'role': 'system', 'content': appLoc.s_ad736a74},

@@ -2634,4 +2634,75 @@ class SEs extends S {
 
   @override
   String get s_1a8d53f6 => 'Qué leer a continuación';
+
+  @override
+  String get s_2f9d1a4b => 'Etiquetas';
+
+  @override
+  String get s_5c7e3d81 => 'Aún no hay etiquetas';
+
+  @override
+  String s_3e8f5b26({required Object title}) {
+    return '¿Eliminar «$title»?';
+  }
+
+  @override
+  String get s_7d4c2e91 => 'Sus registros de lectura y planes se eliminan con él. Tus notas se conservan: siguen en la pestaña Notas. Esta acción no se puede deshacer.';
+
+  @override
+  String s_1f6a8d37({required Object title}) {
+    return '«$title» eliminado';
+  }
+
+  @override
+  String get s_4b2c9e58 => 'Categorías';
+
+  @override
+  String get s_8d3f6a12 => 'Añade, renombra o elimina categorías. Los libros de una categoría eliminada pasan a «Sin clasificar».';
+
+  @override
+  String get s_2c8b5d09 => 'Nombre de la categoría';
+
+  @override
+  String get s_9f4e7a35 => 'El nombre de la categoría no puede estar vacío';
+
+  @override
+  String get s_7a2d6c81 => 'Esa categoría ya existe';
+
+  @override
+  String s_5e9c1b47({required Object name}) {
+    return '«$name» añadida';
+  }
+
+  @override
+  String s_3b7f2d64({required Object name}) {
+    return '«$name» eliminada';
+  }
+
+  @override
+  String s_8c4a1e92({required Object name}) {
+    return '¿Eliminar la categoría «$name»?';
+  }
+
+  @override
+  String s_1d7b3f08({required Object count}) {
+    return 'Los $count libros que contiene pasarán a «Sin clasificar».';
+  }
+
+  @override
+  String get s_6a9e4c27 => 'Renombrar';
+
+  @override
+  String get s_2f5d8b13 => 'Restaurar las categorías predeterminadas';
+
+  @override
+  String get s_4e1c7a69 => 'Categorías predeterminadas restauradas';
+
+  @override
+  String get s_9c3f5d21 => 'Personalizada';
+
+  @override
+  String s_9d2e7f13({required Object name, required Object count}) {
+    return 'Renombrada a «$name»; $count libros actualizados';
+  }
 }

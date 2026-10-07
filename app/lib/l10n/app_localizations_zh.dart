@@ -2634,4 +2634,75 @@ class SZh extends S {
 
   @override
   String get s_1a8d53f6 => '下一步计划';
+
+  @override
+  String get s_2f9d1a4b => '标签';
+
+  @override
+  String get s_5c7e3d81 => '还没有标签';
+
+  @override
+  String s_3e8f5b26({required Object title}) {
+    return '删除《$title》？';
+  }
+
+  @override
+  String get s_7d4c2e91 => '这本书的阅读记录和阅读计划会一并删除；你写下的笔记会保留，仍在「记录」页可查看。删除后无法恢复。';
+
+  @override
+  String s_1f6a8d37({required Object title}) {
+    return '已删除《$title》';
+  }
+
+  @override
+  String get s_4b2c9e58 => '分类管理';
+
+  @override
+  String get s_8d3f6a12 => '可以新增、改名或删除分类。删除分类后，它下面的书会归入「未分类」。';
+
+  @override
+  String get s_2c8b5d09 => '分类名';
+
+  @override
+  String get s_9f4e7a35 => '分类名不能为空';
+
+  @override
+  String get s_7a2d6c81 => '该分类已存在';
+
+  @override
+  String s_5e9c1b47({required Object name}) {
+    return '已添加分类「$name」';
+  }
+
+  @override
+  String s_3b7f2d64({required Object name}) {
+    return '已删除分类「$name」';
+  }
+
+  @override
+  String s_8c4a1e92({required Object name}) {
+    return '删除分类「$name」？';
+  }
+
+  @override
+  String s_1d7b3f08({required Object count}) {
+    return '其中 $count 本书会归入「未分类」。';
+  }
+
+  @override
+  String get s_6a9e4c27 => '重命名';
+
+  @override
+  String get s_2f5d8b13 => '恢复默认分类';
+
+  @override
+  String get s_4e1c7a69 => '已恢复默认分类';
+
+  @override
+  String get s_9c3f5d21 => '自定义';
+
+  @override
+  String s_9d2e7f13({required Object name, required Object count}) {
+    return '已重命名为「$name」，更新了 $count 本书';
+  }
 }

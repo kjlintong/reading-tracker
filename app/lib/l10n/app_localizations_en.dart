@@ -2634,4 +2634,75 @@ class SEn extends S {
 
   @override
   String get s_1a8d53f6 => 'What to read next';
+
+  @override
+  String get s_2f9d1a4b => 'Tags';
+
+  @override
+  String get s_5c7e3d81 => 'No tags yet';
+
+  @override
+  String s_3e8f5b26({required Object title}) {
+    return 'Delete “$title”?';
+  }
+
+  @override
+  String get s_7d4c2e91 => 'Its reading logs and plans are deleted with it. Notes you wrote are kept — they stay in the Notes tab. This can’t be undone.';
+
+  @override
+  String s_1f6a8d37({required Object title}) {
+    return 'Deleted “$title”';
+  }
+
+  @override
+  String get s_4b2c9e58 => 'Categories';
+
+  @override
+  String get s_8d3f6a12 => 'Add, rename or remove categories. Books in a removed category move to “Uncategorized”.';
+
+  @override
+  String get s_2c8b5d09 => 'Category name';
+
+  @override
+  String get s_9f4e7a35 => 'Category name can’t be empty';
+
+  @override
+  String get s_7a2d6c81 => 'That category already exists';
+
+  @override
+  String s_5e9c1b47({required Object name}) {
+    return 'Added “$name”';
+  }
+
+  @override
+  String s_3b7f2d64({required Object name}) {
+    return 'Deleted “$name”';
+  }
+
+  @override
+  String s_8c4a1e92({required Object name}) {
+    return 'Delete category “$name”?';
+  }
+
+  @override
+  String s_1d7b3f08({required Object count}) {
+    return '$count books in it will move to “Uncategorized”.';
+  }
+
+  @override
+  String get s_6a9e4c27 => 'Rename';
+
+  @override
+  String get s_2f5d8b13 => 'Restore default categories';
+
+  @override
+  String get s_4e1c7a69 => 'Default categories restored';
+
+  @override
+  String get s_9c3f5d21 => 'Custom';
+
+  @override
+  String s_9d2e7f13({required Object name, required Object count}) {
+    return 'Renamed to “$name”; $count books updated';
+  }
 }

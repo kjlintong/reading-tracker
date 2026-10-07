@@ -3291,5 +3291,103 @@
   "s_3c58b0d2": "Reading habits",
   "s_4b7e2a19": "Books worth naming",
   "s_6e39f7c4": "Reader profile",
-  "s_1a8d53f6": "What to read next"
+  "s_1a8d53f6": "What to read next",
+  "s_2f9d1a4b": "Tags",
+  "@s_2f9d1a4b": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_5c7e3d81": "No tags yet",
+  "@s_5c7e3d81": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_3e8f5b26": "Delete “{title}”?",
+  "@s_3e8f5b26": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "s_7d4c2e91": "Its reading logs and plans are deleted with it. Notes you wrote are kept — they stay in the Notes tab. This can’t be undone.",
+  "@s_7d4c2e91": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_1f6a8d37": "Deleted “{title}”",
+  "@s_1f6a8d37": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "s_4b2c9e58": "Categories",
+  "@s_4b2c9e58": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_8d3f6a12": "Add, rename or remove categories. Books in a removed category move to “Uncategorized”.",
+  "@s_8d3f6a12": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_2c8b5d09": "Category name",
+  "@s_2c8b5d09": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_9f4e7a35": "Category name can’t be empty",
+  "@s_9f4e7a35": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_7a2d6c81": "That category already exists",
+  "@s_7a2d6c81": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_5e9c1b47": "Added “{name}”",
+  "@s_5e9c1b47": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "s_3b7f2d64": "Deleted “{name}”",
+  "@s_3b7f2d64": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "s_8c4a1e92": "Delete category “{name}”?",
+  "@s_8c4a1e92": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "s_1d7b3f08": "{count} books in it will move to “Uncategorized”.",
+  "@s_1d7b3f08": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "s_6a9e4c27": "Rename",
+  "@s_6a9e4c27": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_2f5d8b13": "Restore default categories",
+  "@s_2f5d8b13": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_4e1c7a69": "Default categories restored",
+  "@s_4e1c7a69": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_9c3f5d21": "Custom",
+  "@s_9c3f5d21": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_9d2e7f13": "Renamed to “{name}”; {count} books updated",
+  "@s_9d2e7f13": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {},
+      "count": {}
+    }
+  }
 }

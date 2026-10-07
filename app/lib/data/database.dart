@@ -10,6 +10,7 @@ import '../models/book.dart';
 import '../models/enums.dart';
 import '../models/reading_plan.dart';
 import 'backup.dart';
+import 'category_prefs.dart';
 import 'date_range.dart';
 import 'weread_annual.dart';
 
@@ -181,7 +182,34 @@ class AppDatabase {
     ''');
   }
 
+  /// 把用户对分类词表的修改读进全局词表。
+  ///
+  /// 直接吃 Database 而不是 [BookRepository]：迁移期间拿不到 repository，
+  /// 而迁移恰恰是最需要它的场合。
+  Future<void> _loadCategoryVocabulary(Database db) async {
+    try {
+      Future<String?> read(String key) async {
+        final r = await db.query('settings',
+            where: 'key = ?', whereArgs: [key], limit: 1);
+        return r.isEmpty ? null : r.first['value'] as String?;
+      }
+      applyCategoryVocabulary(
+        custom: await read(kCustomCategoriesKey),
+        hidden: await read(kHiddenCategoriesKey),
+      );
+    } catch (_) {
+      // settings 表还不存在或读失败：用默认词表继续，
+      // 总好过让一次版本升级卡在这里打不开 App。
+    }
+  }
+
   Future<void> _onUpgrade(Database db, int oldV, int newV) async {
+    // 先把用户改过的分类词表装进来。
+    //
+    // 顺序要紧：v1→v2 这类迁移会重跑 normalizeCategory，而它读的是
+    // 全局词表。晚一步装载，用户自定义分类下的书就会被默认词表判成
+    // 「其他」——一次版本升级静默改掉几百本书的归类，且无从恢复。
+    await _loadCategoryVocabulary(db);
     if (oldV < 2) {
       await db.execute('ALTER TABLE books ADD COLUMN categoryRaw TEXT');
       await renormalizeCategories(db: db);
@@ -292,8 +320,10 @@ class AppDatabase {
         if (raw == null || raw.isEmpty) continue;
         source = raw;
       } else {
-        // 已经是受控值 → 已经归一化过，交给更精确的来源处理
-        if (cur != null && defaultCategories.contains(cur)) continue;
+        // 已经是**当前生效词表**里的值 → 已经归一化过，交给更精确的来源处理。
+        // 用生效词表而不是 defaultCategories：用户移除某个默认分类后，
+        // 存量书得有机会被重新归到别的分类，而不是一直留在已删除的分类里。
+        if (cur != null && categoryVocabulary.contains(cur)) continue;
         source = (raw != null && raw.isNotEmpty) ? raw : (cur ?? '');
         if (source.isEmpty) continue;
       }
@@ -416,8 +446,23 @@ class BookRepository {
     await _db.update('books', book.toMap(), where: 'id = ?', whereArgs: [book.id]);
   }
 
+  /// 删除一本书，连同它的阅读记录与阅读计划。
+  ///
+  /// ⚠️ **笔记刻意不删**。笔记是用户一个字一个字写下的内容，
+  /// 比书籍记录更不该被一次删除顺手清掉——书可能是误导入的重复条目，
+  /// 但写在它下面的想法不能跟着蒸发。于是必然出现「笔记还在、书没了」
+  /// 的数据，[allNotes] 会把 book 置 null，界面显示占位书名。
+  ///
+  /// 阅读记录与计划则相反：它们是为这本书服务的派生态，
+  /// 留着会让「总阅读时长」继续统计一本已经不存在的书。
+  ///
+  /// 放在一个事务里：中途失败时宁可整条回滚，也不要留下半截状态。
   Future<void> delete(String id) async {
-    await _db.delete('books', where: 'id = ?', whereArgs: [id]);
+    await _db.transaction((txn) async {
+      await txn.delete('reading_logs', where: 'bookId = ?', whereArgs: [id]);
+      await txn.delete('reading_plans', where: 'bookId = ?', whereArgs: [id]);
+      await txn.delete('books', where: 'id = ?', whereArgs: [id]);
+    });
   }
 
   /* ------------------------- 统计 ------------------------- */
@@ -444,6 +489,59 @@ class BookRepository {
   Future<List<Map<String, dynamic>>> sourceDistribution() async {
     return await _db.rawQuery(
         'SELECT source name, COUNT(*) c FROM books GROUP BY source ORDER BY c DESC');
+  }
+
+  /// 标签分布
+  ///
+  /// `tags` 在库里是 JSON 数组文本（`["a","b"]`），SQLite 拆不开，
+  /// 所以只把这一列取回来在 Dart 侧计数。书架的行数量级（几百到几千）
+  /// 下这点开销可以忽略，换来的是不用维护一张单独的标签表——
+  /// 标签是每本书的自由文本，建表反而要处理「改一个标签要改几行」的问题。
+  Future<List<Map<String, dynamic>>> tagDistribution() async {
+    final rows = await _db.query(
+      'books',
+      columns: ['tags'],
+      where: "tags IS NOT NULL AND tags != '' AND tags != '[]'",
+    );
+    final counts = <String, int>{};
+    for (final r in rows) {
+      final raw = r['tags'];
+      if (raw is! String) continue;
+      List<dynamic> list;
+      try {
+        list = jsonDecode(raw) as List<dynamic>;
+      } catch (_) {
+        continue;
+      }
+      for (final e in list) {
+        final s = e.toString().trim();
+        if (s.isEmpty) continue;
+        counts[s] = (counts[s] ?? 0) + 1;
+      }
+    }
+    final out = counts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return [for (final e in out) {'name': e.key, 'c': e.value}];
+  }
+
+  /// 某个分类下有多少本书。
+  ///
+  /// 删除/改名分类前用它告诉用户这次改动会影响多少条数据——
+  /// 「删除『宗教』」和「删除『宗教』（12 本书将归入未分类）」
+  /// 是完全不同的两个决定。
+  Future<int> categoryCount(String name) async {
+    final r = await _db.rawQuery(
+        'SELECT COUNT(*) c FROM books WHERE categoryPrimary = ?', [name]);
+    return (r.first['c'] as int?) ?? 0;
+  }
+
+  /// 把某个分类下的书整体迁到另一个分类，返回受影响的行数。
+  ///
+  /// 改名和删除分类都走这里：删分类时传入 [kUncategorized]。
+  Future<int> recategorize(String from, String to) async {
+    return await _db.rawUpdate(
+        'UPDATE books SET categoryPrimary = ? WHERE categoryPrimary = ?',
+        [to, from]);
   }
 
   /// 某年读完的书

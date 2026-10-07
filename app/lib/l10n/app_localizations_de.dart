@@ -2634,4 +2634,75 @@ class SDe extends S {
 
   @override
   String get s_1a8d53f6 => 'Was als nächstes zu lesen ist';
+
+  @override
+  String get s_2f9d1a4b => 'Schlagwörter';
+
+  @override
+  String get s_5c7e3d81 => 'Noch keine Schlagwörter';
+
+  @override
+  String s_3e8f5b26({required Object title}) {
+    return '»$title« löschen?';
+  }
+
+  @override
+  String get s_7d4c2e91 => 'Leseprotokolle und Pläne werden mitgelöscht. Deine Notizen bleiben erhalten – sie stehen weiter in der Rubrik „Notizen“. Das lässt sich nicht rückgängig machen.';
+
+  @override
+  String s_1f6a8d37({required Object title}) {
+    return '»$title« gelöscht';
+  }
+
+  @override
+  String get s_4b2c9e58 => 'Kategorien';
+
+  @override
+  String get s_8d3f6a12 => 'Kategorien hinzufügen, umbenennen oder entfernen. Bücher einer entfernten Kategorie wandern nach »Nicht kategorisiert«.';
+
+  @override
+  String get s_2c8b5d09 => 'Kategoriename';
+
+  @override
+  String get s_9f4e7a35 => 'Der Kategoriename darf nicht leer sein';
+
+  @override
+  String get s_7a2d6c81 => 'Diese Kategorie gibt es bereits';
+
+  @override
+  String s_5e9c1b47({required Object name}) {
+    return '»$name« hinzugefügt';
+  }
+
+  @override
+  String s_3b7f2d64({required Object name}) {
+    return '»$name« gelöscht';
+  }
+
+  @override
+  String s_8c4a1e92({required Object name}) {
+    return 'Kategorie »$name« löschen?';
+  }
+
+  @override
+  String s_1d7b3f08({required Object count}) {
+    return '$count Bücher darin wandern nach »Nicht kategorisiert«.';
+  }
+
+  @override
+  String get s_6a9e4c27 => 'Umbenennen';
+
+  @override
+  String get s_2f5d8b13 => 'Standardkategorien wiederherstellen';
+
+  @override
+  String get s_4e1c7a69 => 'Standardkategorien wiederhergestellt';
+
+  @override
+  String get s_9c3f5d21 => 'Eigen';
+
+  @override
+  String s_9d2e7f13({required Object name, required Object count}) {
+    return 'Umbenannt in »$name«; $count Bücher aktualisiert';
+  }
 }

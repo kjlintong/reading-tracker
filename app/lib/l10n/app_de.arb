@@ -3291,5 +3291,103 @@
   "s_3c58b0d2": "Lesegewohnheiten",
   "s_4b7e2a19": "Nennenswerte Bücher",
   "s_6e39f7c4": "- Profil",
-  "s_1a8d53f6": "Was als nächstes zu lesen ist"
+  "s_1a8d53f6": "Was als nächstes zu lesen ist",
+  "s_2f9d1a4b": "Schlagwörter",
+  "@s_2f9d1a4b": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_5c7e3d81": "Noch keine Schlagwörter",
+  "@s_5c7e3d81": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_3e8f5b26": "»{title}« löschen?",
+  "@s_3e8f5b26": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "s_7d4c2e91": "Leseprotokolle und Pläne werden mitgelöscht. Deine Notizen bleiben erhalten – sie stehen weiter in der Rubrik „Notizen“. Das lässt sich nicht rückgängig machen.",
+  "@s_7d4c2e91": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_1f6a8d37": "»{title}« gelöscht",
+  "@s_1f6a8d37": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "s_4b2c9e58": "Kategorien",
+  "@s_4b2c9e58": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_8d3f6a12": "Kategorien hinzufügen, umbenennen oder entfernen. Bücher einer entfernten Kategorie wandern nach »Nicht kategorisiert«.",
+  "@s_8d3f6a12": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_2c8b5d09": "Kategoriename",
+  "@s_2c8b5d09": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_9f4e7a35": "Der Kategoriename darf nicht leer sein",
+  "@s_9f4e7a35": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_7a2d6c81": "Diese Kategorie gibt es bereits",
+  "@s_7a2d6c81": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_5e9c1b47": "»{name}« hinzugefügt",
+  "@s_5e9c1b47": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "s_3b7f2d64": "»{name}« gelöscht",
+  "@s_3b7f2d64": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "s_8c4a1e92": "Kategorie »{name}« löschen?",
+  "@s_8c4a1e92": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "s_1d7b3f08": "{count} Bücher darin wandern nach »Nicht kategorisiert«.",
+  "@s_1d7b3f08": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "s_6a9e4c27": "Umbenennen",
+  "@s_6a9e4c27": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_2f5d8b13": "Standardkategorien wiederherstellen",
+  "@s_2f5d8b13": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_4e1c7a69": "Standardkategorien wiederhergestellt",
+  "@s_4e1c7a69": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_9c3f5d21": "Eigen",
+  "@s_9c3f5d21": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_9d2e7f13": "Umbenannt in »{name}«; {count} Bücher aktualisiert",
+  "@s_9d2e7f13": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {},
+      "count": {}
+    }
+  }
 }

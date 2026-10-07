@@ -4690,6 +4690,120 @@ abstract class S {
   /// In en, this message translates to:
   /// **'What to read next'**
   String get s_1a8d53f6;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get s_2f9d1a4b;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'No tags yet'**
+  String get s_5c7e3d81;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Delete “{title}”?'**
+  String s_3e8f5b26({required Object title});
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Its reading logs and plans are deleted with it. Notes you wrote are kept — they stay in the Notes tab. This can’t be undone.'**
+  String get s_7d4c2e91;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted “{title}”'**
+  String s_1f6a8d37({required Object title});
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get s_4b2c9e58;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Add, rename or remove categories. Books in a removed category move to “Uncategorized”.'**
+  String get s_8d3f6a12;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Category name'**
+  String get s_2c8b5d09;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Category name can’t be empty'**
+  String get s_9f4e7a35;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'That category already exists'**
+  String get s_7a2d6c81;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Added “{name}”'**
+  String s_5e9c1b47({required Object name});
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted “{name}”'**
+  String s_3b7f2d64({required Object name});
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Delete category “{name}”?'**
+  String s_8c4a1e92({required Object name});
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'{count} books in it will move to “Uncategorized”.'**
+  String s_1d7b3f08({required Object count});
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Rename'**
+  String get s_6a9e4c27;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Restore default categories'**
+  String get s_2f5d8b13;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Default categories restored'**
+  String get s_4e1c7a69;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get s_9c3f5d21;
+
+  /// shelf: delete book / tag filter / editable categories
+  ///
+  /// In en, this message translates to:
+  /// **'Renamed to “{name}”; {count} books updated'**
+  String s_9d2e7f13({required Object name, required Object count});
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

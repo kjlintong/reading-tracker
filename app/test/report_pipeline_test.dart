@@ -477,7 +477,6 @@ void main() {
 
   group('校验：模型不能凭空造书', () {
     final known = {'a1', 'b2'};
-    final titles = {'a1': '置身事内', 'b2': '沉思录'};
 
     test('编造的 id 整条丢掉，已知的保留', () {
       final p = parseReportPayload('''{
@@ -527,7 +526,7 @@ void main() {
       'avgRating': 4.2,
       'hasLogs': false,
     };
-    final titles = {'a1': '置身事内', 'b2': '沉思录'};
+    final knownTitles = {'a1': '置身事内', 'b2': '沉思录'};
 
     test('占位符替换成事实表里的数字', () {
       final md = renderReport(
@@ -537,7 +536,7 @@ void main() {
           "naming": [{"id": "a1", "line": "读完 [[finished]] 本里最扎实的一本"}]
         }''', knownBookIds: {'a1'}),
         facts: facts,
-        titleById: titles,
+        titleById: knownTitles,
       );
       expect(md.contains('读完 7 本'), isTrue);
       expect(md.contains('3 本在读'), isTrue);
@@ -549,7 +548,7 @@ void main() {
         parseReportPayload('{"headline": "日均 [[nope]] 分钟"}',
             knownBookIds: {}),
         facts: facts,
-        titleById: titles,
+        titleById: knownTitles,
       );
       expect(md.contains('[['), isFalse);
       expect(md.contains('—'), isTrue);
@@ -560,7 +559,7 @@ void main() {
         parseReportPayload('{"headline": "还行", "activity": ["一条观察"]}',
             knownBookIds: {}),
         facts: facts,
-        titleById: titles,
+        titleById: knownTitles,
       );
       // 只有概览与本期阅读两节有点名和画像都没出现
       expect(md.contains('## '), isTrue);
@@ -578,7 +577,7 @@ void main() {
           knownBookIds: {'a1'},
         ),
         facts: facts,
-        titleById: titles,
+        titleById: knownTitles,
       );
       expect(md.contains('《置身事内》'), isTrue);
     });

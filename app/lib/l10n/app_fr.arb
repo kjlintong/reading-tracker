@@ -3291,5 +3291,103 @@
   "s_3c58b0d2": "Habitudes de lecture",
   "s_4b7e2a19": "Livres qui méritent d'être nommés",
   "s_6e39f7c4": "Profil du lecteur",
-  "s_1a8d53f6": "Que lire ensuite"
+  "s_1a8d53f6": "Que lire ensuite",
+  "s_2f9d1a4b": "Étiquettes",
+  "@s_2f9d1a4b": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_5c7e3d81": "Aucune étiquette pour l’instant",
+  "@s_5c7e3d81": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_3e8f5b26": "Supprimer « {title} » ?",
+  "@s_3e8f5b26": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "s_7d4c2e91": "Ses journaux de lecture et ses plans sont supprimés avec lui. Vos notes sont conservées : elles restent dans l’onglet Notes. Cette action est irréversible.",
+  "@s_7d4c2e91": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_1f6a8d37": "« {title} » supprimé",
+  "@s_1f6a8d37": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "s_4b2c9e58": "Catégories",
+  "@s_4b2c9e58": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_8d3f6a12": "Ajoutez, renommez ou supprimez des catégories. Les livres d’une catégorie supprimée vont dans « Non classé ».",
+  "@s_8d3f6a12": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_2c8b5d09": "Nom de la catégorie",
+  "@s_2c8b5d09": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_9f4e7a35": "Le nom de la catégorie ne peut pas être vide",
+  "@s_9f4e7a35": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_7a2d6c81": "Cette catégorie existe déjà",
+  "@s_7a2d6c81": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_5e9c1b47": "« {name} » ajoutée",
+  "@s_5e9c1b47": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "s_3b7f2d64": "« {name} » supprimée",
+  "@s_3b7f2d64": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "s_8c4a1e92": "Supprimer la catégorie « {name} » ?",
+  "@s_8c4a1e92": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "s_1d7b3f08": "{count} livres qu’elle contient iront dans « Non classé ».",
+  "@s_1d7b3f08": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "s_6a9e4c27": "Renommer",
+  "@s_6a9e4c27": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_2f5d8b13": "Rétablir les catégories par défaut",
+  "@s_2f5d8b13": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_4e1c7a69": "Catégories par défaut rétablies",
+  "@s_4e1c7a69": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_9c3f5d21": "Personnalisée",
+  "@s_9c3f5d21": {
+    "description": "shelf: delete book / tag filter / editable categories"
+  },
+  "s_9d2e7f13": "Renommée en « {name} » ; {count} livres mis à jour",
+  "@s_9d2e7f13": {
+    "description": "shelf: delete book / tag filter / editable categories",
+    "placeholders": {
+      "name": {},
+      "count": {}
+    }
+  }
 }

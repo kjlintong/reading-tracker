@@ -254,6 +254,40 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
     setState(() => _book = merged);
   }
 
+  /// 删除这本书并退出页面。
+  ///
+  /// 级联删除在 `BookRepository.delete` 里（笔记 / 阅读记录 / 计划一起走）。
+  /// 这里只负责确认与退出——弹确认不是走形式：`delete` 没有回收站，
+  /// 笔记和逐年积累的阅读记录会跟着一起消失。
+  Future<void> _confirmDelete() async {
+    final b = _book;
+    if (b == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(appLoc.s_3e8f5b26(title: b.title)),
+        content: Text(appLoc.s_7d4c2e91),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(appLoc.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(appLoc.s_ecbd7449),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    await ref.read(repoProvider).delete(b.id);
+    if (!mounted) return;
+    Navigator.pop(context, true);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(appLoc.s_1f6a8d37(title: b.title))),
+    );
+  }
+
   /// 改一个字段并落库。状态/借阅这类离散操作共用。
   ///
   /// 先 setState 再写库：状态切换要立刻反馈，等一次 SQLite 往返
@@ -394,6 +428,13 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
             tooltip: appLoc.s_6c7a6cc5,
             icon: const Icon(Icons.edit_outlined),
             onPressed: _edit,
+          ),
+          // 删除放在 AppBar 而不是页面底部的菜单里：它是一次性的、
+          // 不可逆的操作，藏得越深越容易误以为「这个 App 删不掉书」。
+          IconButton(
+            tooltip: appLoc.s_ecbd7449,
+            icon: const Icon(Icons.delete_outline),
+            onPressed: _confirmDelete,
           ),
         ],
       ),

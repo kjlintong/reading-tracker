@@ -8,7 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../ai/ai_client.dart';
 import '../ai/llm_protocol.dart';
+import '../data/category_prefs.dart';
 import '../l10n/app_localizations.dart';
+import '../models/enums.dart';
 import '../providers.dart';
 import 'backup_page.dart';
 import 'theme.dart';
@@ -407,6 +409,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           style: const TextStyle(fontSize: 14)),
                     ),
                 ],
+              ),
+
+              /* ---------------------- 分类 ---------------------- */
+              // 放在语言后面：两者都是「这套 App 怎么称呼你的书」的层面，
+              // 比 API Key 之类的一次性配置更靠近日常使用。
+              _Section(
+                title: appLoc.s_4b2c9e58,
+                subtitle: appLoc.s_8d3f6a12,
+                children: const [_CategoryManager()],
               ),
 
               /* ------------------- 第三方渠道（高级） ------------------- */
@@ -902,6 +913,207 @@ class _ThemePicker extends StatelessWidget {
               ),
             ),
           ),
+      ],
+    );
+  }
+}
+
+/// 分类词表管理：改名 / 删除 / 新增 / 恢复默认。
+///
+/// 独立成一个 Widget 而不是塞进设置页的 build：它要维护输入框、
+/// 要弹确认框、要写两张 settings 表，混进那个上千行的 build 里
+/// 会让任何一处改动都要在长方法里翻找。
+class _CategoryManager extends ConsumerStatefulWidget {
+  const _CategoryManager();
+
+  @override
+  ConsumerState<_CategoryManager> createState() => _CategoryManagerState();
+}
+
+class _CategoryManagerState extends ConsumerState<_CategoryManager> {
+  final _ctrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _snack(String text) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  /// 词表改动落盘。
+  ///
+  /// 两个名单一起写：只写一个会出现「新增了 A、却还隐藏着 B」的半截状态。
+  Future<void> _persist() async {
+    await saveSetting(ref, kCustomCategoriesKey,
+        encodeCategoryList(categoryVocabulary.custom));
+    await saveSetting(
+        ref, kHiddenCategoriesKey, encodeCategoryList(categoryVocabulary.hidden));
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _add() async {
+    final name = _ctrl.text.trim();
+    if (name.isEmpty) {
+      _snack(appLoc.s_9f4e7a35);
+      return;
+    }
+    if (!addCategory(name)) {
+      _snack(appLoc.s_7a2d6c81);
+      return;
+    }
+    _ctrl.clear();
+    await _persist();
+    _snack(appLoc.s_5e9c1b47(name: name));
+  }
+
+  /// 重命名：先改词表，再把存量书迁移到新名字。
+  ///
+  /// 顺序不能反——先迁书的话，万一词表写入失败，库里就躺着一个
+  /// 没有任何分类会承认它的值。
+  Future<void> _rename(String old) async {
+    final ctrl = TextEditingController(text: old);
+    final next = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(appLoc.s_6a9e4c27),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: appLoc.s_2c8b5d09,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(appLoc.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: Text(appLoc.s_fe93ef35),
+          ),
+        ],
+      ),
+    );
+    if (next == null || next.isEmpty || next == old) return;
+    if (categoryVocabulary.contains(next)) {
+      _snack(appLoc.s_7a2d6c81);
+      return;
+    }
+    renameCategory(old, next);
+    final moved = await ref.read(repoProvider).recategorize(old, next);
+    await _persist();
+    _snack(appLoc.s_9d2e7f13(name: next, count: '$moved'));
+  }
+
+  /// 删除：先把书迁到「未分类」，再从词表里去掉。
+  ///
+  /// 确认框里带上受影响的数量。「删除『宗教』」和「删除『宗教』
+  /// （12 本书会归入未分类）」是两个完全不同的决定——
+  /// 用户有权在按下之前知道自己要动多少数据。
+  Future<void> _delete(String name) async {
+    final count = await ref.read(repoProvider).categoryCount(name);
+    if (!mounted) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(appLoc.s_8c4a1e92(name: name)),
+        content: Text(appLoc.s_1d7b3f08(count: '$count')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(appLoc.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(appLoc.s_ecbd7449),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    if (count > 0) {
+      await ref.read(repoProvider).recategorize(name, kUncategorized);
+    }
+    removeCategory(name);
+    await _persist();
+    _snack(appLoc.s_3b7f2d64(name: name));
+  }
+
+  Future<void> _restore() async {
+    restoreDefaultCategories();
+    await _persist();
+    _snack(appLoc.s_4e1c7a69);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final active = categoryVocabulary.active;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 不用 ListView：外面已经是可滚动的设置页，嵌套可滚动组件
+        // 会让这一块的高度算不出来（shrinkWrap 在这里也不解决问题）。
+        for (final c in active)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            dense: true,
+            title: Row(
+              children: [
+                Flexible(child: Text(categoryLabel(c))),
+                if (categoryVocabulary.isCustom(c)) ...[
+                  const SizedBox(width: 6),
+                  Text(appLoc.s_9c3f5d21,
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: theme.colorScheme.onSurfaceVariant)),
+                ],
+              ],
+            ),
+            trailing: PopupMenuButton<String>(
+              onSelected: (v) =>
+                  v == 'rename' ? _rename(c) : _delete(c),
+              itemBuilder: (ctx) => [
+                PopupMenuItem(value: 'rename', child: Text(appLoc.s_6a9e4c27)),
+                PopupMenuItem(value: 'delete', child: Text(appLoc.s_ecbd7449)),
+              ],
+            ),
+          ),
+        const Divider(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _ctrl,
+                decoration: InputDecoration(
+                  labelText: appLoc.s_2c8b5d09,
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                ),
+                onSubmitted: (_) => _add(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton(
+              onPressed: _add,
+              child: Text(appLoc.s_a1d885c1),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: TextButton(
+            onPressed: categoryVocabulary.isEmpty ? null : _restore,
+            child: Text(appLoc.s_2f5d8b13),
+          ),
+        ),
       ],
     );
   }

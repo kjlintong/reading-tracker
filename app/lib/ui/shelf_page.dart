@@ -43,6 +43,7 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
   BookStatus? _status;
   BookSource? _source;
   String? _category;
+  String? _tag;
   ShelfSort _sort = ShelfSort.updated;
   bool _grid = true;
   String _keyword = '';
@@ -98,13 +99,14 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
           status: _status,
           source: _source,
           category: _category,
+          tag: _tag,
           keyword: _keyword.isEmpty ? null : _keyword,
           orderBy: _sort.orderBy,
         );
   }
 
   bool get _hasFilter =>
-      _status != null || _source != null || _category != null;
+      _status != null || _source != null || _category != null || _tag != null;
 
   @override
   Widget build(BuildContext context) {
@@ -242,6 +244,7 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
           itemBuilder: (context, i) => _GridCell(
             book: books[i],
             onTap: () => _open(books[i]),
+            onLongPress: () => _confirmDelete(books[i]),
           ),
         );
       },
@@ -255,7 +258,41 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
       itemBuilder: (context, i) => _BookTile(
         book: books[i],
         onTap: () => _open(books[i]),
+        onLongPress: () => _confirmDelete(books[i]),
       ),
+    );
+  }
+
+  /// 删除一本书（长按入口）。
+  ///
+  /// 为什么书架页也要有：清理一批误导入的书时，逐本点进详情页再删要
+  /// 点两下 × N 本。长按是列表类界面约定俗成的「更多操作」手势。
+  ///
+  /// 仍然要确认：删掉的是书 + 笔记 + 记录，没有回收站。
+  Future<void> _confirmDelete(Book book) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(appLoc.s_3e8f5b26(title: book.title)),
+        content: Text(appLoc.s_7d4c2e91),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(appLoc.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(appLoc.s_ecbd7449),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await ref.read(repoProvider).delete(book.id);
+    if (!mounted) return;
+    _reload();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(appLoc.s_1f6a8d37(title: book.title))),
     );
   }
 
@@ -279,6 +316,7 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
             _status = null;
             _source = null;
             _category = null;
+            _tag = null;
             _reload();
           }),
           ...BookStatus.values.map((s) => _chip(
@@ -293,15 +331,13 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
             padding: const EdgeInsets.only(right: 8),
             child: ActionChip(
               avatar: Icon(
-                _source != null || _category != null
+                _source != null || _category != null || _tag != null
                     ? Icons.filter_alt
                     : Icons.filter_alt_outlined,
                 size: 16,
               ),
               label: Text(
-                _source != null
-                    ? BookSource.fromString(_source!.name).label
-                    : (_category ?? appLoc.s_542b67cc),
+                _filterLabel,
                 style: const TextStyle(fontSize: 13),
               ),
               visualDensity: VisualDensity.compact,
@@ -314,15 +350,28 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
     );
   }
 
+  /// 筛选按钮上显示什么。
+  ///
+  /// 同时选了多个维度时只显示一个——按钮就那么大，全塞进去必然截断。
+  /// 优先级按「哪个更具体」排：标签 > 分类 > 来源。
+  String get _filterLabel {
+    if (_tag != null) return '#${_tag!}';
+    if (_category != null) return categoryLabel(_category!);
+    if (_source != null) return BookSource.fromString(_source!.name).label;
+    return appLoc.s_542b67cc;
+  }
+
   /// 来源与分类放到弹层里：品类有 20 个、平台有 7 个，
   /// 全铺在顶部横向条里会把状态筛选挤没
   Future<void> _openFilterSheet() async {
     final repo = ref.read(repoProvider);
     final categories = await repo.categoryDistribution();
+    final tags = await repo.tagDistribution();
     if (!mounted) return;
 
     var source = _source;
     var category = _category;
+    var tag = _tag;
 
     final applied = await showModalBottomSheet<bool>(
       context: context,
@@ -386,6 +435,39 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
                     ),
                   ),
                 ),
+              const SizedBox(height: 16),
+               Text(appLoc.s_2f9d1a4b, style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              if (tags.isEmpty)
+                 Text(appLoc.s_5c7e3d81, style: TextStyle(fontSize: 12))
+              else
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(ctx).size.height * 0.25,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label:  Text(appLoc.s_68022ee7, style: TextStyle(fontSize: 12)),
+                          selected: tag == null,
+                          onSelected: (_) => setSheet(() => tag = null),
+                        ),
+                        ...tags.map((t) => ChoiceChip(
+                              label: Text(
+                                '#${t['name']} ${t['c']}',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              selected: tag == t['name'],
+                              onSelected: (_) => setSheet(() =>
+                                  tag = tag == t['name'] ? null : t['name'] as String),
+                            )),
+                      ],
+                    ),
+                  ),
+                ),
               const SizedBox(height: 20),
               Row(
                 children: [
@@ -394,6 +476,7 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
                       onPressed: () => setSheet(() {
                         source = null;
                         category = null;
+                        tag = null;
                       }),
                       child:  Text(appLoc.s_50d471b2),
                     ),
@@ -416,6 +499,7 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
     if (applied == true) {
       _source = source;
       _category = category;
+      _tag = tag;
       _reload();
     }
   }
@@ -444,8 +528,9 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
 class _GridCell extends StatelessWidget {
   final Book book;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
-  const _GridCell({required this.book, required this.onTap});
+  const _GridCell({required this.book, required this.onTap, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
@@ -456,6 +541,7 @@ class _GridCell extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -548,14 +634,17 @@ class _GridCell extends StatelessWidget {
 class _BookTile extends StatelessWidget {
   final Book book;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
-  const _BookTile({required this.book, required this.onTap});
+  const _BookTile(
+      {required this.book, required this.onTap, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return ListTile(
       onTap: onTap,
+      onLongPress: onLongPress,
       leading: SizedBox(
         width: 40,
         height: 56,

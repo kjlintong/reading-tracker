@@ -2634,4 +2634,75 @@ class SFr extends S {
 
   @override
   String get s_1a8d53f6 => 'Que lire ensuite';
+
+  @override
+  String get s_2f9d1a4b => 'Étiquettes';
+
+  @override
+  String get s_5c7e3d81 => 'Aucune étiquette pour l’instant';
+
+  @override
+  String s_3e8f5b26({required Object title}) {
+    return 'Supprimer « $title » ?';
+  }
+
+  @override
+  String get s_7d4c2e91 => 'Ses journaux de lecture et ses plans sont supprimés avec lui. Vos notes sont conservées : elles restent dans l’onglet Notes. Cette action est irréversible.';
+
+  @override
+  String s_1f6a8d37({required Object title}) {
+    return '« $title » supprimé';
+  }
+
+  @override
+  String get s_4b2c9e58 => 'Catégories';
+
+  @override
+  String get s_8d3f6a12 => 'Ajoutez, renommez ou supprimez des catégories. Les livres d’une catégorie supprimée vont dans « Non classé ».';
+
+  @override
+  String get s_2c8b5d09 => 'Nom de la catégorie';
+
+  @override
+  String get s_9f4e7a35 => 'Le nom de la catégorie ne peut pas être vide';
+
+  @override
+  String get s_7a2d6c81 => 'Cette catégorie existe déjà';
+
+  @override
+  String s_5e9c1b47({required Object name}) {
+    return '« $name » ajoutée';
+  }
+
+  @override
+  String s_3b7f2d64({required Object name}) {
+    return '« $name » supprimée';
+  }
+
+  @override
+  String s_8c4a1e92({required Object name}) {
+    return 'Supprimer la catégorie « $name » ?';
+  }
+
+  @override
+  String s_1d7b3f08({required Object count}) {
+    return '$count livres qu’elle contient iront dans « Non classé ».';
+  }
+
+  @override
+  String get s_6a9e4c27 => 'Renommer';
+
+  @override
+  String get s_2f5d8b13 => 'Rétablir les catégories par défaut';
+
+  @override
+  String get s_4e1c7a69 => 'Catégories par défaut rétablies';
+
+  @override
+  String get s_9c3f5d21 => 'Personnalisée';
+
+  @override
+  String s_9d2e7f13({required Object name, required Object count}) {
+    return 'Renommée en « $name » ; $count livres mis à jour';
+  }
 }

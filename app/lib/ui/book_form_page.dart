@@ -333,7 +333,9 @@ class _CategoryField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: defaultCategories.contains(controller.text) ? controller.text : null,
+      // 生效词表而不是 defaultCategories：用户在设置里新增/删除过的分类
+      // 要立刻反映在这里，否则「改了分类却选不到」。
+      value: categoryVocabulary.contains(controller.text) ? controller.text : null,
       isDense: true,
       decoration:  InputDecoration(
         labelText: appLoc.s_b32f0afe,
@@ -345,7 +347,7 @@ class _CategoryField extends StatelessWidget {
         // 不能用 const：appLoc 是运行时 getter，const 构造要求编译期常量
         DropdownMenuItem<String>(value: null, child: Text(appLoc.s_5aa23087)),
         // value 存规范值，child 显示当前语言：选中后落库的仍是规范值
-        for (final c in defaultCategories)
+        for (final c in categoryVocabulary.active)
           DropdownMenuItem(value: c, child: Text(categoryLabel(c))),
       ],
       onChanged: (v) => controller.text = v ?? '',

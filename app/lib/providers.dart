@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'ai/llm_protocol.dart';
+import 'data/category_prefs.dart';
 import 'data/database.dart';
 import 'ai/ai_client.dart';
 import 'import/import_manager.dart';
@@ -161,6 +162,23 @@ Future<void> loadSettings(WidgetRef ref) async {
     if (v == null || v.isEmpty) continue;
     _apply(ref, key, v);
   }
+
+  // 分类词表要两个键合起来才有意义（新增 + 移除），所以单独读，
+  // 不走上面那个一次处理一个键的循环。
+  //
+  // 注意这里跑在首帧之后，来不及覆盖启动期的迁移——那条路径由
+  // AppDatabase._onUpgrade 自己装载词表（它才是在重算分类之前）。
+  // 这里负责的是运行期：导入、元数据补全、界面下拉都在此之后。
+  await loadCategoryVocabulary(ref);
+}
+
+/// 从 settings 表装载用户对分类词表的修改。
+Future<void> loadCategoryVocabulary(WidgetRef ref) async {
+  final repo = ref.read(repoProvider);
+  applyCategoryVocabulary(
+    custom: await repo.getSetting(kCustomCategoriesKey),
+    hidden: await repo.getSetting(kHiddenCategoriesKey),
+  );
 }
 
 /// 写库 + 同步内存中的 provider

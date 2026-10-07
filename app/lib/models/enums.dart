@@ -174,6 +174,69 @@ const List<String> defaultCategories = [
 /// 所以必须是常量而不是本地化文案；显示时经 [categoryLabel] 转换。
 const String kUncategorized = '未分类';
 
+/// 用户对默认词表做的修改。
+///
+/// 为什么是两个名单而不是「把整份词表存下来」：
+/// [defaultCategories] 将来还会扩充（新分类要自动出现在老用户的可选列表里），
+/// 存全量快照的话新分类永远进不来。所以默认分类用**黑名单**（隐藏了哪些），
+/// 用户新增的用**白名单**（加了哪些），两者相加才是当前生效的词表。
+///
+/// 两个字段都为空时，[active] 与 [defaultCategories] 完全一致——
+/// 即「用户没改过」和「改回了默认」是同一个状态，不需要额外迁移。
+class CategoryVocabulary {
+  /// 用户自己新增的分类（不属于 [defaultCategories]）。
+  final List<String> custom;
+
+  /// 用户从 [defaultCategories] 里移除的分类。
+  final List<String> hidden;
+
+  const CategoryVocabulary({this.custom = const [], this.hidden = const []});
+
+  /// 空词表 = 用户没做过任何修改。
+  static const empty = CategoryVocabulary();
+
+  /// 当前生效的分类：默认里没被移除的，加上用户新增的。
+  ///
+  /// 顺序即界面上的展示顺序：默认分类保持原有次序在前，自定义追加在后。
+  /// 分类下拉、AI 归类词表、归一化判定全部以它为准。
+  ///
+  /// 去重是必须的：把删掉的默认分类重新加回来时，它既在默认名单里
+  /// （因为已从 hidden 移出）又在 custom 里，不去重会出现两个同名项。
+  List<String> get active {
+    final out = <String>[];
+    final seen = <String>{};
+    for (final c in defaultCategories) {
+      if (hidden.contains(c)) continue;
+      if (seen.add(c)) out.add(c);
+    }
+    for (final c in custom) {
+      if (seen.add(c)) out.add(c);
+    }
+    return out;
+  }
+
+  bool get isEmpty => custom.isEmpty && hidden.isEmpty;
+
+  /// 是否是用户自定义分类。
+  ///
+  /// 默认分类**即使被用户删掉又加回来也不算自定义**：它回到了默认词表的
+  /// 位置和显示名，界面上不该给它挂「自定义」的角标。
+  bool isCustom(String v) => custom.contains(v) && !isDefault(v);
+
+  bool isDefault(String v) => defaultCategories.contains(v);
+
+  bool contains(String v) => active.contains(v);
+}
+
+/// 全局生效的分类词表。
+///
+/// 做成全局可变单例而不是 Riverpod provider：[normalizeCategory] 是纯函数，
+/// 被数据库迁移、导入管道、AI 客户端在**没有 BuildContext 的地方**调用，
+/// 拿不到 ref。启动时由 [loadSettings] 从 settings 表装载一次，
+/// 设置页改动后同步更新。未装载时等于 [CategoryVocabulary.empty]，
+/// 行为与改动前完全一致。
+CategoryVocabulary categoryVocabulary = CategoryVocabulary.empty;
+
 /// 外部平台分类 → 受控词表 的归一化映射
 ///
 /// 微信读书返回自有分类体系（经济理财 / 个人成长 / 哲学宗教 / 男生小说…），
@@ -296,29 +359,41 @@ String categoryLabel(String canonical) {
   };
 }
 
-/// 把任意来源的分类归一化到受控词表
+/// 把任意来源的分类归一化到**当前生效的**词表
 ///
 /// 输入可以是国内平台的原始中文分类、国际来源的英文分类，
 /// 也可以是当前语言的显示名（大模型按界面上见到的词作答时属于这种）。
-/// 返回值始终是 [defaultCategories] 中的规范值。
+/// 返回值优先是 [CategoryVocabulary.active] 中的规范值。
 String? normalizeCategory(String? raw) {
   if (raw == null || raw.trim().isEmpty) return null;
   final s = raw.trim();
   // 规范值、以及当前语言的显示名，都要能回到同一个规范值
   if (s == kUncategorized || s == categoryLabel(kUncategorized)) return kUncategorized;
-  if (defaultCategories.contains(s)) return s;
+  // 生效词表（含用户自定义分类）优先于别名表：
+  // 用户新增「烹饪」后，不能让别名表把它折回「其他」。
+  final vocab = categoryVocabulary.active;
+  if (vocab.contains(s)) return s;
   final exact = categoryAliases[s];
-  if (exact != null) return exact;
+  if (exact != null) return _guard(exact);
   // 当前语言的显示名
-  for (final c in defaultCategories) {
+  for (final c in vocab) {
     if (categoryLabel(c) == s) return c;
   }
   // 兜底：按包含关系匹配，例「经济理财-财经」→「经济」
   for (final (pattern, key) in _aliasMatchers) {
-    if (pattern.hasMatch(s)) return categoryAliases[key]!;
+    if (pattern.hasMatch(s)) return _guard(categoryAliases[key]!);
   }
-  for (final c in defaultCategories) {
+  for (final c in vocab) {
     if (s.contains(c)) return c;
   }
-  return '其他';
+  return _guard('其他');
+}
+
+/// 归一化结果落在已被用户移除的分类上时的兜底。
+///
+/// 不这么做的话会出现「删掉了『宗教』，新导入的书又把它带回来」——
+/// 别名表是按语义写死的，它并不知道用户已经不要这个分类了。
+String _guard(String normalized) {
+  if (!categoryVocabulary.hidden.contains(normalized)) return normalized;
+  return categoryVocabulary.contains('其他') ? '其他' : kUncategorized;
 }
