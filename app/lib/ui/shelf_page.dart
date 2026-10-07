@@ -363,11 +363,35 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
 
   /// 来源与分类放到弹层里：品类有 20 个、平台有 7 个，
   /// 全铺在顶部横向条里会把状态筛选挤没
+  ///
+  /// 布局是血泪：三组 chip 的真实高度远超底部弹层的默认上限（约屏高的
+  /// 9/16），Column 直接溢出——真机上「重置/确定」被裁到屏幕外（截图里
+  /// 弹层正好切在分类区中间），点完 chip 只能下滑关掉，筛选从来没生效过。
+  /// 修复：isScrollControlled 放开高度上限；chip 组放进单个滚动区
+  /// （Flexible + SingleChildScrollView），按钮钉在滚动区外面，任何
+  /// 内容高度下都可见可点。分类和标签不再各自持有一份内嵌滚动——
+  /// 嵌套滚动手势会被内层吞掉，外层永远滚不动。
   Future<void> _openFilterSheet() async {
     final repo = ref.read(repoProvider);
-    final categories = await repo.categoryDistribution();
+    final categoryRows = await repo.categoryDistribution();
     final tags = await repo.tagDistribution();
     if (!mounted) return;
+
+    // 分类条目按生效词表的顺序排（与分类管理、编辑页下拉同一个顺序），
+    // 数量只决定这一项要不要出现。库里残留的词表外历史值（老版本导入、
+    // 手改数据）补在末尾按数量降序——凭空消失比排在后面更让人困惑。
+    final counts = <String, int>{
+      for (final c in categoryRows)
+        if (c['name'] is String) c['name'] as String: (c['c'] as int?) ?? 0,
+    };
+    final categoryItems = <Map<String, dynamic>>[
+      for (final name in categoryVocabulary.active)
+        if (counts.remove(name) case final c? when c > 0) {'name': name, 'c': c},
+      // 词表外现存值（含「未分类」——它不在词表里但 COALESCE 会算出来）
+      for (final e in counts.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value)))
+        if (e.value > 0) {'name': e.key, 'c': e.value},
+    ];
 
     var source = _source;
     var category = _category;
@@ -376,121 +400,127 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
     final applied = await showModalBottomSheet<bool>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) => Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-               Text(appLoc.s_ec977df0, style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  ChoiceChip(
-                    label:  Text(appLoc.s_68022ee7, style: TextStyle(fontSize: 12)),
-                    selected: source == null,
-                    onSelected: (_) => setSheet(() => source = null),
-                  ),
-                  ...BookSource.values.map((s) => ChoiceChip(
-                        label: Text(s.label, style: const TextStyle(fontSize: 12)),
-                        selected: source == s,
-                        onSelected: (_) =>
-                            setSheet(() => source = source == s ? null : s),
-                      )),
-                ],
-              ),
-              const SizedBox(height: 16),
-               Text(appLoc.s_b32f0afe, style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              if (categories.isEmpty)
-                 Text(appLoc.s_9fe34cff, style: TextStyle(fontSize: 12))
-              else
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(ctx).size.height * 0.35,
-                  ),
+        builder: (ctx, setSheet) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(appLoc.s_ec977df0,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ChoiceChip(
+                      label: Text(appLoc.s_68022ee7,
+                          style: const TextStyle(fontSize: 12)),
+                      selected: source == null,
+                      onSelected: (_) => setSheet(() => source = null),
+                    ),
+                    ...BookSource.values.map((s) => ChoiceChip(
+                          label: Text(s.label, style: const TextStyle(fontSize: 12)),
+                          selected: source == s,
+                          onSelected: (_) =>
+                              setSheet(() => source = source == s ? null : s),
+                        )),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(appLoc.s_b32f0afe,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 8),
+                Flexible(
                   child: SingleChildScrollView(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ChoiceChip(
-                          label:  Text(appLoc.s_68022ee7, style: TextStyle(fontSize: 12)),
-                          selected: category == null,
-                          onSelected: (_) => setSheet(() => category = null),
-                        ),
-                        ...categories.map((c) => ChoiceChip(
-                              label: Text(
-                                '${c['name']} ${c['c']}',
-                                style: const TextStyle(fontSize: 12),
+                        if (categoryItems.isEmpty)
+                          Text(appLoc.s_9fe34cff,
+                              style: const TextStyle(fontSize: 12))
+                        else
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              ChoiceChip(
+                                label: Text(appLoc.s_68022ee7,
+                                    style: const TextStyle(fontSize: 12)),
+                                selected: category == null,
+                                onSelected: (_) => setSheet(() => category = null),
                               ),
-                              selected: category == c['name'],
-                              onSelected: (_) => setSheet(
-                                  () => category = category == c['name'] ? null : c['name'] as String),
-                            )),
+                              ...categoryItems.map((c) => ChoiceChip(
+                                    label: Text(
+                                      '${categoryLabel(c['name'] as String)} ${c['c']}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    selected: category == c['name'],
+                                    onSelected: (_) => setSheet(() => category =
+                                        category == c['name'] ? null : c['name'] as String),
+                                  )),
+                            ],
+                          ),
+                        const SizedBox(height: 16),
+                        Text(appLoc.s_2f9d1a4b,
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 8),
+                        if (tags.isEmpty)
+                          Text(appLoc.s_5c7e3d81,
+                              style: const TextStyle(fontSize: 12))
+                        else
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              ChoiceChip(
+                                label: Text(appLoc.s_68022ee7,
+                                    style: const TextStyle(fontSize: 12)),
+                                selected: tag == null,
+                                onSelected: (_) => setSheet(() => tag = null),
+                              ),
+                              ...tags.map((t) => ChoiceChip(
+                                    label: Text(
+                                      '#${t['name']} ${t['c']}',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    selected: tag == t['name'],
+                                    onSelected: (_) => setSheet(() =>
+                                        tag = tag == t['name'] ? null : t['name'] as String),
+                                  )),
+                            ],
+                          ),
                       ],
                     ),
                   ),
                 ),
-              const SizedBox(height: 16),
-               Text(appLoc.s_2f9d1a4b, style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 8),
-              if (tags.isEmpty)
-                 Text(appLoc.s_5c7e3d81, style: TextStyle(fontSize: 12))
-              else
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(ctx).size.height * 0.25,
-                  ),
-                  child: SingleChildScrollView(
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ChoiceChip(
-                          label:  Text(appLoc.s_68022ee7, style: TextStyle(fontSize: 12)),
-                          selected: tag == null,
-                          onSelected: (_) => setSheet(() => tag = null),
-                        ),
-                        ...tags.map((t) => ChoiceChip(
-                              label: Text(
-                                '#${t['name']} ${t['c']}',
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              selected: tag == t['name'],
-                              onSelected: (_) => setSheet(() =>
-                                  tag = tag == t['name'] ? null : t['name'] as String),
-                            )),
-                      ],
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => setSheet(() {
+                          source = null;
+                          category = null;
+                          tag = null;
+                        }),
+                        child: Text(appLoc.s_50d471b2),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: Text(appLoc.s_fe93ef35),
+                      ),
+                    ),
+                  ],
                 ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => setSheet(() {
-                        source = null;
-                        category = null;
-                        tag = null;
-                      }),
-                      child:  Text(appLoc.s_50d471b2),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child:  Text(appLoc.s_fe93ef35),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

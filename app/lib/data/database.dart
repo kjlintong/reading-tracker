@@ -369,7 +369,18 @@ class BookRepository {
 
     if (status != null) { where.add('status = ?'); args.add(status.storageValue); }
     if (source != null) { where.add('source = ?'); args.add(source.name); }
-    if (category != null) { where.add('categoryPrimary = ?'); args.add(category); }
+    if (category != null) {
+      // 「未分类」要同时接住两拨书：字段为 NULL 的（分布里被 COALESCE
+      // 算成未分类），和字面存了 '未分类' 的。只按等值查的话前者
+      // 永远筛不出来——分布显示 39 本、筛出来只剩十几本，就是这里。
+      if (category == kUncategorized) {
+        where.add('(categoryPrimary IS NULL OR categoryPrimary = ?)');
+        args.add(category);
+      } else {
+        where.add('categoryPrimary = ?');
+        args.add(category);
+      }
+    }
     if (tag != null) { where.add('tags LIKE ?'); args.add('%"$tag"%'); }
     if (keyword != null && keyword.isNotEmpty) {
       where.add('(title LIKE ? OR authors LIKE ? OR publisher LIKE ?)');
@@ -480,9 +491,13 @@ class BookRepository {
   Future<List<Map<String, dynamic>>> categoryDistribution() async {
     // '未分类' 用常量插值而非本地化文案：categoryDistributionOf 在 Dart 侧
     // 也用同一个 key，两套实现必须完全一致。
+    // GROUP BY 也必须按 COALESCE 后的表达式：NULL 与字面 '未分类' 是
+    // 两个分组，却都会被标成「未分类」——chip 区会出现两个「未分类」
+    // 且计数各算一半。
     return await _db.rawQuery(
       "SELECT COALESCE(categoryPrimary,'$kUncategorized') name, COUNT(*) c "
-      'FROM books GROUP BY categoryPrimary ORDER BY c DESC');
+      "FROM books GROUP BY COALESCE(categoryPrimary,'$kUncategorized') "
+      'ORDER BY c DESC');
   }
 
   /// 来源平台分布

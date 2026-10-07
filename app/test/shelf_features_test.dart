@@ -119,6 +119,29 @@ void main() {
     });
   });
 
+  group('分类筛选', () {
+    test('「未分类」同时接住 NULL 和字面值，与分布计数对得上', () async {
+      // 分布把 categoryPrimary 为 NULL 的书 COALESCE 成「未分类」，
+      // 筛选若只做等值匹配，这拨书就永远筛不出来——分布说 39 本、
+      // 筛出来十几本，用户看到的就是「筛选没生效」。
+      await repo.insertMany([
+        book('a'), // category 为 NULL
+        book('b', category: kUncategorized),
+        book('c', category: '哲学'),
+      ]);
+
+      final dist = await repo.categoryDistribution();
+      final byName = {for (final c in dist) c['name'] as String: c['c'] as int};
+      expect(byName[kUncategorized], 2);
+
+      expect(
+        (await repo.all(category: kUncategorized)).map((b) => b.id),
+        ['a', 'b'],
+      );
+      expect((await repo.all(category: '哲学')).map((b) => b.id), ['c']);
+    });
+  });
+
   group('分类可编辑', () {
     test('新增的分类进生效词表，默认分类不受影响', () {
       expect(categoryVocabulary.active, defaultCategories);
