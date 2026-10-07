@@ -10,31 +10,31 @@ class SEs extends S {
   String get appTitle => 'Readnest';
 
   @override
-  String get navShelf => 'Shelf';
+  String get navShelf => 'Estantería';
 
   @override
-  String get addBookSheetTitle => 'Add a book';
+  String get addBookSheetTitle => 'Añadir un libro';
 
   @override
-  String get addBookManualTitle => 'Enter manually';
+  String get addBookManualTitle => 'Introducir manualmente';
 
   @override
-  String get addBookManualDesc => 'Type in the title and author yourself — no account or file needed.';
+  String get addBookManualDesc => 'Escribe tú el título y el autor: no hace falta ninguna cuenta ni archivo.';
 
   @override
-  String get navStats => 'Stats';
+  String get navStats => 'Estadísticas';
 
   @override
-  String get navSettings => 'Settings';
+  String get navSettings => 'Ajustes';
 
   @override
-  String get supportDev => 'Support the Developer';
+  String get supportDev => 'Apoyar al desarrollador';
 
   @override
-  String get supportDevDesc => 'Every feature is free to use, with no ads and no in-app purchases. If the app helps with your reading, you can buy me a coffee — entirely optional, and nothing changes either way.';
+  String get supportDevDesc => 'Todas las funciones son gratuitas, sin anuncios ni compras dentro de la app. Si te sirve para tu lectura, puedes invitarme a un café — es totalmente opcional y nada cambia en ningún caso.';
 
   @override
-  String get openTipPage => 'Buy me a coffee · Ko-fi';
+  String get openTipPage => 'Invitarme a un café · Ko-fi';
 
   @override
   String get openTipDomestic => 'Apoyo · Afdian (China)';
@@ -43,304 +43,304 @@ class SEs extends S {
   String get openTipForeign => 'Apoyo · Ko-fi (Internacional)';
 
   @override
-  String get about => 'About';
+  String get about => 'Acerca de';
 
   @override
-  String get aboutDesc => 'Developer details and related links.';
+  String get aboutDesc => 'Datos del desarrollador y enlaces relacionados.';
 
   @override
-  String get appIntroPage => 'About this app';
+  String get appIntroPage => 'Sobre esta app';
 
   @override
-  String get developerHomepage => 'Developer website';
+  String get developerHomepage => 'Web del desarrollador';
 
   @override
-  String get privacyPolicy => 'Privacy Policy';
+  String get privacyPolicy => 'Política de privacidad';
 
   @override
-  String get reportDeleteConfirm => 'Delete this report? This can\'t be undone.';
+  String get reportDeleteConfirm => '¿Eliminar este informe? No se puede deshacer.';
 
   @override
-  String get reportDelete => 'Delete';
+  String get reportDelete => 'Eliminar';
 
   @override
   String appVersionLabel({required String version}) {
-    return 'Version $version';
+    return 'Versión $version';
   }
 
   @override
-  String get goodreadsImport => 'Goodreads / Library CSV import';
+  String get goodreadsImport => 'Importar CSV de Goodreads / biblioteca';
 
   @override
-  String get goodreadsImportDesc => 'Import a library CSV exported from Goodreads and similar services (title, author, rating, shelf status).';
+  String get goodreadsImportDesc => 'Importa un CSV de biblioteca exportado desde Goodreads y servicios similares (título, autor, valoración, estado en la estantería).';
 
   @override
-  String get goodreadsImportEmpty => 'No \"Title\" column found in the CSV';
+  String get goodreadsImportEmpty => 'No se encontró la columna «Title» en el CSV';
 
   @override
-  String get openLibraryImport => 'Open Library / Google Books search import';
+  String get openLibraryImport => 'Buscar en Open Library / Google Books';
 
   @override
-  String get openLibraryImportDesc => 'Search public catalogs by title or ISBN and import with enriched metadata (author, publisher, cover).';
+  String get openLibraryImportDesc => 'Busca en catálogos públicos por título o ISBN e importa con los metadatos completados (autor, editorial, portada).';
 
   @override
-  String get catalogSearchTitle => 'Catalog search';
+  String get catalogSearchTitle => 'Buscar en catálogos';
 
   @override
-  String get catalogSearchHint => 'Enter a title or ISBN';
+  String get catalogSearchHint => 'Introduce un título o ISBN';
 
   @override
-  String get catalogSearchAction => 'Search';
+  String get catalogSearchAction => 'Buscar';
 
   @override
-  String get catalogSearchInitial => 'Search public catalogs on Google Books and Open Library. Selected books are added with author, publisher, cover and page count.';
+  String get catalogSearchInitial => 'Busca en los catálogos públicos de Google Books y Open Library. Los libros seleccionados se añaden con autor, editorial, portada y número de páginas.';
 
   @override
-  String get catalogNoResult => 'No matching books found — try a different keyword.';
+  String get catalogNoResult => 'No se encontraron libros coincidentes: prueba con otra palabra clave.';
 
   @override
   String catalogSearchFailed({required Object e}) {
-    return 'Search failed: $e';
+    return 'La búsqueda falló: $e';
   }
 
   @override
-  String get imageUploadConsentTitle => 'Send bookshelf screenshot to AI service?';
+  String get imageUploadConsentTitle => '¿Enviar la captura de la estantería al servicio de IA?';
 
   @override
-  String get imageUploadConsentBody => 'To let the AI read your entire shelf screenshot, this image is sent to the AI service you configured in Settings (a third party). It contains no note text, but does include book titles and covers. Allow this upload?';
+  String get imageUploadConsentBody => 'Para que la IA pueda leer tu captura completa de la estantería, la imagen se envía al servicio de IA que configuraste en Ajustes (un tercero). No contiene texto de notas, sí títulos de libros y portadas. ¿Permitir el envío?';
 
   @override
-  String get allow => 'Allow';
+  String get allow => 'Permitir';
 
   @override
-  String get cancel => 'Cancel';
+  String get cancel => 'Cancelar';
 
   @override
-  String get s_178329ba => 'WeRead API key not configured';
+  String get s_178329ba => 'No se ha configurado la API key de WeRead';
 
   @override
   String get s_dd204792 => '[\\s·・\\-—_:：,，。.·（）()\\[\\]【】]';
 
   @override
-  String get s_ad86a5ca => 'LLM API key not configured';
+  String get s_ad86a5ca => 'No se ha configurado la API key del LLM';
 
   @override
-  String get s_8a853cbe => 'Fill it in under Settings → LLM';
+  String get s_8a853cbe => 'Introdúcela en Ajustes → LLM';
 
   @override
-  String get s_7d704c88 => 'No model selected';
+  String get s_7d704c88 => 'No hay ningún modelo seleccionado';
 
   @override
-  String get s_4508cedd => 'Tap \"Fetch models\" to pick one from your account\'s available list';
+  String get s_4508cedd => 'Pulsa «Obtener modelos» para elegir uno de la lista disponible en tu cuenta';
 
   @override
-  String get s_1b5140db => 'Output valid JSON only — no explanatory text, no markdown code blocks.';
+  String get s_1b5140db => 'Devuelve solo JSON válido: sin texto explicativo ni bloques de código markdown.';
 
   @override
   String s_c94c96fc({required Object apiError}) {
-    return 'The model service returned an error: $apiError';
+    return 'El servicio del modelo devolvió un error: $apiError';
   }
 
   @override
   String s_3b43c7c4({required Object head}) {
-    return 'Raw response: $head\nFirst check the address and model name under Settings → LLM using \"Fetch models\". An unpaid balance or a model that isn\'t enabled will also land here.';
+    return 'Respuesta original: $head\nComprueba la dirección y el nombre del modelo en Ajustes → LLM con «Obtener modelos». También aparece aquí si la cuenta no tiene saldo o el modelo no está habilitado.';
   }
 
   @override
-  String get s_231cf54a => 'The model\'s response couldn\'t be parsed';
+  String get s_231cf54a => 'No se pudo interpretar la respuesta del modelo';
 
   @override
   String s_90747d4c({required Object head}) {
-    return 'Raw response: $head\nThe gateway returned a non-standard structure. Try another model or protocol; sending us this raw text also helps us add support for it.';
+    return 'Respuesta original: $head\nLa pasarela devolvió una estructura no estándar. Prueba con otro modelo o protocolo; enviarnos este texto original también nos ayuda a darle soporte.';
   }
 
   @override
-  String get s_9d9714af => 'The message is empty and can\'t be sent';
+  String get s_9d9714af => 'El mensaje está vacío y no se puede enviar';
 
   @override
-  String get s_f44ff25c => 'The model refused this request';
+  String get s_f44ff25c => 'El modelo rechazó esta solicitud';
 
   @override
-  String get s_cad5bf6e => 'The content was flagged as inappropriate. Rephrase it or try another model.';
+  String get s_cad5bf6e => 'El contenido se marcó como inapropiado. Reformúlalo o prueba con otro modelo.';
 
   @override
-  String get s_0f7b54a1 => 'API key not configured';
+  String get s_0f7b54a1 => 'No se ha configurado la API key';
 
   @override
-  String get s_345e9547 => 'Enter the key before fetching models';
+  String get s_345e9547 => 'Introduce la key antes de obtener los modelos';
 
   @override
-  String get s_3a5d4cca => 'The service returned an empty model list';
+  String get s_3a5d4cca => 'El servicio devolvió una lista de modelos vacía';
 
   @override
   String s_cea80527({required Object apiError}) {
-    return 'Failed to fetch models: $apiError';
+    return 'No se pudieron obtener los modelos: $apiError';
   }
 
   @override
-  String get s_4674d953 => 'You can enter the model name manually';
+  String get s_4674d953 => 'Puedes escribir el nombre del modelo a mano';
 
   @override
   String s_749fc40e({required Object raw}) {
-    return 'Raw response: $raw';
+    return 'Respuesta original: $raw';
   }
 
   @override
-  String get s_8add575d => 'This service doesn\'t provide a model-list endpoint (404)';
+  String get s_8add575d => 'Este servicio no ofrece endpoint de lista de modelos (404)';
 
   @override
-  String get s_53fb436d => 'Just type the model name in, e.g. deepseek-chat / claude-sonnet-5';
+  String get s_53fb436d => 'Escribe el nombre del modelo, por ejemplo deepseek-chat / claude-sonnet-5';
 
   @override
-  String get s_438a5695 => 'No model name entered';
+  String get s_438a5695 => 'No has introducido ningún nombre de modelo';
 
   @override
-  String get s_1da90e20 => 'Tap \"Fetch models\" first, or type one in';
+  String get s_1da90e20 => 'Pulsa «Obtener modelos» o escribe uno';
 
   @override
-  String get s_2abb6b8a => 'Reply with two characters: OK';
+  String get s_2abb6b8a => 'Responde con dos caracteres: OK';
 
   @override
-  String get s_ad736a74 => 'You are a book cataloguing assistant. Output JSON only, no explanations.';
+  String get s_ad736a74 => 'Eres un asistente de catalogación bibliográfica. Devuelve solo JSON, sin explicaciones.';
 
   @override
   String s_4304f539({required Object author, required Object title, required Object vocab}) {
-    return 'Known title \"$title\"$author.\nPlease fill in:\n- categoryPrimary: must be one of: $vocab\n- description: a neutral 80–150 character summary of the book\'s content, stating facts without evaluation\n- tags: 3–5 keyword tags\n- authors: an array if the author can be determined, otherwise an empty array\nOutput format: {\"categoryPrimary\":\"\",\"description\":\"\",\"tags\":[],\"authors\":[]}';
+    return 'Título conocido «$title»$author.\nCompleta lo siguiente:\n- categoryPrimary: debe ser uno de estos: $vocab\n- description: un resumen neutral de 80–150 caracteres sobre el contenido del libro, con hechos y sin valoraciones\n- tags: de 3 a 5 etiquetas de palabras clave\n- authors: un array si se puede determinar el autor; en caso contrario, un array vacío\nFormato de salida: {\"categoryPrimary\":\"\",\"description\":\"\",\"tags\":[],\"authors\":[]}';
   }
 
   @override
-  String get s_cbe8aa6b => 'You are a reading-profile analyst. Output JSON only, no explanations.';
+  String get s_cbe8aa6b => 'Eres un analista del perfil de lectura. Devuelve solo JSON, sin explicaciones.';
 
   @override
   String s_3864d3b4({required Object summary}) {
-    return 'Here is my reading data (JSON):\n$summary\n\nGive me 10 personality tags, each 2–6 words, like the nicknames a book club gives people.\nRequirements:\n1. Every tag must be supported by the data above — don\'t make things up\n2. Style reference: Learning Is My Joy / In Tune with Nature / Beauty Above All / Erudite Across the Ages / The Lonely Sage\n3. Don\'t use empty words like \"reader\", \"enthusiast\" or \"aficionado\"\n4. No explanations, no markdown code blocks\nOutput format: {\"tags\":[\"tag1\",\"tag2\"]}';
+    return 'Aquí tienes mis datos de lectura (JSON):\n$summary\n\nDame 10 etiquetas de personalidad, de 2 a 6 palabras cada una, como los apodos que un club de lectura le pone a la gente.\nRequisitos:\n1. Cada etiqueta debe estar respaldada por los datos de arriba: no inventes nada\n2. Referencia de estilo: El aprendizaje es mi gozo / En sintonía con la naturaleza / La belleza ante todo / Erudito a través de los tiempos / El sabio solitario\n3. No uses palabras vacías como «lector», «aficionado» o «entusiasta»\n4. Sin explicaciones ni bloques de código markdown\nFormato de salida: {\"tags\":[\"etiqueta1\",\"etiqueta2\"]}';
   }
 
   @override
-  String get s_99acf9a4 => 'You are a personal reading advisor. Analyse the data objectively, avoid vague praise, and point out the structural problems that are being overlooked.';
+  String get s_99acf9a4 => 'Eres un asesor personal de lectura. Analiza los datos de forma objetiva, evita los elogios vagos y señala los problemas estructurales que se están pasando por alto.';
 
   @override
   String s_46e5ebef({required Object host}) {
-    return 'Connection timed out: couldn\'t reach $host within 20 seconds';
+    return 'Tiempo de espera agotado: no se pudo conectar con $host en 20 segundos';
   }
 
   @override
-  String get s_3c836870 => 'Check the network or the base URL; some overseas services need a proxy from mainland China';
+  String get s_3c836870 => 'Revisa la red o la URL base; algunos servicios en el extranjero necesitan un proxy desde China continental';
 
   @override
-  String get s_84264711 => 'Send timed out';
+  String get s_84264711 => 'Tiempo de espera agotado al enviar';
 
   @override
-  String get s_225ed2e1 => 'The upstream connection is unstable; try again later';
+  String get s_225ed2e1 => 'La conexión con el servidor es inestable; inténtalo más tarde';
 
   @override
-  String get s_b265cf86 => 'Response timed out: the model didn\'t respond within 180 seconds';
+  String get s_b265cf86 => 'Tiempo de espera agotado: el modelo no respondió en 180 segundos';
 
   @override
-  String get s_cc12eea3 => 'Try a faster model, or shorten the report period and retry';
+  String get s_cc12eea3 => 'Prueba con un modelo más rápido o acorta el periodo del informe y reinténtalo';
 
   @override
-  String get s_d711b259 => 'HTTPS certificate validation failed';
+  String get s_d711b259 => 'Falló la validación del certificado HTTPS';
 
   @override
-  String get s_4722b0f8 => 'For a self-hosted or intranet endpoint, switch to a trusted certificate';
+  String get s_4722b0f8 => 'Si usas un servicio propio o de intranet, cambia a un certificado de confianza';
 
   @override
-  String get s_07a2b144 => 'Request cancelled';
+  String get s_07a2b144 => 'Solicitud cancelada';
 
   @override
   String s_8ae0b0e4({required Object host}) {
-    return 'Network unreachable: can\'t connect to $host';
+    return 'Red inaccesible: no se puede conectar con $host';
   }
 
   @override
-  String get s_0a9425b8 => '① Check the phone\'s network; ② make sure the base URL is complete (including /v1); ③ check whether the service needs a proxy; ④ a local service (Ollama) can\'t be reached from the phone via the computer\'s localhost';
+  String get s_0a9425b8 => '① Revisa la red del móvil; ② comprueba que la URL base esté completa (incluido /v1); ③ verifica si el servicio necesita un proxy; ④ un servicio local (Ollama) no se puede alcanzar desde el móvil a través del localhost del ordenador';
 
   @override
-  String get s_554d5235 => 'The connection was interrupted';
+  String get s_554d5235 => 'La conexión se interrumpió';
 
   @override
-  String get s_020fe21a => 'Usually a blocked network permission, or a proxy or firewall dropping the connection; plaintext HTTP may also be unsupported. Retry later or switch networks.';
+  String get s_020fe21a => 'Suele deberse a un permiso de red bloqueado, a que un proxy o un cortafuegos corta la conexión, o a que no se admite HTTP sin cifrar. Inténtalo más tarde o cambia de red.';
 
   @override
-  String get s_dfde23b1 => 'Network request failed';
+  String get s_dfde23b1 => 'La solicitud de red falló';
 
   @override
-  String get s_2ae4f5fe => 'Check the base URL, proxy settings and network';
+  String get s_2ae4f5fe => 'Revisa la URL base, la configuración del proxy y la red';
 
   @override
   String s_d6ac5952({required Object detail}) {
-    return 'Request rejected (400)$detail';
+    return 'Solicitud rechazada (400)$detail';
   }
 
   @override
-  String get s_cb980461 => 'Most likely the model name is wrong, or the model doesn\'t support the current parameters';
+  String get s_cb980461 => 'Lo más probable es que el nombre del modelo sea incorrecto o que ese modelo no admita los parámetros actuales';
 
   @override
   String s_d9775d22({required Object detail}) {
-    return 'Authentication failed (401)$detail';
+    return 'Error de autenticación (401)$detail';
   }
 
   @override
-  String get s_c4198142 => 'The API key is invalid or expired — copy a fresh one';
+  String get s_c4198142 => 'La API key no es válida o ha caducado: copia una nueva';
 
   @override
-  String get s_e06ab1cc => 'Insufficient account balance (402)';
+  String get s_e06ab1cc => 'Saldo insuficiente en la cuenta (402)';
 
   @override
   String s_05b3ec8b({required Object detail}) {
-    return 'No permission (403)$detail';
+    return 'Sin permiso (403)$detail';
   }
 
   @override
-  String get s_f00f6ff2 => 'The key has no permission to call this model, or the account isn\'t verified/enabled';
+  String get s_f00f6ff2 => 'La key no tiene permiso para llamar a este modelo, o la cuenta no está verificada o habilitada';
 
   @override
   String s_016f7576({required Object detail}) {
-    return 'Endpoint or model not found (404)$detail';
+    return 'Endpoint o modelo no encontrado (404)$detail';
   }
 
   @override
-  String get s_a8aa2c59 => 'Check whether the base URL is filled in up to /v1; use \"Fetch models\" to get the model name';
+  String get s_a8aa2c59 => 'Comprueba que la URL base esté completa hasta /v1; usa «Obtener modelos» para saber el nombre del modelo';
 
   @override
   String s_9688a257({required Object detail}) {
-    return 'Invalid parameters (422)$detail';
+    return 'Parámetros no válidos (422)$detail';
   }
 
   @override
-  String get s_1b3daaa3 => 'Rate limited (429)';
+  String get s_1b3daaa3 => 'Límite de peticiones alcanzado (429)';
 
   @override
-  String get s_2a564df1 => 'Try again shortly, or upgrade your plan';
+  String get s_2a564df1 => 'Inténtalo en un momento o mejora tu plan';
 
   @override
   String s_6627221e({required int? code}) {
-    return 'Server error ($code)';
+    return 'Error del servidor ($code)';
   }
 
   @override
-  String get s_2fe391dd => 'A problem on the remote side; try again later';
+  String get s_2fe391dd => 'Un problema en el lado remoto; inténtalo más tarde';
 
   @override
   String s_679e6c2e({required Object code, required Object detail}) {
-    return 'Request failed$code$detail';
+    return 'La solicitud falló$code$detail';
   }
 
   @override
-  String get s_0cf0a499 => '(empty response body)';
+  String get s_0cf0a499 => '(cuerpo de respuesta vacío)';
 
   @override
-  String get s_9ed7e745 => 'Network request failed. Check the phone\'s network and the base URL under Settings → LLM.';
+  String get s_9ed7e745 => 'La solicitud de red falló. Revisa la red del móvil y la URL base en Ajustes → LLM.';
 
   @override
-  String get s_2ad3b6ba => 'OpenAI-compatible';
+  String get s_2ad3b6ba => 'Compatible con OpenAI';
 
   @override
-  String get s_e2213e87 => 'Enter the base URL up to /v1, e.g. https://api.deepseek.com/v1';
+  String get s_e2213e87 => 'Introduce la URL base hasta /v1, por ejemplo https://api.deepseek.com/v1';
 
   @override
-  String get s_17a4ba0f => 'The base URL is usually https://api.anthropic.com (without /v1)';
+  String get s_17a4ba0f => 'La URL base suele ser https://api.anthropic.com (sin /v1)';
 
   @override
   String get s_f1ea3335 => 'SenseNova';
@@ -361,29 +361,29 @@ class SEs extends S {
   String get s_c800478c => 'Ollama (local)';
 
   @override
-  String get s_0babfa89 => 'Any non-empty string';
+  String get s_0babfa89 => 'Cualquier cadena no vacía';
 
   @override
-  String get s_e74f752c => 'Reading days are days manually recorded as read';
+  String get s_e74f752c => 'Los días de lectura son los días que has registrado como lectura manualmente';
 
   @override
   String s_9ea3cbae({required Object year}) {
-    return 'Reading time and days come from WeRead\'s $year yearly statistics (full-year basis)';
+    return 'El tiempo y los días de lectura proceden de las estadísticas anuales de WeRead para $year (base de año completo)';
   }
 
   @override
-  String get s_f676228c => 'WeRead only provides yearly figures, so reading days for this range can\'t be given precisely; time is aggregated at month granularity';
+  String get s_f676228c => 'WeRead solo ofrece cifras anuales, así que no se pueden dar con precisión los días de lectura de este intervalo; el tiempo se agrega a nivel de mes';
 
   @override
-  String get s_06225788 => 'Unrated';
+  String get s_06225788 => 'Sin valorar';
 
   @override
   String s_89cfaca8({required Object i}) {
-    return '$i stars';
+    return '$i estrellas';
   }
 
   @override
-  String get s_e7a2db51 => 'All time';
+  String get s_e7a2db51 => 'Todo el historial';
 
   @override
   String s_a87cfcc9({required Object y}) {
@@ -392,389 +392,389 @@ class SEs extends S {
 
   @override
   String s_62654321({required Object n}) {
-    return 'Last $n months';
+    return 'Últimos $n meses';
   }
 
   @override
-  String get s_41f3af95 => 'Reading time and days are aggregated at month/year granularity';
+  String get s_41f3af95 => 'El tiempo y los días de lectura se agregan a nivel de mes/año';
 
   @override
-  String get s_e8a43314 => 'Start your next book and this list gets its first number.';
+  String get s_e8a43314 => 'Empieza el siguiente libro y esta lista madden su primer número.';
 
   @override
-  String get s_af03278c => 'The shelf is still empty — every reading history starts here.';
+  String get s_af03278c => 'La estantería sigue vacía: toda historia de lectura empieza aquí.';
 
   @override
   String s_f53eead8({required Object streak}) {
-    return '$streak days of consecutive reading — the rhythm has taken hold.';
+    return '$streak días seguidos de lectura: el ritmo ya se ha instalado.';
   }
 
   @override
   String s_ff1565a3({required Object streak}) {
-    return 'A $streak-day streak — don\'t let it break today.';
+    return 'Una racha de $streak días: no la rompas hoy.';
   }
 
   @override
   String s_1736f17e({required Object streak}) {
-    return '$streak days in a row — a habit worth more than any reading list.';
+    return '$streak días seguidos: un hábito que vale más que cualquier lista de lectura.';
   }
 
   @override
   String s_9a3fb5e5({required Object finished}) {
-    return '$finished books finished — swap speed for rhythm and you\'ll go further.';
+    return '$finished libros terminados: cambia la velocidad por ritmo y llegarás más lejos.';
   }
 
   @override
   String s_9d430ad3({required Object finished}) {
-    return '$finished books finished. Look back now and then at which ones really stuck.';
+    return '$finished libros terminados. Mira de vez en atrás cuáles te dejaron huella de verdad.';
   }
 
   @override
   String s_597f7c05({required Object finished}) {
-    return '$finished books finished in this stretch — every one counts.';
+    return '$finished libros terminados en este tramo: todos cuentan.';
   }
 
   @override
   String s_1c87153f({required Object finished}) {
-    return '$finished books finished. Pick up one you already started next.';
+    return '$finished libros terminados. Para el siguiente, elige uno que ya hayas empezado.';
   }
 
   @override
   String s_41db17b9({required Object minutes}) {
-    return '$minutes minutes read in this stretch — make half an hour a daily habit and that\'s 180 hours a year.';
+    return '$minutes minutos de lectura en este tramo: si conviertes media hora en un hábito diario, son 180 horas al año.';
   }
 
   @override
   String s_6a57c553({required Object minutes}) {
-    return '$minutes minutes logged already. Add a little more today?';
+    return 'Ya llevas $minutes minutos registrados. ¿Añades un poco más hoy?';
   }
 
   @override
-  String get s_152a88d7 => 'Your shelf is ready — start today\'s ten minutes with a light short story.';
+  String get s_152a88d7 => 'Tu estantería está lista: empieza los diez minutos de hoy con un relato corto.';
 
   @override
-  String get s_795806c0 => 'Pick a book you\'ve already started — ten minutes counts as a win.';
+  String get s_795806c0 => 'Elige un libro que ya hayas empezado: diez minutos cuentan como victoria.';
 
   @override
-  String get s_aa51bf46 => 'You don\'t have to read a lot in one go — opening any book today counts.';
+  String get s_aa51bf46 => 'No hace falta leer mucho de una vez: abrir cualquier libro hoy ya cuenta.';
 
   @override
-  String get s_363c6a0c => 'Uncategorized';
+  String get s_363c6a0c => 'Sin categoría';
 
   @override
-  String get s_420a7ac1 => 'Learning Is My Joy';
+  String get s_420a7ac1 => 'El aprendizaje es mi gozo';
 
   @override
-  String get s_bcd278a6 => 'Personal Growth';
+  String get s_bcd278a6 => 'Crecimiento personal';
 
   @override
   String s_3702d226({required Object cat, required Object pct}) {
-    return '$cat personal-growth books · $pct';
+    return '$cat libros de crecimiento personal · $pct';
   }
 
   @override
-  String get s_6672b3fa => 'Romantic and Poetic';
+  String get s_6672b3fa => 'Romántico y poético';
 
   @override
-  String get s_d422d33c => 'Literature';
+  String get s_d422d33c => 'Literatura';
 
   @override
   String s_40ba4ecb({required Object cat, required Object pct}) {
-    return '$cat literature books · $pct';
+    return '$cat libros de literatura · $pct';
   }
 
   @override
-  String get s_ea2eaec4 => 'The Lonely Sage';
+  String get s_ea2eaec4 => 'El sabio solitario';
 
   @override
-  String get s_5da32671 => 'Philosophy';
+  String get s_5da32671 => 'Filosofía';
 
   @override
   String s_0f80a135({required Object cat, required Object pct}) {
-    return '$cat philosophy books · $pct';
+    return '$cat libros de filosofía · $pct';
   }
 
   @override
-  String get s_111ec0f6 => 'Lessons from History';
+  String get s_111ec0f6 => 'Lecciones de la historia';
 
   @override
-  String get s_07f288e9 => 'History';
+  String get s_07f288e9 => 'Historia';
 
   @override
   String s_abeb8e3d({required Object cat, required Object pct}) {
-    return '$cat history books · $pct';
+    return '$cat libros de historia · $pct';
   }
 
   @override
-  String get s_5e336507 => 'Looks Inward';
+  String get s_5e336507 => 'Mirar hacia dentro';
 
   @override
-  String get s_4307c7a8 => 'Psychology';
+  String get s_4307c7a8 => 'Psicología';
 
   @override
   String s_cfce6d52({required Object cat, required Object pct}) {
-    return '$cat psychology books · $pct';
+    return '$cat libros de psicología · $pct';
   }
 
   @override
-  String get s_d5e26f37 => 'Tech Elite';
+  String get s_d5e26f37 => 'Élite tecnológica';
 
   @override
-  String get s_8612fa7f => 'Computing';
+  String get s_8612fa7f => 'Informática';
 
   @override
   String s_d6bdf44e({required Object cat, required Object pct}) {
-    return '$cat computing books · $pct';
+    return '$cat libros de informática · $pct';
   }
 
   @override
-  String get s_00dcb308 => 'Beauty Above All';
+  String get s_00dcb308 => 'La belleza ante todo';
 
   @override
-  String get s_b31e932c => 'Art';
+  String get s_b31e932c => 'Arte';
 
   @override
   String s_aee18737({required Object cat, required Object pct}) {
-    return '$cat art books · $pct';
+    return '$cat libros de arte · $pct';
   }
 
   @override
-  String get s_2ddd554c => 'Rational and Practical';
+  String get s_2ddd554c => 'Racional y práctico';
 
   @override
-  String get s_56734d39 => 'Economics';
+  String get s_56734d39 => 'Economía';
 
   @override
-  String get s_5974bf24 => 'Business';
+  String get s_5974bf24 => 'Negocios';
 
   @override
   String s_066faf9c({required Object cat, required Object toStringAsFixed}) {
-    return '$cat economics & business books · $toStringAsFixed%';
+    return '$cat libros de economía y negocios · $toStringAsFixed%';
   }
 
   @override
-  String get s_d574ffeb => 'Worldly Wise';
+  String get s_d574ffeb => 'Sabedor de la vida';
 
   @override
-  String get s_086ac5bf => 'Social Science';
+  String get s_086ac5bf => 'Ciencias sociales';
 
   @override
   String s_5a276724({required Object cat, required Object pct}) {
-    return '$cat social-science books · $pct';
+    return '$cat libros de ciencias sociales · $pct';
   }
 
   @override
-  String get s_d81bab36 => 'Insatiably Curious';
+  String get s_d81bab36 => 'Curiosidad insaciable';
 
   @override
-  String get s_41fa5c70 => 'Popular Science';
+  String get s_41fa5c70 => 'Divulgación científica';
 
   @override
-  String get s_fcc3102d => 'Technology';
+  String get s_fcc3102d => 'Tecnología';
 
   @override
   String s_76c118d0({required Object n}) {
-    return '$n popular-science and tech books';
+    return '$n libros de divulgación y tecnología';
   }
 
   @override
-  String get s_2b65326c => 'Learns from Others';
+  String get s_2b65326c => 'Aprende de los demás';
 
   @override
-  String get s_f85fa7d4 => 'Biography';
+  String get s_f85fa7d4 => 'Biografía';
 
   @override
   String s_b2e9db16({required Object cat, required Object pct}) {
-    return '$cat biographies · $pct';
+    return '$cat biografías · $pct';
   }
 
   @override
-  String get s_9e49409c => 'Healthy Living';
+  String get s_9e49409c => 'Vivir con salud';
 
   @override
-  String get s_c21b69a8 => 'Medicine';
+  String get s_c21b69a8 => 'Medicina';
 
   @override
   String s_1dd31356({required Object cat}) {
-    return '$cat medicine & health books';
+    return '$cat libros de medicina y salud';
   }
 
   @override
-  String get s_77e32253 => 'Pragmatic Borrower';
+  String get s_77e32253 => 'Práctico y pragmático';
 
   @override
-  String get s_0323f1bb => 'Law';
+  String get s_0323f1bb => 'Derecho';
 
   @override
   String s_82364cc8({required Object cat}) {
-    return '$cat law books';
+    return '$cat libros de derecho';
   }
 
   @override
-  String get s_ea038731 => 'Self-Entertained';
+  String get s_ea038731 => 'Que se divierte solo';
 
   @override
-  String get s_dbb1c112 => 'Comic';
+  String get s_dbb1c112 => 'Cómic';
 
   @override
-  String get s_6398a679 => 'Children\'s Books';
+  String get s_6398a679 => 'Libros infantiles';
 
   @override
   String s_a1b1d26a({required Object cat}) {
-    return '$cat comics and children\'s books';
+    return '$cat cómics y libros infantiles';
   }
 
   @override
-  String get s_94f8d7c2 => 'In Tune with Nature';
+  String get s_94f8d7c2 => 'En sintonía con la naturaleza';
 
   @override
-  String get s_30412ad5 => 'Religion';
+  String get s_30412ad5 => 'Religión';
 
   @override
   String s_d00fbfe6({required Object cat}) {
-    return '$cat religion books';
+    return '$cat libros de religión';
   }
 
   @override
-  String get s_52c36d65 => 'Knows How to Live';
+  String get s_52c36d65 => 'Sabe vivir';
 
   @override
-  String get s_06e23c48 => 'Other';
+  String get s_06e23c48 => 'Otros';
 
   @override
   String s_e3a3f18e({required Object cat, required Object pct}) {
-    return '$cat lifestyle books · $pct';
+    return '$cat libros de estilo de vida · $pct';
   }
 
   @override
-  String get s_dc2e94c1 => 'Teacher at Heart';
+  String get s_dc2e94c1 => 'Maestro por vocación';
 
   @override
-  String get s_235af603 => 'Education';
+  String get s_235af603 => 'Educación';
 
   @override
   String s_be73b4a0({required Object cat, required Object pct}) {
-    return '$cat education books · $pct';
+    return '$cat libros de educación · $pct';
   }
 
   @override
-  String get s_7ea6e8a9 => 'Erudite Across the Ages';
+  String get s_7ea6e8a9 => 'Erudito a través de los tiempos';
 
   @override
   String s_938fd6ec({required Object categoryKinds}) {
-    return 'Your library spans $categoryKinds categories — a bit of everything';
+    return 'Tu biblioteca abarca $categoryKinds categorías: un poco de todo';
   }
 
   @override
-  String get s_41a09d04 => 'Deep Focus';
+  String get s_41a09d04 => 'Concentrado a fondo';
 
   @override
   String s_c61130ac({required Object categoryKinds, required Object total}) {
-    return '$total books fall into only $categoryKinds categories';
+    return '$total libros se reparten entre solo $categoryKinds categorías';
   }
 
   @override
-  String get s_431dc47d => 'Finisher';
+  String get s_431dc47d => 'Termina lo que empieza';
 
   @override
   String s_a7b097f6({required Object finished, required Object toStringAsFixed, required Object total}) {
-    return 'Finish rate $toStringAsFixed% ($finished/$total)';
+    return 'Tasa de terminados $toStringAsFixed% ($finished/$total)';
   }
 
   @override
-  String get s_6b51050c => 'Tsundoku Master';
+  String get s_6b51050c => 'Acumulador de libros';
 
   @override
   String s_55413cd8({required Object finished, required Object wish}) {
-    return '$wish want-to-read, but only $finished finished';
+    return '$wish en lista de deseos, pero solo $finished terminados';
   }
 
   @override
-  String get s_e60e931c => 'Cuts Losses Fast';
+  String get s_e60e931c => 'Corta rápido';
 
   @override
   String s_b3549d21({required Object abandoned, required Object toStringAsFixed}) {
-    return '$abandoned dropped · $toStringAsFixed% — you put down what doesn\'t grab you';
+    return '$abandoned abandonados · $toStringAsFixed%: sueltas lo que no te atrapa';
   }
 
   @override
-  String get s_4be15f8c => 'Serial Starter';
+  String get s_4be15f8c => 'Empezador de proyectos';
 
   @override
   String s_b0a853cf({required Object stalled}) {
-    return '$stalled books in progress but under 15%';
+    return '$stalled libros en curso pero por debajo del 15%';
   }
 
   @override
-  String get s_10b9bddd => 'Gentle Spirit';
+  String get s_10b9bddd => 'Trato amable';
 
   @override
   String s_6a469e36({required Object ratedCount, required Object toStringAsFixed}) {
-    return 'Your $ratedCount rated books average $toStringAsFixed';
+    return 'Tus $ratedCount libros valorados alcanzan una media de $toStringAsFixed';
   }
 
   @override
-  String get s_e67694db => 'Sharp-Tongued Critic';
+  String get s_e67694db => 'Crítico sin pelos en la lengua';
 
   @override
   String s_30c4cecf({required Object ratedCount, required Object toStringAsFixed}) {
-    return 'Your $ratedCount rated books average only $toStringAsFixed';
+    return 'Tus $ratedCount libros valorados solo llegan a $toStringAsFixed de media';
   }
 
   @override
-  String get s_fe4567e4 => 'Strong Opinions';
+  String get s_fe4567e4 => 'Opiniones firmes';
 
   @override
   String s_b1d69175({required Object toStringAsFixed}) {
-    return 'Rating standard deviation $toStringAsFixed — your good and bad are far apart';
+    return 'Desviación típica de las valoraciones $toStringAsFixed: lo bueno y lo malo están muy separados';
   }
 
   @override
-  String get s_fbad19d5 => 'Revisits and Renews';
+  String get s_fbad19d5 => 'Relee y renueva';
 
   @override
   String s_8d62979c({required Object reread}) {
-    return '$reread books read twice or more';
+    return '$reread libros leídos dos veces o más';
   }
 
   @override
-  String get s_54302bb2 => 'Immersive Reader';
+  String get s_54302bb2 => 'Lector inmersivo';
 
   @override
   String s_bc9dbced({required Object round}) {
-    return '$round minutes per active day on average';
+    return '$round minutos de media por día activo';
   }
 
   @override
-  String get s_e9eddf51 => 'Digital Native';
+  String get s_e9eddf51 => 'Nativo digital';
 
   @override
   String s_df5bbdba({required Object toStringAsFixed, required Object weread}) {
-    return '$weread from WeRead · $toStringAsFixed%';
+    return '$weread de WeRead · $toStringAsFixed%';
   }
 
   @override
-  String get s_ce6517f9 => 'Paper and Digital';
+  String get s_ce6517f9 => 'Papel y digital';
 
   @override
   String s_75c2fd5a({required Object libraryCount, required Object paper}) {
-    return 'plus $libraryCount borrowed and $paper paper books';
+    return 'más $libraryCount prestados y $paper en papel';
   }
 
   @override
-  String get s_8cac22b7 => 'Reads with Ears';
+  String get s_8cac22b7 => 'Lee con los oídos';
 
   @override
   String s_72b826e9({required Object audio}) {
-    return '$audio audiobooks';
+    return '$audio audiolibros';
   }
 
   @override
-  String get s_7caeab27 => 'Visual Reader';
+  String get s_7caeab27 => 'Lector visual';
 
   @override
   String s_a5a44a39({required Object comic}) {
-    return '$comic comics';
+    return '$comic cómics';
   }
 
   @override
@@ -784,37 +784,37 @@ class SEs extends S {
 
   @override
   String s_1a2e873e({required Object month}) {
-    return 'Month $month';
+    return 'Mes $month';
   }
 
   @override
   String s_5583162a({required Object e}) {
-    return 'Image preprocessing failed; using the original image: $e';
+    return 'Falló el preprocesado de la imagen; se usa la original: $e';
   }
 
   @override
   String s_628c2132({required Object e}) {
-    return 'Failed to convert to JPEG: $e';
+    return 'No se pudo convertir a JPEG: $e';
   }
 
   @override
-  String get s_ebf4bdfb => 'Parsing the layout structure…';
+  String get s_ebf4bdfb => 'Analizando la estructura de la maquetación…';
 
   @override
-  String get s_ba1038b1 => 'Cleaning up recognition results with the LLM…';
+  String get s_ba1038b1 => 'Limpiando los resultados del reconocimiento con el LLM…';
 
   @override
-  String get s_6292a274 => 'Verifying titles…';
+  String get s_6292a274 => 'Verificando los títulos…';
 
   @override
   String get s_427e1f0d => '[\\s《》「」『』…⋯.\\-—_:：]';
 
   @override
-  String get s_af041a1b => 'Title completed';
+  String get s_af041a1b => 'Título completado';
 
   @override
   String s_988dd5cb({required Object reason}) {
-    return '$reason, title completed';
+    return '$reason, título completado';
   }
 
   @override
@@ -822,66 +822,66 @@ class SEs extends S {
 
   @override
   String s_a4ec75fd({required Object e, required Object title}) {
-    return '\"$title\": $e';
+    return '«$title»: $e';
   }
 
   @override
-  String get s_d2bbf7ce => 'Multimodal recognition';
+  String get s_d2bbf7ce => 'Reconocimiento multimodal';
 
   @override
-  String get s_381ca835 => 'This is a screenshot of a shelf or reading list';
+  String get s_381ca835 => 'Esta es una captura de una estantería o de una lista de lectura';
 
   @override
-  String get s_fce28e56 => 'This is a screenshot of a single book\'s cover or detail page';
+  String get s_fce28e56 => 'Esta es una captura de la portada o de la página de detalles de un solo libro';
 
   @override
   String s_ba5425c5({required Object n, required Object scene}) {
-    return '$scene.\n\nOutput a JSON array only, each item shaped like:\n{\"title\":\"title\",\"author\":\"author\",\"progress\":a number from 0-100 or null,\"status\":\"one of unread/reading/finished or null\",\"confidence\":a number from 0-1}\n\nRequirements:\n1. Only output books that are **actually visible** in the image; don\'t add books you assume should be there;\n2. Ignore UI text (filters, search, sort, All, Shelf, N books, etc.);\n3. Copy titles exactly as shown, including ones cut off by an ellipsis — don\'t complete them yourself;\n4. Leave author as an empty string if it can\'t be read; don\'t guess;\n5. Only fill in author when it really is written in the image.\n$n';
+    return '$scene.\n\nDevuelve solo un array JSON, con cada elemento así:\n{\"title\":\"título\",\"author\":\"autor\",\"progress\":un número del 0 al 100 o null,\"status\":\"uno de unread/reading/finished o null\",\"confidence\":un número del 0 al 1}\n\nRequisitos:\n1. Devuelve solo los libros que están **realmente visibles** en la imagen; no añadas libros que supongas que deberían estar ahí;\n2. Ignora el texto de la interfaz (filtros, búsqueda, orden, «Todos», «Estantería», «N libros», etc.);\n3. Copia los títulos tal y como aparecen, incluidos los cortados por puntos suspensivos: no los completes por tu cuenta;\n4. Deja el autor como cadena vacía si no se puede leer; no lo adivines;\n5. Rellena el autor solo cuando aparece realmente escrito en la imagen.\n$n';
   }
 
   @override
-  String get s_951042c3 => 'You extract information from bookshelf screenshots. Output a JSON array only, with no explanatory text.';
+  String get s_951042c3 => 'Extraes información de capturas de estanterías. Devuelve solo un array JSON, sin texto explicativo.';
 
   @override
-  String get s_29dbdb32 => 'LLM cleanup';
+  String get s_29dbdb32 => 'Limpieza con LLM';
 
   @override
-  String get s_9cd6567e => 'A photo of a book cover or spine';
+  String get s_9cd6567e => 'Una foto de la portada o del lomo de un libro';
 
   @override
-  String get s_a6db1cf4 => 'A screenshot of an e-book app\'s shelf';
+  String get s_a6db1cf4 => 'Una captura de la estantería de una app de libros electrónicos';
 
   @override
   String s_43fca769({required Object ocrText, required Object scene}) {
-    return 'Below are the text lines OCR\'d from $scene, in top-to-bottom order.\n\nExtract the **real book titles** from them, ignoring all UI text (search box, filters, categories, status bar, page numbers, chapter headings, buttons, statistics).\n\nRules:\n1. Only output books that actually appear in the image. Don\'t add books you assume should be there.\n2. If a title is truncated by an ellipsis in the UI (for example \"Deep…\"), complete it into the full title.\n3. progress takes an integer percentage from 0–100; leave it an empty string if it can\'t be read. Note that \"0.8%\" is 0.8, not 80.\n4. status must be one of \"unread / reading / finished / dropped\"; leave it an empty string if it can\'t be read.\n5. Only fill in author when it clearly appears in the image; otherwise leave it blank. Don\'t guess.\n6. Skip lines you\'re unsure about. Better to miss one book than to add a fake one.\n\nOutput a JSON array only, with elements shaped like:\n[{\"title\":\"\",\"author\":\"\",\"progress\":\"\",\"status\":\"\",\"confidence\":0.0}]\n\nOCR text lines:\n\"\"\"\n$ocrText\n\"\"\"';
+    return 'Estas son las líneas de texto que el OCR leyó de $scene, en orden de arriba abajo.\n\nExtrae los **títulos reales** de libros, ignorando todo el texto de la interfaz (barra de búsqueda, filtros, categorías, barra de estado, números de página, encabezados de capítulo, botones, estadísticas).\n\nReglas:\n1. Devuelve solo los libros que aparecen realmente en la imagen. No añadas libros que supongas que deberían estar ahí.\n2. Si la interfaz corta un título con puntos suspensivos (por ejemplo, «Pro-fund…»), complétalo con el título entero.\n3. progress es un porcentaje entero del 0 al 100; déjalo como cadena vacía si no se puede leer. Ojo: «0.8%» es 0.8, no 80.\n4. status debe ser uno de «unread / reading / finished / dropped»; déjalo como cadena vacía si no se puede leer.\n5. Rellena el autor solo si aparece con claridad en la imagen; si no, déjalo en blanco. No lo adivines.\n6. Omite las líneas de las que no estés seguro. Mejor dejar fuera un libro que añadir uno falso.\n\nDevuelve solo un array JSON, con elementos así:\n[{\"title\":\"\",\"author\":\"\",\"progress\":\"\",\"status\":\"\",\"confidence\":0.0}]\n\nLíneas de texto del OCR:\n\"\"\"\n$ocrText\n\"\"\"';
   }
 
   @override
   String get s_cbb756f7 => '[\\s《》「」『』]';
 
   @override
-  String get s_95222176 => 'Unread';
+  String get s_95222176 => 'Sin leer';
 
   @override
-  String get s_5a833930 => 'Want to read';
+  String get s_5a833930 => 'Quiero leer';
 
   @override
-  String get s_b9bf9b53 => 'Reading';
+  String get s_b9bf9b53 => 'Leyendo';
 
   @override
-  String get s_be5492a5 => 'Currently reading';
+  String get s_be5492a5 => 'Leyendo actualmente';
 
   @override
-  String get s_44c14529 => 'Finished reading';
+  String get s_44c14529 => 'Lectura terminada';
 
   @override
-  String get s_0872b5b7 => 'Finished';
+  String get s_0872b5b7 => 'Terminado';
 
   @override
-  String get s_300a32bd => 'Finished';
+  String get s_300a32bd => 'Terminado';
 
   @override
-  String get s_0f4d9c68 => 'Dropped (merged into Shelved)';
+  String get s_0f4d9c68 => 'Abandonado (fusionado con «Apartado»)';
 
   @override
   String get s_7675d229 => '\\s*(著|编著|译|著译)\$';
@@ -899,43 +899,43 @@ class SEs extends S {
   String get s_2d3c83a7 => '[）》」』”]\$';
 
   @override
-  String get s_0686f279 => 'Largest text on cover';
+  String get s_0686f279 => 'Texto más grande de la portada';
 
   @override
-  String get s_5514105a => 'Secondary cover text';
+  String get s_5514105a => 'Texto secundario de la portada';
 
   @override
-  String get s_174faffb => 'Contains Chinese';
+  String get s_174faffb => 'Contiene chino';
 
   @override
-  String get s_b13a1237 => 'Has progress or status';
+  String get s_b13a1237 => 'Tiene progreso o estado';
 
   @override
-  String get s_24745e9d => 'Has author';
+  String get s_24745e9d => 'Tiene autor';
 
   @override
-  String get s_0cedc3f4 => 'Reasonable length';
+  String get s_0cedc3f4 => 'Longitud razonable';
 
   @override
-  String get s_5bdfa6ae => 'Too short';
+  String get s_5bdfa6ae => 'Demasiado corto';
 
   @override
-  String get s_58171266 => 'Too long';
+  String get s_58171266 => 'Demasiado largo';
 
   @override
-  String get s_1e8c236b => 'Columns left-aligned';
+  String get s_1e8c236b => 'Columnas alineadas a la izquierda';
 
   @override
-  String get s_89ac54fb => 'Cover lettering';
+  String get s_89ac54fb => 'Rotulación de portada';
 
   @override
-  String get s_132a750b => 'Too-short English';
+  String get s_132a750b => 'Inglés demasiado corto';
 
   @override
   String get s_6af25a96 => '[，。；、？！]\$';
 
   @override
-  String get s_a335b25f => 'Sentence-ending punctuation';
+  String get s_a335b25f => 'Puntuación de final de frase';
 
   @override
   String get s_885dd894 => '％';
@@ -947,34 +947,34 @@ class SEs extends S {
   String get s_150c7508 => '》';
 
   @override
-  String get s_67df3afd => 'Has title marks';
+  String get s_67df3afd => 'Tiene comillas de título';
 
   @override
-  String get s_5a09ed37 => 'Chinese';
+  String get s_5a09ed37 => 'Chino';
 
   @override
-  String get s_6b631636 => 'Looks like an English UI word';
+  String get s_6b631636 => 'Parecen una palabra de interfaz en inglés';
 
   @override
-  String get s_1dd3f274 => 'Adjacent line';
+  String get s_1dd3f274 => 'Línea adyacente';
 
   @override
-  String get s_f547232b => ', merged line break';
+  String get s_f547232b => ', línea unida';
 
   @override
-  String get s_fc39b00e => 'Borrowed';
+  String get s_fc39b00e => 'Prestado';
 
   @override
-  String get s_eba88d83 => 'Shelved';
+  String get s_eba88d83 => 'Apartado';
 
   @override
-  String get s_b6fe7962 => 'Ebook';
+  String get s_b6fe7962 => 'Libro electrónico';
 
   @override
-  String get s_c7673d27 => 'Paper';
+  String get s_c7673d27 => 'Papel';
 
   @override
-  String get s_02a1a8ed => 'Audiobook';
+  String get s_02a1a8ed => 'Audiolibro';
 
   @override
   String get s_fe152225 => 'WeRead';
@@ -989,1119 +989,1119 @@ class SEs extends S {
   String get s_570bb7c8 => 'BOOX';
 
   @override
-  String get s_36bfef2d => 'Library';
+  String get s_36bfef2d => 'Biblioteca';
 
   @override
   String get s_4139f3b5 => 'Manual';
 
   @override
-  String get s_88cdd7e4 => 'Highlight';
+  String get s_88cdd7e4 => 'Subrayado';
 
   @override
-  String get s_6abc44a8 => 'Thought';
+  String get s_6abc44a8 => 'Idea';
 
   @override
-  String get s_67585b8a => 'Review';
+  String get s_67585b8a => 'Reseña';
 
   @override
-  String get s_96009a7e => 'Reading report';
+  String get s_96009a7e => 'Informe de lectura';
 
   @override
   String s_4343b7b3({required Object join}) {
-    return 'Generating in the background: $join';
+    return 'Generando en segundo plano: $join';
   }
 
   @override
   String s_a6c57a43({required Object ok}) {
-    return 'Automatically generated $ok reports';
+    return 'Se han generado automáticamente $ok informes';
   }
 
   @override
   String s_f71dea06({required Object failed, required Object ok}) {
-    return 'Generated $ok, failed $failed (you can retry manually)';
+    return 'Generados $ok, fallidos $failed (puedes reintentarlos a mano)';
   }
 
   @override
   String s_e93308dd({required Object latencyMs, required Object model}) {
-    return 'Connected · $model · $latencyMs ms';
+    return 'Conectado · $model · $latencyMs ms';
   }
 
   @override
-  String get s_d2a3748e => 'The model returned empty content';
+  String get s_d2a3748e => 'El modelo devolvió contenido vacío';
 
   @override
-  String get s_3abdc334 => 'The model may not support the current parameters, or content filtering was triggered. Try another model.';
+  String get s_3abdc334 => 'Puede que el modelo no admita los parámetros actuales o que se haya activado el filtro de contenido. Prueba con otro modelo.';
 
   @override
-  String get s_cc72f973 => 'No LLM key configured. Fill one in under Settings → LLM and test the connection first';
+  String get s_cc72f973 => 'No hay ninguna API key de LLM configurada. Introdúcela en Ajustes → LLM y prueba primero la conexión';
 
   @override
-  String get s_9e51ce93 => 'No model selected. Go to Settings → LLM and use \"Fetch models\" to pick one';
+  String get s_9e51ce93 => 'No hay modelo seleccionado. Ve a Ajustes → LLM y usa «Obtener modelos» para elegir uno';
 
   @override
-  String get s_c6e18e89 => 'No books match in this period; try a different one';
+  String get s_c6e18e89 => 'No hay libros que coincidan en este periodo; prueba con otro';
 
   @override
-  String get s_8bb45b34 => 'Report period';
+  String get s_8bb45b34 => 'Periodo del informe';
 
   @override
-  String get s_8bd59fb2 => 'Choose a yearly or monthly report';
+  String get s_8bd59fb2 => 'Elige un informe anual o mensual';
 
   @override
-  String get s_53bea04d => 'Filed by calendar year / month; once generated you can revisit it anytime. The current month\'s report is only generated next month.';
+  String get s_53bea04d => 'Archivado por año o mes natural; una vez generado puedes volver a abrirlo cuando quieras. El informe del mes actual solo se genera el mes siguiente.';
 
   @override
-  String get s_1f048ed9 => 'Testing…';
+  String get s_1f048ed9 => 'Probando…';
 
   @override
-  String get s_38fb1115 => 'Test connection';
+  String get s_38fb1115 => 'Probar conexión';
 
   @override
-  String get s_a14e36dc => 'Generating… (long text takes about a minute)';
+  String get s_a14e36dc => 'Generando… (los textos largos tardan alrededor de un minuto)';
 
   @override
-  String get s_b36c173d => 'Generate report';
+  String get s_b36c173d => 'Generar informe';
 
   @override
-  String get s_c94ade95 => 'Sends this period\'s book list (title / author / category / rating) and aggregate statistics so the report can name specific books; note text and highlights are not uploaded.';
+  String get s_c94ade95 => 'Envía la lista de libros del periodo (título / autor / categoría / valoración) y estadísticas agregadas para que el informe pueda nombrar libros concretos; el texto de las notas y los subrayados no se suben.';
 
   @override
-  String get s_5e05e92a => 'Included';
+  String get s_5e05e92a => 'Incluido';
 
   @override
   String s_be9a1551({required Object total}) {
-    return '$total books';
+    return '$total libros';
   }
 
   @override
   String s_ce115766({required Object finished}) {
-    return '$finished books';
+    return '$finished libros';
   }
 
   @override
   String s_8b46a11f({required Object reading}) {
-    return '$reading books';
+    return '$reading libros';
   }
 
   @override
   String s_81e94993({required Object wish}) {
-    return '$wish books';
+    return '$wish libros';
   }
 
   @override
-  String get s_09b589b4 => 'Average rating';
+  String get s_09b589b4 => 'Valoración media';
 
   @override
   String s_0825e123({required Object label}) {
-    return 'Report content · $label';
+    return 'Contenido del informe · $label';
   }
 
   @override
-  String get s_049eca89 => 'Copy all';
+  String get s_049eca89 => 'Copiar todo';
 
   @override
-  String get s_50bf9961 => 'Report copied to clipboard';
+  String get s_50bf9961 => 'Informe copiado al portapapeles';
 
   @override
-  String get s_772cbfcf => 'Auto-generate';
+  String get s_772cbfcf => 'Generar automáticamente';
 
   @override
-  String get s_01955ddf => 'When this is on, opening this page automatically generates any missing yearly report and last month\'s monthly report.';
+  String get s_01955ddf => 'Al activarlo, al abrir esta página se generan automáticamente los informes anuales que falten y el informe mensual del mes pasado.';
 
   @override
-  String get s_b2a52a3d => 'Auto-generate missing';
+  String get s_b2a52a3d => 'Generar los que falten';
 
   @override
-  String get s_b233138e => 'Yearly';
+  String get s_b233138e => 'Anual';
 
   @override
-  String get s_877b864d => 'Monthly';
+  String get s_877b864d => 'Mensual';
 
   @override
-  String get s_a3dfa2a6 => 'Past reports';
+  String get s_a3dfa2a6 => 'Informes anteriores';
 
   @override
-  String get s_66772db6 => 'Export reading data';
+  String get s_66772db6 => 'Exportar los datos de lectura';
 
   @override
-  String get s_6b198f0b => 'Export cancelled';
+  String get s_6b198f0b => 'Exportación cancelada';
 
   @override
   String s_a101fbdd({required Object counts, required Object saved}) {
-    return 'Exported to: $saved\n\n$counts';
+    return 'Exportado a: $saved\n\n$counts';
   }
 
   @override
   String s_6ec2d38e({required Object e}) {
-    return 'Export failed: $e';
+    return 'Falló la exportación: $e';
   }
 
   @override
-  String get s_c699263b => 'Choose a backup file';
+  String get s_c699263b => 'Elige un archivo de copia de seguridad';
 
   @override
   String s_e34bdbcb({required Object e}) {
-    return 'Couldn\'t read this file: $e';
+    return 'No se pudo leer este archivo: $e';
   }
 
   @override
-  String get s_1dedeaa2 => 'This isn\'t a backup file exported by this app (missing format marker, or newer than the current app)';
+  String get s_1dedeaa2 => 'Esto no es una copia de seguridad exportada por esta app (falta la marca de formato, o es más reciente que la app actual)';
 
   @override
-  String get s_103c5811 => 'This file contains no restorable data';
+  String get s_103c5811 => 'Este archivo no contiene datos restaurables';
 
   @override
-  String get s_674a7957 => 'Restore now?';
+  String get s_674a7957 => '¿Restaurar ahora?';
 
   @override
   String s_94094e0d({required Object length}) {
-    return 'This will overwrite this device\'s data with the backup:\n\n$length\n\nRecords with the same name are overwritten whole — restoring means \"go back to the moment of the backup\", with no field-level merging. Books added after the backup will not be deleted.';
+    return 'Esto sobrescribirá los datos de este dispositivo con la copia de seguridad:\n\n$length\n\nLos registros con el mismo nombre se sobrescriben por completo: restaurar significa «volver al momento de la copia de seguridad», sin fusionar campo a campo. Los libros añadidos después de la copia no se borrarán.';
   }
 
   @override
-  String get s_a0451c97 => 'Cancel';
+  String get s_a0451c97 => 'Cancelar';
 
   @override
-  String get s_ec7085ab => 'Restore';
+  String get s_ec7085ab => 'Restaurar';
 
   @override
   String s_2296b134({required Object counts, required Object first}) {
-    return 'Restore complete$first\n\n$counts';
+    return 'Restauración completada$first\n\n$counts';
   }
 
   @override
   String s_e669bac1({required Object e}) {
-    return 'Restore failed: $e';
+    return 'Falló la restauración: $e';
   }
 
   @override
   String s_7c0be1cd({required int? books}) {
-    return '$books books';
+    return '$books libros';
   }
 
   @override
   String s_dd2321ce({required int? notes}) {
-    return '$notes notes';
+    return '$notes notas';
   }
 
   @override
   String s_d48aa751({required int? reading_logs}) {
-    return '$reading_logs reading logs';
+    return '$reading_logs registros de lectura';
   }
 
   @override
   String s_d044717e({required int? llm_reports}) {
-    return '$llm_reports AI reports';
+    return '$llm_reports informes de IA';
   }
 
   @override
   String s_f4d248a7({required int? settings}) {
-    return '$settings settings entries';
+    return '$settings ajustes';
   }
 
   @override
-  String get s_8719bf89 => 'Data export & restore';
+  String get s_8719bf89 => 'Exportación y restauración de datos';
 
   @override
-  String get s_8fe27f12 => 'What\'s exported';
+  String get s_8fe27f12 => 'Qué se exporta';
 
   @override
-  String get s_5d9af0a7 => 'A full JSON snapshot: books, notes, reading logs, AI reports and settings. It saves as a single file — use it to restore on another device.';
+  String get s_5d9af0a7 => 'Una instantánea JSON completa: libros, notas, registros de lectura, informes de IA y ajustes. Se guarda en un solo archivo; úsalo para restaurar en otro dispositivo.';
 
   @override
-  String get s_582f4cb6 => 'Export as a JSON file';
+  String get s_582f4cb6 => 'Exportar como archivo JSON';
 
   @override
-  String get s_091ad5f4 => 'Restore from backup';
+  String get s_091ad5f4 => 'Restaurar desde una copia';
 
   @override
-  String get s_3a36f742 => 'Choose a previously exported .json file. Records with the same name are overwritten whole, not merged field by field — this means \"go back to the moment of the backup\", not \"take the union\".';
+  String get s_3a36f742 => 'Elige un archivo .json exportado antes. Los registros con el mismo nombre se sobrescriben enteros, no se fusionan campo a campo: esto significa «volver al momento de la copia», no «hacer una unión».';
 
   @override
-  String get s_6f9ab88c => 'Choose a backup file and restore';
+  String get s_6f9ab88c => 'Elige una copia y restáurala';
 
   @override
-  String get s_f24f63da => 'Delete this note?';
+  String get s_f24f63da => '¿Eliminar esta nota?';
 
   @override
-  String get s_ecbd7449 => 'Delete';
+  String get s_ecbd7449 => 'Eliminar';
 
   @override
-  String get s_f98a79dc => 'Add note';
+  String get s_f98a79dc => 'Añadir nota';
 
   @override
-  String get s_05712ea1 => 'Edit note';
+  String get s_05712ea1 => 'Editar nota';
 
   @override
-  String get s_e3fdcb7e => 'A quote, a thought, or a review…';
+  String get s_e3fdcb7e => 'Una cita, una idea o una reseña…';
 
   @override
-  String get s_c8d8fada => 'Chapter / page';
+  String get s_c8d8fada => 'Capítulo / página';
 
   @override
-  String get s_f80f4749 => 'Optional';
+  String get s_f80f4749 => 'Opcional';
 
   @override
-  String get s_abfe9512 => 'Save';
+  String get s_abfe9512 => 'Guardar';
 
   @override
-  String get s_a647c2e0 => 'This book doesn\'t exist or has been deleted';
+  String get s_a647c2e0 => 'Este libro no existe o se ha eliminado';
 
   @override
   String s_154ada37({required Object join}) {
-    return 'Author: $join';
+    return 'Autor: $join';
   }
 
   @override
   String s_904feb6c({required Object join}) {
-    return 'Translator: $join';
+    return 'Traducción: $join';
   }
 
   @override
   String s_1e4c61f8({required Object publisher}) {
-    return 'Publisher: $publisher';
+    return 'Editorial: $publisher';
   }
 
   @override
   String s_bf93bf6d({required Object first}) {
-    return 'Published: $first';
+    return 'Publicado: $first';
   }
 
   @override
   String s_def61e8c({required Object categoryPrimary}) {
-    return 'Category: $categoryPrimary';
+    return 'Categoría: $categoryPrimary';
   }
 
   @override
-  String get s_d9bdf56b => 'Status';
+  String get s_d9bdf56b => 'Estado de lectura';
 
   @override
   String s_94b27e86({required Object toStringAsFixed}) {
-    return 'Progress $toStringAsFixed%';
+    return 'Progreso $toStringAsFixed%';
   }
 
   @override
-  String get s_8331377a => 'Rating';
+  String get s_8331377a => 'Valoración';
 
   @override
-  String get s_205eb716 => 'Summary';
+  String get s_205eb716 => 'Resumen';
 
   @override
-  String get s_b5e2aa8a => 'Record what this book is about';
+  String get s_b5e2aa8a => 'Anota de qué trata este libro';
 
   @override
-  String get s_3ec1ca86 => 'Review';
+  String get s_3ec1ca86 => 'Reseña';
 
   @override
-  String get s_aa5a5d3e => 'Your thoughts and reviews';
+  String get s_aa5a5d3e => 'Tus opiniones y reflexiones';
 
   @override
   String s_fb47d52b({required Object length}) {
-    return 'Notes · $length';
+    return 'Notas · $length';
   }
 
   @override
-  String get s_18dd30c5 => 'No notes yet. Jot one down when something strikes you — it\'ll be material for your year in review.';
+  String get s_18dd30c5 => 'Todavía no hay notas. Apunta algo cuando algo te llame la atención: será material para tu revisión anual.';
 
   @override
-  String get s_4b7d48f2 => 'Description';
+  String get s_4b7d48f2 => 'Descripción';
 
   @override
   String s_5e52b06a({required String? dueAt}) {
-    return 'Due: $dueAt';
+    return 'Devolución: $dueAt';
   }
 
   @override
-  String get s_ad207008 => 'Edit';
+  String get s_ad207008 => 'Editar';
 
   @override
   String get s_f5d99c16 => '、';
 
   @override
-  String get s_65983593 => 'Title can\'t be empty';
+  String get s_65983593 => 'El título no puede estar vacío';
 
   @override
   String get s_1f0939bc => '[,，、;；]';
 
   @override
-  String get s_6c7a6cc5 => 'Edit book';
+  String get s_6c7a6cc5 => 'Editar libro';
 
   @override
-  String get s_31e2aa97 => 'Add a book manually';
+  String get s_31e2aa97 => 'Añadir un libro a mano';
 
   @override
-  String get s_eda73905 => 'Save changes';
+  String get s_eda73905 => 'Guardar cambios';
 
   @override
-  String get s_71b10e99 => 'Add to shelf';
+  String get s_71b10e99 => 'Añadir a la estantería';
 
   @override
-  String get s_2dae8ba5 => 'Choose a local cover';
+  String get s_2dae8ba5 => 'Elige una portada local';
 
   @override
-  String get s_5be7901d => 'Set cover';
+  String get s_5be7901d => 'Definir portada';
 
   @override
-  String get s_a59912dd => 'Remove cover';
+  String get s_a59912dd => 'Quitar portada';
 
   @override
-  String get s_e2b6c0de => 'Title *';
+  String get s_e2b6c0de => 'Título *';
 
   @override
-  String get s_22760472 => 'Author';
+  String get s_22760472 => 'Autor';
 
   @override
-  String get s_5f70e9dd => 'Separate multiple authors with commas';
+  String get s_5f70e9dd => 'Separa varios autores con comas';
 
   @override
-  String get s_759fb403 => 'Status';
+  String get s_759fb403 => 'Estado';
 
   @override
-  String get s_da1c08d9 => 'Format';
+  String get s_da1c08d9 => 'Formato';
 
   @override
-  String get s_5ce4e16d => 'Clear';
+  String get s_5ce4e16d => 'Limpiar';
 
   @override
-  String get s_b0d7b0de => 'Description / summary';
+  String get s_b0d7b0de => 'Descripción / resumen';
 
   @override
-  String get s_d0dd45ac => 'Categories are normalized to a controlled vocabulary — typing \"Business & Motivation\" also merges into \"Business\", so statistics won\'t split into two separate buckets.';
+  String get s_d0dd45ac => 'Las categorías se normalizan a un vocabulario controlado: escribir «Negocios y motivación» también se fusiona con «Negocios», así las estadísticas no se parten en dos grupos.';
 
   @override
-  String get s_b32f0afe => 'Category';
+  String get s_b32f0afe => 'Categoría';
 
   @override
-  String get s_87635298 => 'Optional';
+  String get s_87635298 => 'Opcional';
 
   @override
-  String get s_5aa23087 => 'None';
+  String get s_5aa23087 => 'Ninguno';
 
   @override
   String s_573b6694({required Object e}) {
-    return 'Something went wrong: $e';
+    return 'Algo ha salido mal: $e';
   }
 
   @override
-  String get s_28690759 => 'Enhancing image…';
+  String get s_28690759 => 'Mejorando la imagen…';
 
   @override
-  String get s_d5155b2d => 'No title recognized; try another image';
+  String get s_d5155b2d => 'No se reconoció ningún título; prueba con otra imagen';
 
   @override
-  String get s_e20dac78 => 'Reading the image with a multimodal model…';
+  String get s_e20dac78 => 'Leyendo la imagen con un modelo multimodal…';
 
   @override
-  String get s_5fea0487 => 'The multimodal model couldn\'t read a title from this image. Check that the selected model accepts image input (text-only models reject it outright), or set Settings → Screenshot recognition → Recognition mode back to \"Auto\" to fall back to on-device OCR.';
+  String get s_5fea0487 => 'El modelo multimodal no pudo leer ningún título de esta imagen. Comprueba que el modelo seleccionado admita imágenes (los modelos solo de texto lo rechazan de inmediato) o vuelve a poner Ajustes → Reconocimiento de capturas → Modo de reconocimiento en «Automático» para recurrir al OCR del dispositivo.';
 
   @override
-  String get s_cdda9381 => 'Multimodal returned nothing; falling back to on-device OCR…';
+  String get s_cdda9381 => 'El modelo multimodal no devolvió nada; se recurre al OCR del dispositivo…';
 
   @override
-  String get s_b85e4cbc => 'Image upload not allowed; falling back to on-device OCR…';
+  String get s_b85e4cbc => 'No se permite subir la imagen; se recurre al OCR del dispositivo…';
 
   @override
-  String get s_a9698571 => 'Recognizing text…';
+  String get s_a9698571 => 'Reconociendo texto…';
 
   @override
-  String get s_7ef6b42d => 'No text was found in this image. Try a different angle, get the text sharper, or just take a screenshot (screenshots are cleaner than photos).';
+  String get s_7ef6b42d => 'No se encontró texto en esta imagen. Prueba desde otro ángulo, con el texto más nítido, o haz directamente una captura de pantalla (las capturas se leen mejor que las fotos).';
 
   @override
-  String get s_319b9488 => 'No title-like text found. If this is an inside page the title usually isn\'t on it — try \"Import shelf screenshot\" or photograph the cover instead.';
+  String get s_319b9488 => 'No se encontró texto que parezca un título. Si es una página interior, el título normalmente no aparece: prueba con «Importar captura de la estantería» o fotografía la portada.';
 
   @override
-  String get s_37588c9c => 'No title could be read from this image. Try cropping out the surrounding UI and retry.';
+  String get s_37588c9c => 'No se pudo leer ningún título de esta imagen. Prueba a recortar la interfaz sobrante y reinténtalo.';
 
   @override
-  String get s_04a1b347 => 'Title';
+  String get s_04a1b347 => 'Título';
 
   @override
-  String get s_a9fe3793 => 'No \"Title\" column found in the CSV';
+  String get s_a9fe3793 => 'No se encontró la columna «Title» en el CSV';
 
   @override
-  String get s_3db59388 => 'Progress';
+  String get s_3db59388 => 'Progreso';
 
   @override
-  String get s_9e160a69 => 'Publisher';
+  String get s_9e160a69 => 'Editorial';
 
   @override
   String s_d4b7c3c7({required Object length}) {
-    return 'Parsed $length books. Import them?';
+    return 'Se han analizado $length libros. ¿Importarlos?';
   }
 
   @override
-  String get s_649320a3 => 'Reading your WeRead shelf…';
+  String get s_649320a3 => 'Leyendo tu estantería de WeRead…';
 
   @override
-  String get s_e53774ba => 'The shelf is empty, or the API returned no data';
+  String get s_e53774ba => 'La estantería está vacía o la API no ha devuelto datos';
 
   @override
   String s_8151aa42({required Object length}) {
-    return 'Your WeRead shelf has $length books. Import them?';
+    return 'Tu estantería de WeRead tiene $length libros. ¿Importarlos?';
   }
 
   @override
-  String get s_9b37038a => 'Completing metadata and saving…';
+  String get s_9b37038a => 'Completando los metadatos y guardando…';
 
   @override
   String s_c4f36bd6({required Object added, required Object duplicated, required Object failed}) {
-    return 'Import complete: $added added, $duplicated updated$failed';
+    return 'Importación completada: $added añadidos, $duplicated actualizados$failed';
   }
 
   @override
-  String get s_28ab46d9 => 'No WeRead books on this device yet — sync the shelf first';
+  String get s_28ab46d9 => 'Todavía no hay libros de WeRead en este dispositivo: sincroniza primero la estantería';
 
   @override
-  String get s_6d61442b => 'Syncing reading progress…';
+  String get s_6d61442b => 'Sincronizando el progreso de lectura…';
 
   @override
   String s_a26c53db({required Object length, required Object updated}) {
-    return 'Updated reading progress for $updated of $length books';
+    return 'Progreso de lectura actualizado en $updated de $length libros';
   }
 
   @override
-  String get s_3a0cf870 => 'The connection was interrupted. Check your network and retry.';
+  String get s_3a0cf870 => 'La conexión se ha interrumpido. Revisa la red y reinténtalo.';
 
   @override
-  String get s_1cbe2507 => 'Confirm';
+  String get s_1cbe2507 => 'Confirmar';
 
   @override
-  String get s_1df9fbd5 => 'Import';
+  String get s_1df9fbd5 => 'Importar';
 
   @override
-  String get s_874053cb => 'WeRead API key';
+  String get s_874053cb => 'API key de WeRead';
 
   @override
-  String get s_58652b51 => 'Scan the QR code in WeChat to open weread.qq.com/r/weread-skills,\nthen copy the key shown on the page (it starts with \"wrk-\"). The key is stored on this device only.';
+  String get s_58652b51 => 'Escanea con WeChat el código QR para abrir weread.qq.com/r/weread-skills,\ny luego copia la key que aparece en la página (empieza por «wrk-»). La key se guarda solo en este dispositivo.';
 
   @override
-  String get s_cb2558f7 => 'Import shelf screenshot';
+  String get s_cb2558f7 => 'Importar la estantería desde una captura';
 
   @override
-  String get s_24b715f3 => 'Pick a screenshot of your shelf and read each cell\'s title and progress. Results can be off — check before saving.';
+  String get s_24b715f3 => 'Elige una captura de tu estantería y lee el título y el progreso de cada celda. El resultado puede ser impreciso: compruébalo antes de guardar.';
 
   @override
-  String get s_4f062f79 => 'Import shelf photo';
+  String get s_4f062f79 => 'Importar la estantería con una foto';
 
   @override
-  String get s_6e464c0e => 'Photograph a cover, spine or page; the title is detected and the rest of the metadata filled in. Results can be off — check before saving.';
+  String get s_6e464c0e => 'Haz una foto de una portada, un lomo o una página: se detecta el título y se completa el resto de los metadatos. El resultado puede ser impreciso: compruébalo antes de guardar.';
 
   @override
-  String get s_a5452d46 => 'Sync shelf from channels';
+  String get s_a5452d46 => 'Sincronizar la estantería desde los canales';
 
   @override
-  String get s_d40e2a14 => 'Reads your shelf and reading status through the official API of your configured channels — no screenshots needed. WeRead is supported today; more channels are on the way.';
+  String get s_d40e2a14 => 'Lee tu estantería y tu estado de lectura mediante la API oficial de los canales que hayas configurado: sin capturas. Hoy se admite WeRead; más canales están en camino.';
 
   @override
-  String get s_af94a367 => 'Sync reading progress';
+  String get s_af94a367 => 'Sincronizar el progreso de lectura';
 
   @override
-  String get s_59d2efab => 'Fetches each book\'s reading percentage and accumulated time. Some channel shelf endpoints omit progress, so it needs a separate request per book.';
+  String get s_59d2efab => 'Obtiene el porcentaje leído y el tiempo acumulado de cada libro. Algunos canales no devuelven el progreso en la estantería, así que hay que hacer una petición por libro.';
 
   @override
-  String get s_fa52186c => 'CSV / Notion import';
+  String get s_fa52186c => 'Importar desde CSV / Notion';
 
   @override
-  String get s_2c78f2b8 => 'One-click migration from a Notion CSV export: column names are detected automatically and custom fields are preserved.';
+  String get s_2c78f2b8 => 'Migración con un clic desde un CSV exportado de Notion: los nombres de columna se detectan solos y los campos personalizados se conservan.';
 
   @override
-  String get s_238b14fc => 'Processing…';
+  String get s_238b14fc => 'Procesando…';
 
   @override
   String s_ed4b0551({required Object length}) {
-    return '$length books couldn\'t be imported';
+    return 'No se pudieron importar $length libros';
   }
 
   @override
   String s_ec50ebde({required Object length}) {
-    return '…and $length more';
+    return '…y $length más';
   }
 
   @override
-  String get s_18307d56 => 'Add manually';
+  String get s_18307d56 => 'Añadir a mano';
 
   @override
   String s_cc0eef03({required Object length}) {
-    return '$length books recognized';
+    return '$length libros reconocidos';
   }
 
   @override
-  String get s_0f466d7a => 'Select all';
+  String get s_0f466d7a => 'Seleccionar todo';
 
   @override
-  String get s_42b2fafa => 'Deselect all';
+  String get s_42b2fafa => 'Deseleccionar todo';
 
   @override
   String s_7feb7674({required Object keptLines, required Object repairedTitles, required Object totalLines, required Object usedLlm}) {
-    return 'Read $totalLines lines of text, kept $keptLines books$usedLlm$repairedTitles';
+    return 'Se leyeron $totalLines líneas de texto y se conservaron $keptLines libros$usedLlm$repairedTitles';
   }
 
   @override
-  String get s_4d52323f => 'Items marked \"completed\" or \"inferred\" are not verbatim from the image — please check them before importing. You can tap any title or author to edit it.';
+  String get s_4d52323f => 'Los elementos marcados como «completado» o «inferido» no son literales de la imagen: compruébalos antes de importar. Puedes pulsar cualquier título o autor para editarlo.';
 
   @override
-  String get s_0f40975c => 'Add one manually (missed by OCR)';
+  String get s_0f40975c => 'Añadir uno a mano (el OCR no lo leyó)';
 
   @override
   String s_fdc0acd1({required Object length}) {
-    return 'Import the $length selected';
+    return 'Importar los $length seleccionados';
   }
 
   @override
-  String get s_4443bd2c => 'The original image was truncated';
+  String get s_4443bd2c => 'La imagen original estaba recortada';
 
   @override
   String s_7af46a28({required Object progressPercent}) {
-    return 'Progress $progressPercent%';
+    return 'Progreso $progressPercent%';
   }
 
   @override
   String s_4737de25({required Object toStringAsFixed}) {
-    return 'Confidence $toStringAsFixed%';
+    return 'Confianza $toStringAsFixed%';
   }
 
   @override
   String s_2df91ffc({required Object rawText}) {
-    return 'Original image: $rawText';
+    return 'Imagen original: $rawText';
   }
 
   @override
-  String get s_7bbe0f10 => 'Author (optional)';
+  String get s_7bbe0f10 => 'Autor (opcional)';
 
   @override
-  String get s_bd13cf0b => 'Delete this one';
+  String get s_bd13cf0b => 'Eliminar este';
 
   @override
-  String get s_c048f107 => 'Statistics range';
+  String get s_c048f107 => 'Intervalo de estadísticas';
 
   @override
-  String get s_89c61e4a => 'Total books';
+  String get s_89c61e4a => 'Total de libros';
 
   @override
-  String get s_9da15a74 => 'Status breakdown';
+  String get s_9da15a74 => 'Distribución por estado';
 
   @override
-  String get s_130a42ae => 'Category breakdown';
+  String get s_130a42ae => 'Distribución por categoría';
 
   @override
-  String get s_98f42577 => 'Source breakdown';
+  String get s_98f42577 => 'Distribución por origen';
 
   @override
-  String get s_5e8ebbe6 => 'Format breakdown';
+  String get s_5e8ebbe6 => 'Distribución por formato';
 
   @override
-  String get s_5182e58a => 'Average rating';
+  String get s_5182e58a => 'Valoración media';
 
   @override
-  String get s_50bcc778 => 'Books rated';
+  String get s_50bcc778 => 'Libros valorados';
 
   @override
-  String get s_59c5e73a => 'Reading time (minutes)';
+  String get s_59c5e73a => 'Tiempo de lectura (minutos)';
 
   @override
-  String get s_48529b9f => 'Days with reading activity';
+  String get s_48529b9f => 'Días con actividad de lectura';
 
   @override
-  String get s_7be1388c => 'No LLM key configured. Fill one in under Settings → LLM to generate.';
+  String get s_7be1388c => 'No hay ninguna API key de LLM configurada. Introdúcela en Ajustes → LLM para poder generar.';
 
   @override
-  String get s_992d7786 => 'The model returned no usable tags; try another model';
+  String get s_992d7786 => 'El modelo no devolvió etiquetas utilizables; prueba con otro modelo';
 
   @override
-  String get s_eead3bcd => 'Replace with this set?';
+  String get s_eead3bcd => '¿Sustituir por este conjunto?';
 
   @override
   String s_b9da6464({required Object length, required Object length_1}) {
-    return 'Your current $length tags will be replaced with these $length_1. You can still edit or delete them one by one afterwards.';
+    return 'Tus $length etiquetas actuales se sustituirán por estas $length_1. Después aún podrás editarlas o borrarlas una a una.';
   }
 
   @override
-  String get s_89829921 => 'Replace';
+  String get s_89829921 => 'Sustituir';
 
   @override
-  String get s_0f8acec9 => 'Replaced with the main tags';
+  String get s_0f8acec9 => 'Sustituidas por las etiquetas principales';
 
   @override
-  String get s_93aebfd1 => 'That tag is already listed above';
+  String get s_93aebfd1 => 'Esa etiqueta ya aparece arriba';
 
   @override
-  String get s_bca518fd => 'Added to the main tags';
+  String get s_bca518fd => 'Añadida a las etiquetas principales';
 
   @override
   String s_284dfaab({required Object text}) {
-    return 'Removed \"$text\"';
+    return 'Se ha quitado «$text»';
   }
 
   @override
-  String get s_8eb8d18d => 'Edit tag';
+  String get s_8eb8d18d => 'Editar etiqueta';
 
   @override
-  String get s_35c48d07 => 'This is a tag you wrote yourself; there\'s no automatic basis for it.';
+  String get s_35c48d07 => 'Esta etiqueta la escribiste tú; no tiene ninguna base automática.';
 
   @override
-  String get s_724386f0 => 'Add tag';
+  String get s_724386f0 => 'Añadir etiqueta';
 
   @override
-  String get s_fdd8c684 => 'Tags you write yourself aren\'t validated and won\'t be overwritten by recomputation.';
+  String get s_fdd8c684 => 'Las etiquetas que escribas tú no se validan ni se sobrescriben al recalcular.';
 
   @override
-  String get s_7b328e58 => 'Reset tags to default?';
+  String get s_7b328e58 => '¿Restablecer las etiquetas por defecto?';
 
   @override
-  String get s_b9a4d4ef => 'Your manual edits will be cleared and the tags will be inferred again from your current library.';
+  String get s_b9a4d4ef => 'Se borrarán tus cambios manuales y las etiquetas se deducirán de nuevo a partir de tu biblioteca actual.';
 
   @override
-  String get s_0fcef2c8 => 'Restored to tags inferred from your library';
+  String get s_0fcef2c8 => 'Restablecidas a las etiquetas deducidas de tu biblioteca';
 
   @override
-  String get s_e97565e5 => 'My reading profile';
+  String get s_e97565e5 => 'Mi perfil de lectura';
 
   @override
   String s_783e43af({required Object e}) {
-    return 'Couldn\'t generate the share image: $e';
+    return 'No se pudo generar la imagen para compartir: $e';
   }
 
   @override
-  String get s_14f92b04 => 'Generate share image';
+  String get s_14f92b04 => 'Generar imagen para compartir';
 
   @override
-  String get s_a17c4e02 => 'Saved to your photos';
+  String get s_a17c4e02 => 'Guardada en tus fotos';
 
   @override
   String s_3f81d5b6({required Object e}) {
-    return 'Couldn\'t save: $e';
+    return 'No se pudo guardar: $e';
   }
 
   @override
-  String get s_c6d1e7a3 => 'Image ready';
+  String get s_c6d1e7a3 => 'Imagen lista';
 
   @override
-  String get s_b8e4c9a1 => 'Save image to this device';
+  String get s_b8e4c9a1 => 'Guardar la imagen en este dispositivo';
 
   @override
-  String get s_51ebc0d1 => 'Recompute';
+  String get s_51ebc0d1 => 'Recalcular';
 
   @override
-  String get s_6c64acc5 => 'My reading personality tags';
+  String get s_6c64acc5 => 'Mis etiquetas de personalidad lectora';
 
   @override
   String s_03bf36af({required Object length}) {
-    return 'Inferred from $length books';
+    return 'Deducidas de $length libros';
   }
 
   @override
-  String get s_a789d74f => 'All the tags have been deleted. Tap \"Add\" below to write your own, or reset to default and let the app infer them again.';
+  String get s_a789d74f => 'Se han borrado todas las etiquetas. Pulsa «Añadir» abajo para escribir las tuyas, o restablece las de por defecto y deja que la app las deduzca de nuevo.';
 
   @override
-  String get s_a1d885c1 => 'Add';
+  String get s_a1d885c1 => 'Añadir';
 
   @override
-  String get s_64bff158 => 'Tap a tag to rename or delete it. For rule-inferred tags, the numbers behind them are visible in the edit dialog.';
+  String get s_64bff158 => 'Pulsa una etiqueta para renombrarla o borrarla. En las deducidas por reglas, los números que hay detrás se ven en el diálogo de edición.';
 
   @override
-  String get s_84bf2c49 => 'Generating…';
+  String get s_84bf2c49 => 'Generando…';
 
   @override
-  String get s_5a251fee => 'Generate another set with AI';
+  String get s_5a251fee => 'Generar otro conjunto con IA';
 
   @override
-  String get s_18be3bbe => 'Reset to default';
+  String get s_18be3bbe => 'Restablecer por defecto';
 
   @override
-  String get s_7ae84af3 => 'Reading preferences';
+  String get s_7ae84af3 => 'Preferencias de lectura';
 
   @override
   String s_aeed65e7({required Object length}) {
-    return '$length categories';
+    return '$length categorías';
   }
 
   @override
-  String get s_f2a9e2a4 => 'The circle\'s area is proportional to the number of books (so the radius is the square root of the count — using the count directly as the radius would exaggerate differences and mislead).';
+  String get s_f2a9e2a4 => 'El área del círculo es proporcional al número de libros (por eso el radio es la raíz cuadrada de la cantidad: usar la cantidad directamente como radio exageraría las diferencias y engañaría).';
 
   @override
   String s_abd0dab0({required Object stamp}) {
-    return 'AI generated · $stamp';
+    return 'Generado por IA · $stamp';
   }
 
   @override
-  String get s_7ea8e671 => 'Replace main tags';
+  String get s_7ea8e671 => 'Sustituir las etiquetas principales';
 
   @override
-  String get s_d1a58b2f => 'Tap a single tag to add it to the main tags, or replace the whole set. This set is generated by the model from aggregate statistics, so its basis is less explicit than the rule-based one.';
+  String get s_d1a58b2f => 'Pulsa una etiqueta concreta para añadirla a las principales, o sustituye el conjunto entero. Este conjunto lo genera el modelo a partir de estadísticas agregadas, así que su base es menos explícita que el de las reglas.';
 
   @override
-  String get s_a38881a0 => 'No books in this range yet';
+  String get s_a38881a0 => 'Todavía no hay libros en este intervalo';
 
   @override
-  String get s_20fde694 => 'Try another time range, or import some books first';
+  String get s_20fde694 => 'Prueba con otro intervalo o importa primero algunos libros';
 
   @override
-  String get s_9fe34cff => 'No category data yet';
+  String get s_9fe34cff => 'Todavía no hay datos de categorías';
 
   @override
   String s_d9579b73({required Object bookCount, required Object rangeLabel}) {
-    return '$rangeLabel · $bookCount books';
+    return '$rangeLabel · $bookCount libros';
   }
 
   @override
-  String get s_bfc50de8 => 'Personality tags';
+  String get s_bfc50de8 => 'Etiquetas de personalidad';
 
   @override
-  String get s_ab5cc063 => 'Reading preferences';
+  String get s_ab5cc063 => 'Preferencias de lectura';
 
   @override
-  String get s_9de44e0f => 'Reading tracker · My shelf';
+  String get s_9de44e0f => 'Gestor de lectura · Mi estantería';
 
   @override
-  String get s_20a63774 => 'Choose statistics range';
+  String get s_20a63774 => 'Elige el intervalo de estadísticas';
 
   @override
-  String get s_d507abff => 'OK';
+  String get s_d507abff => 'Aceptar';
 
   @override
-  String get s_ff31410d => 'Custom…';
+  String get s_ff31410d => 'Personalizado…';
 
   @override
-  String get s_72cca1f6 => 'Configuration saved locally';
+  String get s_72cca1f6 => 'Configuración guardada localmente';
 
   @override
   String s_b6477017({required Object name}) {
-    return 'Filled in $name; the API key is still needed';
+    return 'Has rellenado $name; todavía hace falta la API key';
   }
 
   @override
-  String get s_533f5118 => 'Fetching model list…';
+  String get s_533f5118 => 'Obteniendo la lista de modelos…';
 
   @override
   String s_648219b9({required Object id}) {
-    return 'Selected model: $id';
+    return 'Modelo seleccionado: $id';
   }
 
   @override
   String s_baf95794({required Object length}) {
-    return '$length models available (none selected)';
+    return '$length modelos disponibles (ninguno seleccionado)';
   }
 
   @override
-  String get s_e37cab47 => 'Testing the connection…';
+  String get s_e37cab47 => 'Probando la conexión…';
 
   @override
   String s_c17c1a05({required Object latencyMs, required Object model, required Object reply}) {
-    return 'Connected · $model\nTook $latencyMs ms; the model replied \"$reply\"';
+    return 'Conectado · $model\nHa tardado $latencyMs ms; el modelo ha respondido «$reply»';
   }
 
   @override
-  String get s_5df0d12b => 'Verifying WeRead key…';
+  String get s_5df0d12b => 'Verificando la key de WeRead…';
 
   @override
   String s_bd245b07({required Object n}) {
-    return 'Key is valid; the shelf currently has $n books';
+    return 'La key es válida; la estantería tiene ahora $n libros';
   }
 
   @override
   String s_73f89115({required Object host}) {
-    return 'Can\'t reach $host\nCheck your network, whether the base URL is complete (including /v1), and whether the service needs a proxy';
+    return 'No se puede conectar con $host\nRevisa la red, que la URL base esté completa (incluido /v1) y si el servicio necesita un proxy';
   }
 
   @override
-  String get s_9038e16e => 'The endpoint timed out (180 seconds)';
+  String get s_9038e16e => 'El endpoint ha agotado el tiempo de espera (180 segundos)';
 
   @override
   String s_e0710bf5({required Object e, required int? statusCode}) {
-    return 'Service returned $statusCode: $e';
+    return 'El servicio ha devuelto $statusCode: $e';
   }
 
   @override
   String s_24d6c7ae({required Object name}) {
-    return 'Request failed: $name';
+    return 'La solicitud falló: $name';
   }
 
   @override
-  String get s_4d3eb2b3 => 'Search models';
+  String get s_4d3eb2b3 => 'Buscar modelos';
 
   @override
   String s_17d94005({required Object length}) {
-    return '$length in total';
+    return '$length en total';
   }
 
   @override
-  String get s_a48ae43a => 'Clicking a suggestion writes the model name in';
+  String get s_a48ae43a => 'Al pulsar una sugerencia se escribe el nombre del modelo';
 
   @override
-  String get s_b5c7b82d => 'Settings';
+  String get s_b5c7b82d => 'Ajustes';
 
   @override
-  String get s_bc90fa59 => 'Used to sync your shelf and reading progress. Scan the QR code to open weread.qq.com/r/weread-skills to get one.';
+  String get s_bc90fa59 => 'Se usa para sincronizar la estantería y el progreso de lectura. Escanea el código QR para abrir weread.qq.com/r/weread-skills y conseguir una.';
 
   @override
-  String get s_e44e9f26 => 'Verify key';
+  String get s_e44e9f26 => 'Verificar la key';
 
   @override
   String get s_75bf6943 => 'LLM';
 
   @override
-  String get s_9e8f6691 => 'Used for metadata fallback, screenshot recognition cleanup and reading reports.';
+  String get s_9e8f6691 => 'Se usa para completar metadatos cuando faltan, limpiar el reconocimiento de capturas y generar informes de lectura.';
 
   @override
-  String get s_cc3c9556 => 'Provider presets';
+  String get s_cc3c9556 => 'Proveedores predefinidos';
 
   @override
-  String get s_9021b9f9 => 'Selecting one fills in the address and model';
+  String get s_9021b9f9 => 'Al elegir uno se rellenan la dirección y el modelo';
 
   @override
-  String get s_1fd51aaa => 'Model name';
+  String get s_1fd51aaa => 'Nombre del modelo';
 
   @override
-  String get s_209e1f28 => 'Use \"Fetch models\" to pick from the list your account actually has';
+  String get s_209e1f28 => 'Te recomendamos pulsar «Obtener modelos» y elegir de la lista que tu cuenta tiene disponible de verdad';
 
   @override
-  String get s_ab135d7c => 'Fetch models';
+  String get s_ab135d7c => 'Obtener modelos';
 
   @override
-  String get s_a46a5664 => 'Test connection';
+  String get s_a46a5664 => 'Probar conexión';
 
   @override
-  String get s_e4f7e107 => 'Show key';
+  String get s_e4f7e107 => 'Mostrar la key';
 
   @override
-  String get s_b13be56e => 'Hide key';
+  String get s_b13be56e => 'Ocultar la key';
 
   @override
-  String get s_9ac01f6b => 'Test and Fetch both save your entries first.';
+  String get s_9ac01f6b => 'Probar y obtener modelos guardan antes lo que hayas escrito.';
 
   @override
-  String get s_0001747c => 'Screenshot recognition';
+  String get s_0001747c => 'Reconocimiento de capturas';
 
   @override
-  String get s_3f5cbdbf => 'Determines how well photo and screenshot imports are recognized.';
+  String get s_3f5cbdbf => 'Determina cómo de bien se reconocen las importaciones por foto y por captura.';
 
   @override
-  String get s_9130a4ed => 'Image enhancement preprocessing';
+  String get s_9130a4ed => 'Preprocesado de mejora de la imagen';
 
   @override
-  String get s_b79fc99c => 'Enlarges and sharpens the image first, so small titles are recognized better.';
+  String get s_b79fc99c => 'Amplía y afila primero la imagen, así los títulos pequeños se reconocen mejor.';
 
   @override
-  String get s_9695a603 => 'Use the LLM to clean up recognition results';
+  String get s_9695a603 => 'Usar el LLM para limpiar los resultados';
 
   @override
-  String get s_267118b5 => 'Let the LLM clean up the recognized titles. Needs an LLM key and uses tokens.';
+  String get s_267118b5 => 'Deja que el LLM limpie los títulos reconocidos. Necesita una API key de LLM y consume tokens.';
 
   @override
-  String get s_6d7e1f9f => 'Recognition mode';
+  String get s_6d7e1f9f => 'Modo de reconocimiento';
 
   @override
-  String get s_ed144a76 => 'Auto (multimodal first, falls back to on-device)';
+  String get s_ed144a76 => 'Automático (multimodal primero, con respaldo en el dispositivo)';
 
   @override
-  String get s_c7bab837 => 'Multimodal LLM reads the image directly';
+  String get s_c7bab837 => 'Un LLM multimodal lee la imagen directamente';
 
   @override
-  String get s_d8f3da2a => 'On-device OCR (offline, free)';
+  String get s_d8f3da2a => 'OCR en el dispositivo (sin conexión, gratis)';
 
   @override
-  String get s_f22e4cd2 => 'On-device OCR works offline but may miss titles; the multimodal model reads the layout but needs a network and may invent one. \"Auto\" uses both.';
+  String get s_f22e4cd2 => 'El OCR del dispositivo funciona sin conexión pero puede saltarse títulos; el modelo multimodal entiende la maquetación pero necesita red y puede inventarse un título. «Automático» usa ambos.';
 
   @override
-  String get s_67677b3d => 'Data';
+  String get s_67677b3d => 'Datos';
 
   @override
-  String get s_d596ba9b => 'Export the whole database as JSON to move to another device. A fresh install starts with an empty shelf; add books from the Import tab to get going.';
+  String get s_d596ba9b => 'Exporta toda la base de datos en JSON para llevarla a otro dispositivo. Una instalación nueva empieza con la estantería vacía; añade libros desde la pestaña Importar para empezar.';
 
   @override
-  String get s_39239742 => 'One-tap export / restore';
+  String get s_39239742 => 'Exportar / restaurar con un toque';
 
   @override
-  String get s_3c21597a => 'All changes are saved to this device\'s database automatically — no manual save needed.';
+  String get s_3c21597a => 'Todos los cambios se guardan automáticamente en la base de datos de este dispositivo: no hace falta guardar a mano.';
 
   @override
-  String get s_68885a92 => 'Keys are stored only in this device\'s database; they are never bundled with the app or uploaded.';
+  String get s_68885a92 => 'Las keys se guardan solo en la base de datos de este dispositivo; nunca se incluyen en la app ni se suben.';
 
   @override
-  String get s_9b3c95d4 => 'Recently updated';
+  String get s_9b3c95d4 => 'Actualizados recientemente';
 
   @override
-  String get s_97428491 => 'Recently finished';
+  String get s_97428491 => 'Terminados recientemente';
 
   @override
-  String get s_8f38c041 => 'Highest rated';
+  String get s_8f38c041 => 'Mejor puntuados';
 
   @override
-  String get s_50a7317f => 'Most progress';
+  String get s_50a7317f => 'Más avanzados';
 
   @override
-  String get s_b5538557 => 'Title A–Z';
+  String get s_b5538557 => 'Título A–Z';
 
   @override
   String s_e3cd14ba({required Object title}) {
-    return 'Added \"$title\"';
+    return 'Se ha añadido «$title»';
   }
 
   @override
-  String get s_296fc9b4 => 'Shelf';
+  String get s_296fc9b4 => 'Estantería';
 
   @override
-  String get s_a444b428 => 'Sort';
+  String get s_a444b428 => 'Ordenar';
 
   @override
-  String get s_fa0a5cdd => 'Switch to list';
+  String get s_fa0a5cdd => 'Cambiar a lista';
 
   @override
-  String get s_cb4a4231 => 'Switch to cover grid';
+  String get s_cb4a4231 => 'Cambiar a cuadrícula de portadas';
 
   @override
-  String get s_78966c42 => 'Search title / author / publisher';
+  String get s_78966c42 => 'Buscar por título / autor / editorial';
 
   @override
-  String get s_8ed41c6c => 'No books match these filters';
+  String get s_8ed41c6c => 'Ningún libro coincide con estos filtros';
 
   @override
-  String get s_bd33274a => 'No books yet — add some from the Import tab';
+  String get s_bd33274a => 'Todavía no hay libros: añade alguno desde la pestaña Importar';
 
   @override
   String s_0cd6d0f8({required Object length}) {
-    return '$length books';
+    return '$length libros';
   }
 
   @override
   String s_ff7e02df({required Object finished, required Object reading}) {
-    return '$reading reading · $finished read';
+    return '$reading en lectura · $finished leídos';
   }
 
   @override
-  String get s_68022ee7 => 'All';
+  String get s_68022ee7 => 'Todos';
 
   @override
-  String get s_542b67cc => 'More filters';
+  String get s_542b67cc => 'Más filtros';
 
   @override
-  String get s_ec977df0 => 'Source';
+  String get s_ec977df0 => 'Origen';
 
   @override
-  String get s_50d471b2 => 'Reset';
+  String get s_50d471b2 => 'Restablecer';
 
   @override
-  String get s_37361909 => 'Chart visibility';
+  String get s_37361909 => 'Visibilidad de los gráficos';
 
   @override
-  String get s_b1288e4a => 'Show all';
+  String get s_b1288e4a => 'Mostrar todos';
 
   @override
-  String get s_6b2b7015 => 'Hide all';
+  String get s_6b2b7015 => 'Ocultar todos';
 
   @override
-  String get s_e91a9228 => 'Show only the charts you care about; hide the rest.';
+  String get s_e91a9228 => 'Muestra solo los gráficos que te interesen y oculta el resto.';
 
   @override
-  String get s_fe93ef35 => 'Apply';
+  String get s_fe93ef35 => 'Aplicar';
 
   @override
   String get s_0d65fca2 => '[《》「」]';
 
   @override
   String s_9380d869({required int? daysUntilDue}) {
-    return 'Due in $daysUntilDue days';
+    return 'Devolución en $daysUntilDue días';
   }
 
   @override
-  String get s_0e13c16f => 'Statistics';
+  String get s_0e13c16f => 'Estadísticas';
 
   @override
-  String get s_3ad4c4c8 => 'Reading profile';
+  String get s_3ad4c4c8 => 'Perfil de lectura';
 
   @override
   String s_7c6c253b({required Object label}) {
-    return 'This period · $label';
+    return 'Este periodo · $label';
   }
 
   @override
-  String get s_88c0b751 => 'Attributed by each book\'s completion or activity date';
+  String get s_88c0b751 => 'Atribuidos según la fecha de finalización o de actividad de cada libro';
 
   @override
-  String get s_50ba5fd5 => 'books';
+  String get s_50ba5fd5 => 'libros';
 
   @override
-  String get s_cc4556af => 'Books added';
+  String get s_cc4556af => 'Libros añadidos';
 
   @override
-  String get s_3509a9f8 => 'days';
+  String get s_3509a9f8 => 'días';
 
   @override
   String get s_a7e9ff0f => 'pts';
 
   @override
-  String get s_58d90b89 => 'Current shelf';
+  String get s_58d90b89 => 'Estantería actual';
 
   @override
-  String get s_c3bb899b => 'Snapshot figures, unaffected by the time filter above';
+  String get s_c3bb899b => 'Cifras de instantánea, no afectadas por el filtro de tiempo de arriba';
 
   @override
-  String get s_563edd9d => 'Total books';
+  String get s_563edd9d => 'Total de libros';
 
   @override
-  String get s_0d8d3eb3 => 'Reading streak';
+  String get s_0d8d3eb3 => 'Racha de lectura';
 
   @override
-  String get s_4ab30c5b => 'Started but stalled';
+  String get s_4ab30c5b => 'Empezados pero estancados';
 
   @override
   String s_b563f985({required Object label}) {
-    return 'Structure · $label';
+    return 'Estructura · $label';
   }
 
   @override
   String s_a7e09561({required Object length}) {
-    return '$length books included';
+    return '$length libros incluidos';
   }
 
   @override
-  String get s_c6cc650b => 'Status breakdown';
+  String get s_c6cc650b => 'Distribución por estado de lectura';
 
   @override
-  String get s_8137585d => 'Top 8 categories';
+  String get s_8137585d => '8 categorías principales';
 
   @override
   String s_f92480e2({required Object length}) {
-    return '$length categories';
+    return '$length categorías';
   }
 
   @override
-  String get s_50feb68a => 'Reading per month';
+  String get s_50feb68a => 'Lectura por mes';
 
   @override
-  String get s_750a3b1c => 'No reading activity in this range yet';
+  String get s_750a3b1c => 'Todavía no hay actividad de lectura en este intervalo';
 
   @override
-  String get s_4d7dd157 => 'Monthly reading time';
+  String get s_4d7dd157 => 'Tiempo de lectura mensual';
 
   @override
-  String get s_5a78dc03 => 'Shown after importing WeRead yearly statistics';
+  String get s_5a78dc03 => 'Se muestra tras importar las estadísticas anuales de WeRead';
 
   @override
-  String get s_5b37ad6b => 'Rating distribution';
+  String get s_5b37ad6b => 'Distribución de valoraciones';
 
   @override
   String s_3c0e984b({required Object toStringAsFixed, required Object unratedCount}) {
-    return 'Average $toStringAsFixed · $unratedCount unrated';
+    return 'Media $toStringAsFixed · $unratedCount sin valorar';
   }
 
   @override
-  String get s_3c1cb8ee => 'No ratings yet';
+  String get s_3c1cb8ee => 'Todavía no hay valoraciones';
 
   @override
-  String get s_01d886c7 => 'In-progress distribution';
+  String get s_01d886c7 => 'Distribución del progreso';
 
   @override
   String s_ecf53f5a({required Object readingInRange}) {
-    return '$readingInRange in progress';
+    return '$readingInRange en curso';
   }
 
   @override
-  String get s_faf98ba4 => 'No books in progress in this range';
+  String get s_faf98ba4 => 'No hay libros en curso en este intervalo';
 
   @override
   String s_77030fdc({required Object length}) {
-    return '$length platforms';
+    return '$length plataformas';
   }
 
   @override
@@ -2116,22 +2116,22 @@ class SEs extends S {
 
   @override
   String s_00fbaae1({required Object scope, required Object toStringAsFixed}) {
-    return '$scope · $toStringAsFixed h total';
+    return '$scope · $toStringAsFixed h en total';
   }
 
   @override
   String s_e7b115df({required Object join}) {
-    return 'WeRead yearly statistics only cover $join, so this chart is drawn by calendar year; the finished-books chart above uses the most recent 12 months.';
+    return 'Las estadísticas anuales de WeRead solo cubren $join, así que este gráfico se dibuja por año natural; el gráfico de libros terminados de arriba usa los últimos 12 meses.';
   }
 
   @override
   String s_9ef861db({required Object name, required Object toInt}) {
-    return '$name\n$toInt books';
+    return '$name\n$toInt libros';
   }
 
   @override
   String s_2cf3ef4e({required Object i, required Object toInt}) {
-    return '$i · $toInt books';
+    return '$i · $toInt libros';
   }
 
   @override
@@ -2140,28 +2140,28 @@ class SEs extends S {
   }
 
   @override
-  String get s_1597bc27 => 'AI reading report';
+  String get s_1597bc27 => 'Informe de lectura con IA';
 
   @override
   String s_5024726e({required Object reportCount}) {
-    return '$reportCount archived · filed by year / month, revisit anytime';
+    return '$reportCount archivados · por año / mes, puedes volver a verlos cuando quieras';
   }
 
   @override
-  String get s_73f01b82 => 'Generate a yearly / monthly reading summary; open one to create it';
+  String get s_73f01b82 => 'Genera un resumen de lectura anual o mensual; ábrelo para crearlo';
 
   @override
-  String get s_530f5951 => 'View';
+  String get s_530f5951 => 'Ver';
 
   @override
-  String get s_d51cd7ae => 'Generate';
+  String get s_d51cd7ae => 'Generar';
 
   @override
-  String get s_f8525cf2 => 'No data yet';
+  String get s_f8525cf2 => 'Todavía no hay datos';
 
   @override
   String s_854a34ca({required Object author}) {
-    return ', by $author';
+    return ', de $author';
   }
 
   @override
@@ -2171,78 +2171,78 @@ class SEs extends S {
 
   @override
   String s_50018e2c({required Object hint}) {
-    return '\nAdditional context: $hint\n';
+    return '\nContexto adicional: $hint\n';
   }
 
   @override
   String s_a537d6ac({required Object first}) {
-    return '(backed up on $first)';
+    return '(copiado el $first)';
   }
 
   @override
   String s_acd7a061({required Object failed}) {
-    return ', $failed failed';
+    return ', $failed fallidos';
   }
 
   @override
-  String get s_da4d4d27 => ' · cleaned up with the LLM';
+  String get s_da4d4d27 => ' · limpiado con el LLM';
 
   @override
   String s_af735e5a({required Object repairedTitles}) {
-    return ' · completed $repairedTitles truncated titles';
+    return ' · $repairedTitles títulos truncados completados';
   }
 
   @override
-  String get navNotes => 'Records';
+  String get navNotes => 'Registros';
 
   @override
-  String get notesViewByTime => 'By time';
+  String get notesViewByTime => 'Por tiempo';
 
   @override
-  String get notesViewByBook => 'By book';
+  String get notesViewByBook => 'Por libro';
 
   @override
-  String get notesFilterByBook => 'Filter by book';
+  String get notesFilterByBook => 'Filtrar por libro';
 
   @override
-  String get notesAllBooks => 'All books';
+  String get notesAllBooks => 'Todos los libros';
 
   @override
-  String get notesBookMissing => 'Book removed';
+  String get notesBookMissing => 'Libro eliminado';
 
   @override
   String notesOverview({required int count, required int books}) {
-    return '$count notes · across $books books';
+    return '$count notas · en $books libros';
   }
 
   @override
   String notesMoreCount({required int count}) {
-    return '$count more';
+    return '$count más';
   }
 
   @override
-  String get notesEmptyTitle => 'No notes yet';
+  String get notesEmptyTitle => 'Todavía no hay notas';
 
   @override
-  String get notesEmptyDesc => 'Open any book and add a highlight or thought at the bottom of its detail page — they will collect here.';
+  String get notesEmptyDesc => 'Abre cualquier libro y añade un subrayado o una idea al final de su página de detalles: se recogerán aquí.';
 
   @override
-  String get notesEmptyFilteredTitle => 'No notes for this book yet';
+  String get notesEmptyFilteredTitle => 'Este libro aún no tiene notas';
 
   @override
-  String get notesEmptyFilteredDesc => 'Pick another book, or clear the filter to see the rest.';
+  String get notesEmptyFilteredDesc => 'Elige otro libro o quita el filtro para ver el resto.';
 
   @override
-  String get notesClearFilter => 'Clear filter';
+  String get notesClearFilter => 'Quitar filtro';
 
   @override
-  String get settingsLanguage => 'Language';
+  String get settingsLanguage => 'Idioma';
 
   @override
-  String get settingsLanguageDesc => 'Choose the language used by the app. Defaults to your system setting.';
+  String get settingsLanguageDesc => 'Elige el idioma de la app. Por defecto sigue el del sistema.';
 
   @override
-  String get settingsLanguageSystem => 'System default';
+  String get settingsLanguageSystem => 'Idioma del sistema';
 
   @override
   String get langZh => '简体中文';
@@ -2260,98 +2260,98 @@ class SEs extends S {
   String get langEs => 'Español';
 
   @override
-  String get settingsAppearance => 'Appearance';
+  String get settingsAppearance => 'Aspecto';
 
   @override
-  String get settingsAppearanceDesc => 'Pick a theme and a light or dark mode.';
+  String get settingsAppearanceDesc => 'Elige un tema y el modo claro u oscuro.';
 
   @override
-  String get statusWishHint => 'Not started yet.';
+  String get statusWishHint => 'Aún no lo has empezado.';
 
   @override
-  String get statusReadingHint => 'Currently reading. Reaches 100% progress it becomes Finished automatically.';
+  String get statusReadingHint => 'Lo estás leyendo. Cuando el progreso llegue al 100% pasará a Terminado automáticamente.';
 
   @override
-  String get statusFinishedHint => 'Finished. Slide progress to 100% and it is marked automatically.';
+  String get statusFinishedHint => 'Libro terminado. Arrastra el progreso al 100% y se marcará solo.';
 
   @override
-  String get statusShelvedHint => 'Started but not planning to continue for now. Switch back to Reading to pick it up again.';
+  String get statusShelvedHint => 'Empezado pero sin intención de continuar ahora. Vuelve a «Leyendo» para retomarlo.';
 
   @override
-  String get borrowTitle => 'Borrowed';
+  String get borrowTitle => 'Prestado';
 
   @override
-  String get borrowDesc => 'Mark the book as borrowed, with a lender and a due date.';
+  String get borrowDesc => 'Marca el libro como prestado, indicando de quién lo tomaste y la fecha de devolución.';
 
   @override
-  String get borrowFlag => 'This book is borrowed';
+  String get borrowFlag => 'Este libro es prestado';
 
   @override
-  String get borrowFrom => 'Borrowed from';
+  String get borrowFrom => 'Prestado por';
 
   @override
-  String get borrowFromHint => 'e.g. City Library, a colleague';
+  String get borrowFromHint => 'p. ej. la Biblioteca Municipal, un compañero';
 
   @override
-  String get borrowDue => 'Due date';
+  String get borrowDue => 'Fecha de devolución';
 
   @override
-  String get borrowDueUnset => 'Not set';
+  String get borrowDueUnset => 'Sin fijar';
 
   @override
   String borrowDueIn({required int days}) {
-    return '$days days until due';
+    return 'Quedan $days días para la devolución';
   }
 
   @override
   String borrowOverdue({required int days}) {
-    return 'Overdue by $days days';
+    return 'Atrasado $days días';
   }
 
   @override
-  String get borrowClearDue => 'Clear date';
+  String get borrowClearDue => 'Borrar la fecha';
 
   @override
-  String get borrowReturn => 'Mark as returned';
+  String get borrowReturn => 'Marcar como devuelto';
 
   @override
-  String get borrowReturnDesc => 'This clears the loan flag, the lender and the due date, and cancels the return reminder.';
+  String get borrowReturnDesc => 'Al devolverlo se borran la marca de préstamo, la persona y la fecha, y se cancela el recordatorio.';
 
   @override
-  String get borrowReturned => 'Marked as returned';
+  String get borrowReturned => 'Marcado como devuelto';
 
   @override
-  String get statusSectionTitle => 'Reading status';
+  String get statusSectionTitle => 'Estado de lectura';
 
   @override
-  String get planSectionTitle => 'Reading plans';
+  String get planSectionTitle => 'Planes de lectura';
 
   @override
-  String get planSectionDesc => 'Set a goal you can actually keep. Plans stay on this device.';
+  String get planSectionDesc => 'Fija una meta que puedas cumplir de verdad. Los planes se quedan en este dispositivo.';
 
   @override
-  String get planEmpty => 'No plans yet. Start small — 20 minutes a day.';
+  String get planEmpty => 'Todavía no hay planes. Empieza por algo pequeño: 20 minutos al día.';
 
   @override
-  String get planAdd => 'New plan';
+  String get planAdd => 'Nuevo plan';
 
   @override
-  String get planEdit => 'Edit plan';
+  String get planEdit => 'Editar plan';
 
   @override
-  String get planKindDaily => 'Read every day';
+  String get planKindDaily => 'Leer todos los días';
 
   @override
-  String get planKindFinishBook => 'Finish a book';
+  String get planKindFinishBook => 'Terminar un libro';
 
   @override
-  String get planKindDailyDesc => 'Set a daily reading time; judged on your daily average.';
+  String get planKindDailyDesc => 'Fija un tiempo de lectura diario; se evalúa con tu media diaria.';
 
   @override
-  String get planKindFinishBookDesc => 'Pick a book and a deadline. Reaching 100% completes it.';
+  String get planKindFinishBookDesc => 'Elige un libro y una fecha límite; llegar al 100% lo completa.';
 
   @override
-  String get planDailyTarget => 'Daily target';
+  String get planDailyTarget => 'Meta diaria';
 
   @override
   String planMinutesUnit({required int n}) {
@@ -2359,279 +2359,279 @@ class SEs extends S {
   }
 
   @override
-  String get planPickBook => 'Pick a book';
+  String get planPickBook => 'Elige un libro';
 
   @override
-  String get planDueLabel => 'Deadline';
+  String get planDueLabel => 'Fecha límite';
 
   @override
-  String get planDueUnset => 'Not set';
+  String get planDueUnset => 'Sin fijar';
 
   @override
-  String get planRemind => 'Remind me before the deadline';
+  String get planRemind => 'Avisarme antes de la fecha límite';
 
   @override
-  String get planRemindOff => 'Turning this on asks for notification permission. The reminder cancels itself once the plan is done.';
+  String get planRemindOff => 'Al activarlo se pedirá permiso para notificaciones. El recordatorio se cancela solo cuando el plan se completa.';
 
   @override
-  String get planTitleLabel => 'Plan name (optional)';
+  String get planTitleLabel => 'Nombre del plan (opcional)';
 
   @override
-  String get planTitleHint => 'Leave empty to use the default name';
+  String get planTitleHint => 'Déjalo vacío para usar el nombre por defecto';
 
   @override
-  String get planSave => 'Save';
+  String get planSave => 'Guardar';
 
   @override
-  String get planDelete => 'Delete plan';
+  String get planDelete => 'Eliminar plan';
 
   @override
-  String get planDeleteConfirm => 'Delete this plan? Your reading records are not affected.';
+  String get planDeleteConfirm => '¿Eliminar este plan? Tus registros de lectura no se ven afectados.';
 
   @override
-  String get planMarkDone => 'Mark as done';
+  String get planMarkDone => 'Marcar como hecho';
 
   @override
-  String get planAchieved => 'Achieved';
+  String get planAchieved => 'Conseguido';
 
   @override
-  String get planMarkToday => 'Read today';
+  String get planMarkToday => 'Hoy he leído';
 
   @override
-  String get planDoneToday => 'Done for today';
+  String get planDoneToday => 'Completado por hoy';
 
   @override
-  String get planDailyCycleHint => 'Every day is a fresh start — ticking it only counts for today, and the reminder comes back tomorrow.';
+  String get planDailyCycleHint => 'Cada día es una vuelta a empezar: marcarlo solo cuenta para hoy, y el recordatorio vuelve mañana.';
 
   @override
-  String get planReminderUnavailable => 'The system couldn\'t schedule the reminder (power-saving may have blocked it). Your plan was still saved.';
+  String get planReminderUnavailable => 'El sistema no ha podido programar el recordatorio (quizá el ahorro de energía lo ha bloqueado). El plan se ha guardado igualmente.';
 
   @override
   String planProgressDaily({required String current, required String target}) {
-    return 'Daily average $current / $target min';
+    return 'Media diaria $current / $target min';
   }
 
   @override
   String planProgressBook({required int current}) {
-    return 'Progress $current% · target 100%';
+    return 'Progreso $current% · objetivo 100%';
   }
 
   @override
   String planDaysLeft({required int days}) {
-    return '$days days left';
+    return 'Quedan $days días';
   }
 
   @override
   String planOverdue({required int days}) {
-    return 'Overdue by $days days';
+    return 'Atrasado $days días';
   }
 
   @override
   String planStreak({required int n}) {
-    return '$n-day check-in streak';
+    return 'Racha de $n días con marcar';
   }
 
   @override
-  String get planDueToday => 'Due today';
+  String get planDueToday => 'Vence hoy';
 
   @override
-  String get planBookGone => 'The target book is no longer on your shelf';
+  String get planBookGone => 'El libro objetivo ya no está en tu estantería';
 
   @override
-  String get planDoneSection => 'Finished';
+  String get planDoneSection => 'Terminados';
 
   @override
-  String get planReminderDenied => 'Notification permission was denied, so reminders cannot be delivered. Enable it in system settings.';
+  String get planReminderDenied => 'Se ha denegado el permiso de notificaciones, así que no se pueden entregar los recordatorios. Actívalo en los ajustes del sistema.';
 
   @override
-  String get planReminderDailyTitle => 'Today\'s reading goal is not done yet';
+  String get planReminderDailyTitle => 'Todavía no has cumplido la meta de hoy';
 
   @override
   String planReminderDailyBody({required int minutes}) {
-    return 'Your goal is $minutes minutes — there is still time.';
+    return 'Tu meta es de $minutes minutos: todavía tienes tiempo.';
   }
 
   @override
-  String get planReminderBookTitle => 'A reading deadline is coming up';
+  String get planReminderBookTitle => 'Se acerca una fecha límite de lectura';
 
   @override
   String planReminderBookBody({required int days}) {
-    return 'Your plan is due in $days days. A good time to finish it.';
+    return 'Tu plan vence en $days días. Buen momento para terminarlo.';
   }
 
   @override
-  String get settingsPlanReminder => 'Reading reminders';
+  String get settingsPlanReminder => 'Recordatorios de lectura';
 
   @override
-  String get reportSettings => 'Report settings';
+  String get reportSettings => 'Ajustes del informe';
 
   @override
-  String get reportBackfill => 'Generate missing reports';
+  String get reportBackfill => 'Generar los informes que falten';
 
   @override
-  String get reportNothingToBackfill => 'Every report that should exist is already here.';
+  String get reportNothingToBackfill => 'Ya están todos los informes que deberían existir.';
 
   @override
-  String get reportHistoryEmpty => 'No reports yet. Pick a period and generate your first one below.';
+  String get reportHistoryEmpty => 'Todavía no hay informes. Elige un periodo y genera el primero abajo.';
 
   @override
-  String get reportNoKey => 'No model configured, so reports cannot be generated. Add a key in Settings first.';
+  String get reportNoKey => 'No hay ningún modelo configurado, así que no se pueden generar informes. Añade antes una key en Ajustes.';
 
   @override
-  String get settingsTheme => 'Theme';
+  String get settingsTheme => 'Tema';
 
   @override
-  String get settingsBrightness => 'Light or dark';
+  String get settingsBrightness => 'Claro u oscuro';
 
   @override
-  String get brightnessSystem => 'Follow system';
+  String get brightnessSystem => 'Seguir al sistema';
 
   @override
-  String get brightnessLight => 'Light';
+  String get brightnessLight => 'Claro';
 
   @override
-  String get brightnessDark => 'Dark';
+  String get brightnessDark => 'Oscuro';
 
   @override
-  String get themeGreen => 'Green';
+  String get themeGreen => 'Verde';
 
   @override
-  String get themeInk => 'Ink';
+  String get themeInk => 'Tinta';
 
   @override
-  String get themeAmber => 'Amber';
+  String get themeAmber => 'Ámbar';
 
   @override
-  String get themeBlue => 'Blue';
+  String get themeBlue => 'Montaña';
 
   @override
-  String get themeRose => 'Rose';
+  String get themeRose => 'Rosa';
 
   @override
-  String get settingsChannels => 'Connected services';
+  String get settingsChannels => 'Servicios conectados';
 
   @override
-  String get settingsChannelsDesc => 'Sync your shelf and progress from other reading platforms. WeRead is supported today; more platforms will be added as they open their APIs.';
+  String get settingsChannelsDesc => 'Sincroniza tu estantería y tu progreso desde otras plataformas de lectura. Hoy se admite WeRead; se añadirán más cuando abran sus API.';
 
   @override
-  String get settingsChannelsHint => 'Keys are stored only in this device\'s system keychain and are never uploaded.';
+  String get settingsChannelsHint => 'Las keys se guardan solo en el llavero del sistema de este dispositivo y nunca se suben.';
 
   @override
-  String get settingsChannelAddHint => 'More services are on the way.';
+  String get settingsChannelAddHint => 'Más servicios están en camino.';
 
   @override
-  String get importAccuracyTitle => 'Results may be inaccurate';
+  String get importAccuracyTitle => 'El resultado puede ser impreciso';
 
   @override
-  String get importAccuracyDesc => 'Titles and authors are inferred by OCR and AI models, so they can misread a word or pick the wrong book. Please review before saving.';
+  String get importAccuracyDesc => 'Los títulos y los autores los infieren el OCR y los modelos de IA, así que pueden leer mal una palabra o elegir el libro equivocado. Revísalos antes de guardar.';
 
   @override
-  String get importFromImageTitle => 'Import from screenshot';
+  String get importFromImageTitle => 'Importar desde una captura';
 
   @override
-  String get importFromImageDesc => 'Pick a screenshot of your shelf and detect the books on it.';
+  String get importFromImageDesc => 'Elige una captura de tu estantería y detecta los libros que hay en ella.';
 
   @override
-  String get importFromCameraTitle => 'Import by camera';
+  String get importFromCameraTitle => 'Importar con la cámara';
 
   @override
-  String get importFromCameraDesc => 'Take a photo of your shelf and detect the books on it.';
+  String get importFromCameraDesc => 'Haz una foto de tu estantería y detecta los libros que hay en ella.';
 
   @override
-  String get insights => 'Insights';
+  String get insights => 'Archivo del lector';
 
   @override
-  String get insightsDesc => 'Your long-term reading profile, plus reports by month and year.';
+  String get insightsDesc => 'Tu perfil de lectura a largo plazo, más los informes por mes y por año.';
 
   @override
-  String get chronology => 'Timeline';
+  String get chronology => 'Cronología';
 
   @override
-  String get chronologyDesc => 'Your reading month by month. Tap a card to open the book.';
+  String get chronologyDesc => 'Tu lectura mes a mes. Pulsa una tarjeta para abrir el libro.';
 
   @override
-  String get chronologyEmpty => 'Nothing finished or in progress this year yet.';
+  String get chronologyEmpty => 'Este año aún no has terminado nada ni tienes algo en curso.';
 
   @override
-  String get chronologyFinished => 'Finished';
+  String get chronologyFinished => 'Terminados';
 
   @override
-  String get chronologyReading => 'Reading';
+  String get chronologyReading => 'Leyendo';
 
   @override
-  String get chronologyShelved => 'Shelved';
+  String get chronologyShelved => 'Apartados';
 
   @override
-  String get chronologyWish => 'Want to read';
+  String get chronologyWish => 'Quiero leer';
 
   @override
   String chronologyMore({required int n}) {
-    return '$n more — see the whole month';
+    return '$n más: ver el mes entero';
   }
 
   @override
-  String get reportStyle => 'Report style';
+  String get reportStyle => 'Estilo del informe';
 
   @override
-  String get reportStyleDesc => 'Choose the tone and structure of generated reports, or write your own prompt.';
+  String get reportStyleDesc => 'Elige el tono y la estructura de los informes generados, o escribe tu propio prompt.';
 
   @override
-  String get reportStyleRational => 'Plain facts';
+  String get reportStyleRational => 'Hechos y datos';
 
   @override
-  String get reportStyleRationalDesc => 'States the data objectively: no praise, no prodding, clearly itemised.';
+  String get reportStyleRationalDesc => 'Expone los datos de forma objetiva: sin elogios, sin incitar a compartir ni a marcar días, con los puntos bien listados.';
 
   @override
-  String get reportStyleWarm => 'Warm encouragement';
+  String get reportStyleWarm => 'Ánimo cálido';
 
   @override
-  String get reportStyleWarmDesc => 'Acknowledges your consistency and offers advice gently.';
+  String get reportStyleWarmDesc => 'Reconoce tu constancia y te da consejo con suavidad.';
 
   @override
-  String get reportStyleDirect => 'Straight talk';
+  String get reportStyleDirect => 'Franco y directo';
 
   @override
-  String get reportStyleDirectDesc => 'Names the problems without softening, for readers who want it plain.';
+  String get reportStyleDirectDesc => 'Nombra los problemas sin suavizarlos, para quien prefiere las cosas claras.';
 
   @override
-  String get reportStyleConcise => 'Brief';
+  String get reportStyleConcise => 'Breve';
 
   @override
-  String get reportStyleConciseDesc => 'Conclusions only, as short as possible.';
+  String get reportStyleConciseDesc => 'Solo conclusiones, tan escuetas como sea posible.';
 
   @override
-  String get reportStyleCustom => 'Custom';
+  String get reportStyleCustom => 'Personalizado';
 
   @override
-  String get reportStyleCustomDesc => 'Write the prompt yourself and control exactly how reports read.';
+  String get reportStyleCustomDesc => 'Escribe el prompt tú mismo y controla exactamente cómo se leen los informes.';
 
   @override
-  String get reportStyleCustomHint => 'e.g. Talk to me in second person, like a friend commenting on my reading.';
+  String get reportStyleCustomHint => 'p. ej. Háblame en segunda persona, como un amigo comentando mi lectura.';
 
   @override
-  String get reportReadMore => 'Read full report';
+  String get reportReadMore => 'Leer el informe completo';
 
   @override
-  String get reportNoContent => '(this report has no body text)';
+  String get reportNoContent => '(este informe no tiene cuerpo de texto)';
 
   @override
-  String get s_9f2c1d4e => 'Overview';
+  String get s_9f2c1d4e => 'Panorama';
 
   @override
-  String get s_0f2b6c1a => 'Reading this period';
+  String get s_0f2b6c1a => 'Lectura de este periodo';
 
   @override
-  String get s_7d1a4e35 => 'Shelf structure';
+  String get s_7d1a4e35 => 'Estructura de la estantería';
 
   @override
-  String get s_3c58b0d2 => 'Reading habits';
+  String get s_3c58b0d2 => 'Hábitos de lectura';
 
   @override
-  String get s_4b7e2a19 => 'Books worth naming';
+  String get s_4b7e2a19 => 'Libros que merecen mención';
 
   @override
-  String get s_6e39f7c4 => 'Reader profile';
+  String get s_6e39f7c4 => 'Perfil del lector';
 
   @override
-  String get s_1a8d53f6 => 'What to read next';
+  String get s_1a8d53f6 => 'Qué leer a continuación';
 }
