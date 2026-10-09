@@ -67,6 +67,8 @@ void main() {
   /// 没有这个开关就什么都不做，保证 `flutter test` 的日常耗时不受影响。
   final enabled = Platform.environment['STORE_SHOTS'] == '1';
 
+
+
   /// 出图用哪套皮肤。默认第一套（绿意）。
   ///
   /// 商店素材不该只出一种界面——换肤是这产品的卖点之一，
@@ -83,6 +85,14 @@ void main() {
   /// 输出根目录。带皮肤后缀时写到 `screenshots-<后缀>`，
   /// 免得换个皮肤就把上一套图覆盖掉（官网/上架素材还要用旧的）。
   final skinSuffix = Platform.environment['STORE_SKIN_SUFFIX'];
+
+  /// 贴图字节。贴图皮肤下必须真实加载，不能走 Image.asset：
+  /// 测试环境的 rootBundle 里 AssetManifest 只有条目名、没有像素，
+  /// 解码失败后 errorBuilder 静默返回空 —— 出图是一张纯色纸，
+  /// 看起来像「背景没生效」，实际是图根本没加载。
+  final bgBytes = skin.hasBackground
+      ? File(skin.backgroundAsset!).readAsBytesSync()
+      : Uint8List(0);
   final outRoot = (skinSuffix == null || skinSuffix.isEmpty)
       ? '../store/screenshots'
       : '../store/screenshots-$skinSuffix';
@@ -273,6 +283,15 @@ void main() {
             key: ValueKey<int>(round),
             theme: theme(),
             locale: locale,
+            // 贴图皮肤必须把背景传进去：测试外壳的 AppBackground
+            // 与生产同构（见 localized_app.dart 的注释）。
+            // 漏了它就会出「贴图皮肤但不画贴图」的半透明 PNG——
+            // 上传到官网就是一片透明，露出网页自己的底色。
+            backgroundTheme: skin.hasBackground ? skin : null,
+            // imageProvider 注入 MemoryImage：测试环境的rootBundle
+            // 只有 AssetManifest 条目、没有图片字节，Image.asset 会解不出图。
+            backgroundImage:
+                skin.hasBackground ? MemoryImage(bgBytes) : null,
             home: home,
           ),
         ),

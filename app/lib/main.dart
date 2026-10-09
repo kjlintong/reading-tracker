@@ -57,7 +57,23 @@ class ReadingTrackerApp extends StatelessWidget {
           builder: (context, child) {
             // 缓存当前 locale 的 S 实例，供无 BuildContext 的代码通过 appLoc 取用
             setAppLoc(S.of(context));
-            return child!;
+
+            // 皮肤背景挂在这里，而不是 HomeShell 里。
+            //
+            // builder 包住的是**整个 Navigator**，所以 push 出来的页面
+            // （阅历 ChronologyPage、书籍详情 BookDetailPage……）也一并有背景——
+            // 这是在 HomeShell 里包做不到的：那些页面是独立的
+            // MaterialPageRoute，各有自己的 Scaffold，在 HomeShell 那层之外。
+            // 用户反馈「阅历和记录栏没用到皮肤」就是这个。
+            //
+            // 每个路由自己的 Scaffold 必须在贴图模式下透明，
+            // 否则不透明底色会先盖住这层背景——
+            // 由 buildTheme 的 scaffoldBackgroundColor / appBarTheme统一处理。
+            return AppBackground(
+              theme: theme,
+              brightness: Theme.of(context).brightness,
+              child: child!,
+            );
           },
           localizationsDelegates: const [
             S.delegate,
@@ -125,20 +141,18 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     }
     final l10n = S.of(context);
 
-    // 皮肤（可能带贴图）从 provider 取，而不是从 AppTheme 静态表取——
-    // 换肤是运行时行为，静态表拿不到用户当前选的那套。
-    final skin = AppTheme.byId(ref.watch(appThemeProvider));
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+    // ⚠️ 贴图背景**不在这里**包，而是挂在 MaterialApp.builder 上。
+    //
+    // 在HomeShell 里包只能盖住这一个 Scaffold，而 push 出来的页面
+    // （阅历 ChronologyPage、书籍详情 BookDetailPage……）是独立的
+    // MaterialPageRoute，有自己的 Navigator 和 Scaffold，
+    // **完全在那层之外**—— 用户反馈「阅历和记录栏没用到皮肤」就是这个。
+    // 挂在 builder 上则覆盖**整个 Navigator**，所有路由一劳永逸。
+    //
+    // 各路由自己的 Scaffold 会在贴图模式下自动透明
+    // （theme.dart 的 scaffoldBackgroundColor，已覆盖所有页面）。
     return Scaffold(
-      // 背景层包住整个 Scaffold **内容**，而不是包 Scaffold 本身——
-      // 包在外面的话底栏（NavigationBar）会被盖住，
-      // 而底栏恰恰是「贴图上放控件」最需要验证可读性的地方。
-      body: AppBackground(
-        theme: skin,
-        brightness: isDark ? Brightness.dark : Brightness.light,
-        child: _pages[_index],
-      ),
+      body: _pages[_index],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),

@@ -111,6 +111,19 @@ class AppBackground extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
+        // ⚠️ 最底这层**不透明纸色**是整个组件的地基，删了会出两种事故：
+        //
+        // 1. 截图导出成半透明 PNG。真机上Scaffold 透明后透到窗口底色，
+        //    勉强能看；但截图是像素级拷贝，底下那层「什么都没有」
+        //    被如实记录成 alpha=0—— 上传到官网/商店就是一片透明，
+        //    直接露出网页自己的底色（2026-10-09 用户实机发现）。
+        // 2. 贴图没铺满的地方会漏出黑底（滚动超界、圆角裁切处）。
+        //
+        // 它也正是文档里那条合成公式里的「纸」：
+        //   结果 = 纸×scrim + (图×opacity + 纸×(1-opacity))×(1-scrim)
+        // 公式里的纸以前只是注释，谁都没真的画过。
+        ColoredBox(color: scrimColor),
+
         // 遮罩先铺，还是图先铺？
         // 图在下、遮罩在上：遮罩要盖住图，才能把图"压"进纸里。
         Opacity(opacity: theme.backgroundOpacity, child: image),

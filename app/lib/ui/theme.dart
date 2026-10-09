@@ -808,6 +808,35 @@ ThemeData buildTheme(AppTheme theme, Brightness brightness) {
     surfaceContainerHigh: paper[4],
     surfaceContainerHighest: paper[5],
   );
+  // ── 贴图模式：让「框」变透明，把背景露出来 ────────────────────────
+  //
+  // 贴图皮肤的价值在于「整屏是一张图」，但界面上一层叠一层的
+  // 不透明框（卡片surfaceContainerLowest、输入框 surfaceContainerLow、
+  // 底栏 surfaceContainerLow）会把它盖得只剩缝里那一条——
+  // 用户看到的就是「贴图好像没生效，只在边框缝隙里露一点」。
+  //
+  // 所以贴图模式下这些框统一降到 [panelAlphaValue]，让背景透上来。
+  // **只降 alpha、不改色相明度**：底下的图和遮罩已经算好了对比度，
+  // 这里再改颜色就是二次调色，容易把可读性弄坏。
+  //
+  // 不透明框必须让位，但**正文/图标色不能动**—— 文字压在透出来的
+  // 贴图上，对比度由 theme_system_test 的对比度用例守着。
+  //
+  // 什么时候不透明：贴图之外的纯色皮肤。它们的「纸」就是设计本身，
+  // 调成半透明会露出黑底（滚动超界时尤其明显）。
+  //
+  /// 贴图模式下框型区域的不透明度。
+  ///
+  /// 0.72 是实测值：0.9 时贴图几乎看不见（等于没开），
+  /// 0.5 时正文对比度掉到 7:1 以下、深色态尤其明显。
+  /// 0.72 能看见背景纹理，又保住 WCAG AA 正文所需的对比度。
+  const double panelAlphaValue = 0.72;
+
+  double panelAlpha() => theme.hasBackground ? panelAlphaValue : 1.0;
+
+  /// 把纸色按 [panelAlphaValue] 调成半透明。
+  Color panel(Color paper) => paper.withOpacity(panelAlpha());
+
   final outline = scheme.outlineVariant.withOpacity(isLight ? 0.72 : 0.65);
   final baseTextTheme = isLight
       ? Typography.material2021().black
@@ -863,7 +892,12 @@ ThemeData buildTheme(AppTheme theme, Brightness brightness) {
       bodyMedium: textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.4),
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: scheme.surface,
+      // 贴图模式下必须透明：AppBar 在 Scaffold 之外，
+      // 背景层包到Scaffold 外层之后，AppBar 自己的 surface 底色
+      // 会把贴图重新盖掉 —— 表现是「顶��一条不带贴图的带子」。
+      // 纯色皮肤照旧给不透明底色（否则滚动时透出黑底）。
+      backgroundColor:
+          theme.hasBackground ? Colors.transparent : scheme.surface,
       foregroundColor: scheme.onSurface,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
@@ -877,7 +911,8 @@ ThemeData buildTheme(AppTheme theme, Brightness brightness) {
       ),
     ),
     cardTheme: CardTheme(
-      color: scheme.surfaceContainerLowest,
+      // 卡片是面积最大的「框」，不透明的话贴图只剩边框缝里那一条。
+      color: panel(scheme.surfaceContainerLowest),
       surfaceTintColor: Colors.transparent,
       elevation: 0,
       margin: EdgeInsets.zero,
@@ -888,7 +923,8 @@ ThemeData buildTheme(AppTheme theme, Brightness brightness) {
     ),
     navigationBarTheme: NavigationBarThemeData(
       height: 68,
-      backgroundColor: scheme.surfaceContainerLow,
+      // 底栏同理：贴图模式下半透明，图标与文字压在透上来的背景上。
+      backgroundColor: panel(scheme.surfaceContainerLow),
       surfaceTintColor: Colors.transparent,
       indicatorColor: scheme.secondaryContainer,
       labelTextStyle: MaterialStateProperty.resolveWith(
@@ -900,7 +936,7 @@ ThemeData buildTheme(AppTheme theme, Brightness brightness) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: scheme.surfaceContainerLow,
+      fillColor: panel(scheme.surfaceContainerLow),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       hintStyle: TextStyle(color: scheme.onSurfaceVariant),
       border: OutlineInputBorder(
@@ -936,6 +972,8 @@ ThemeData buildTheme(AppTheme theme, Brightness brightness) {
       ),
     ),
     dialogTheme: DialogTheme(
+      // 弹层不跟着半透明：它是**浮在内容之上**的模态，
+      // 半透明会让底下的正文透上来叠在弹层文字下面，读不清。
       backgroundColor: scheme.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
