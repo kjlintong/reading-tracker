@@ -84,7 +84,7 @@ RAW_MAP = {
     'Deep_space_night_sky_with_a_br_2026-10-09T07-19-08.png': 'starfield',
     'Traditional_Chinese_ink_wash_p_2026-10-09T03-55-40.png': 'mist',
     'Extreme_macro_photograph_of_we_2026-10-09T03-55-59.png': 'moss',
-    'Warm_dusk_golden_hour_gradient_2026-10-09T03-55-59.png': 'dusk',
+    'Vintage_film_photograph_of_a_g_2026-10-09T07-30-10.png': 'dusk',
     'Soft_warm_cream_and_beige_back_2026-10-09T07-19-08.png': 'cat',
     'Soft_warm_honey_and_pale_amber_2026-10-09T07-19-07.png': 'dog',
 }
