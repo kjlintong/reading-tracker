@@ -1106,13 +1106,13 @@ class SFr extends S {
   String get s_772cbfcf => 'Génération automatique';
 
   @override
-  String get s_01955ddf => 'Quand c\'est activé, ouvrir cette page génère automatiquement les rapports annuels manquants et le rapport mensuel du mois dernier.';
+  String get s_01955ddf => 'Activé, l\'ouverture de l\'application comble les manques : rapport mensuel du mois dernier et rapport annuel de l\'année précédente (généré à la première ouverture de la nouvelle année).';
 
   @override
   String get s_b2a52a3d => 'Générer les manquants';
 
   @override
-  String get s_b233138e => 'Annuel';
+  String get s_b233138e => 'Annuel (année précédente)';
 
   @override
   String get s_877b864d => 'Mensuel';
@@ -2476,6 +2476,37 @@ class SFr extends S {
 
   @override
   String get reportNothingToBackfill => 'Tous les rapports qui devraient exister sont déjà là.';
+
+  @override
+  String get planCheckedIn => 'Marqué comme lu aujourd\'hui. Ta série repart d\'aujourd\'hui.';
+
+  @override
+  String planCheckedInStreak({required int n}) {
+    return 'Coché — $n jours d\'affilée.';
+  }
+
+  @override
+  String get planCheckinUndone => 'L\'entrée du jour a été annulée.';
+
+  @override
+  String get planFinishedToast => 'Plan terminé. Le rappel d\'échéance a été annulé.';
+
+  @override
+  String reportAutoDone({required int count}) {
+    return '$count nouveau(x) rapport(s) généré(s) automatiquement — voir ci-dessous.';
+  }
+
+  @override
+  String get reportAutoNothingDone => 'Il n\'y avait aucun rapport à générer.';
+
+  @override
+  String get reportAutoNoticeTitle => 'Votre rapport de lecture est prêt';
+
+  @override
+  String get planRemindDailyWhen => 'Rappelle chaque jour à 21 h 00 ; et demain encore.';
+
+  @override
+  String get planRemindBookWhen => 'Rappelle une fois à 21 h 00, trois jours avant l\'échéance.';
 
   @override
   String get reportHistoryEmpty => 'Pas encore de rapports. Choisis une période et génère le premier ci-dessous.';

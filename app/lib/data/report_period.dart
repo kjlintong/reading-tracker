@@ -45,14 +45,17 @@ class ReportPeriod {
         ),
       );
 
-  /// 可选周期列表：年份（近 3 年，新的在前）+ 月份（近 12 个自然月）。
+  /// 可选周期列表：年份（近 4 年，新的在前）+ 月份（近 12 个自然月）。
   ///
+  /// 年份给到**近 4 年**而不是 3 年：自动生成补的是「去年年报」，
+  /// 若候选里没有去年，用户点开自动生成的报告会在下拉框里选不中这一项
+  /// （DropdownButton 的 value 必须在 items 里，否则直接断言崩）。
   /// 月份只给到**已结束的月份**（不含当月）：当月的月报数据还在长，
   /// 生成出来第二天就过期了，属于诱导用户反复生成。
   static List<ReportPeriod> candidates({DateTime? now}) {
     final t = now ?? DateTime.now();
     final out = <ReportPeriod>[];
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 4; i++) {
       out.add(ReportPeriod.year(t.year - i));
     }
     for (var i = 1; i <= 12; i++) {
@@ -85,7 +88,15 @@ class ReportPeriod {
     return null;
   }
 
-  /// 自动补生成的候选：今年年报 + 上一个自然月的月报。
+  /// 自动生成的目标周期：**上一个自然月的月报 + 去年全年的年报**。
+  ///
+  /// 用户的要求是「年报在次年首次打开 App 时生成，月报在次月首次打开时生成」，
+  /// 所以年报取的是**去年**而不是今年——今年的 12 个月还没走完，
+  /// 现在就生成「今年年报」等于把残缺的一年当成全年结论，
+  /// 用户看到「年均 12 月才读了 0 分钟」只会以为 App 算错了。
+  ///
+  /// 与此相对，「补生成」按钮面向的是**已经结束但漏掉**的周期，
+  /// 口径与这里相同（见 [autoTargets]）。
   ///
   /// 只补「已经结束的周期」——当月月报要等下个月才生成，
   /// 否则用户每开一次页面就多一份只差几天的重复报告。
@@ -97,6 +108,6 @@ class ReportPeriod {
       m = 12;
       y -= 1;
     }
-    return [ReportPeriod.month(y, m), ReportPeriod.year(t.year)];
+    return [ReportPeriod.month(y, m), ReportPeriod.year(t.year - 1)];
   }
 }

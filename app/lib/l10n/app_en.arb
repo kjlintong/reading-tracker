@@ -313,9 +313,9 @@
   "s_049eca89": "Copy all",
   "s_50bf9961": "Report copied to clipboard",
   "s_772cbfcf": "Auto-generate",
-  "s_01955ddf": "When this is on, opening this page automatically generates any missing yearly report and last month's monthly report.",
+  "s_01955ddf": "When on, opening the app fills in what's missing: last month's monthly report, and last year's annual report (generated the first time you open the app in the new year).",
   "s_b2a52a3d": "Auto-generate missing",
-  "s_b233138e": "Yearly",
+  "s_b233138e": "Annual (last year)",
   "s_877b864d": "Monthly",
   "s_a3dfa2a6": "Past reports",
   "s_66772db6": "Export reading data",
@@ -3233,6 +3233,29 @@
   "reportSettings": "Report settings",
   "reportBackfill": "Generate missing reports",
   "reportNothingToBackfill": "Every report that should exist is already here.",
+  "planCheckedIn": "Marked as read for today. Your streak starts counting again from today.",
+  "planCheckedInStreak": "Checked in — {n} days in a row.",
+  "@planCheckedInStreak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "planCheckinUndone": "Today's check-in was undone.",
+  "planFinishedToast": "Plan finished. Its deadline reminder was cancelled.",
+  "reportAutoDone": "{count} new report(s) generated automatically — see below.",
+  "@reportAutoDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportAutoNothingDone": "There were no reports to generate.",
+  "reportAutoNoticeTitle": "Your reading report is ready",
+  "planRemindDailyWhen": "Reminds you daily at 21:00; it comes back tomorrow.",
+  "planRemindBookWhen": "Reminds you once, at 21:00 three days before the deadline.",
   "reportHistoryEmpty": "No reports yet. Pick a period and generate your first one below.",
   "reportNoKey": "No model configured, so reports cannot be generated. Add a key in Settings first.",
   "settingsTheme": "Theme",

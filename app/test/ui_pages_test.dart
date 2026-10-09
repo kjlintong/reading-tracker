@@ -770,6 +770,73 @@ void main() {
       addTearDown(tester.view.reset);
     }
 
+    testWidgets('点「今天读完了」有明确反馈，且真的落库', (tester) async {
+      tallViewport(tester);
+      await repo.upsertPlan(ReadingPlan(
+        id: 'p1',
+        kind: PlanKind.dailyMinutes,
+        dailyMinutes: 30,
+        createdAt: DateTime.now().toIso8601String(),
+      ));
+      await render(tester, const NotesPage());
+      expect(find.text('今天读完了'), findsOneWidget);
+
+      await tester.tap(find.text('今天读完了'));
+      await tester.pump();
+      // 写库是真异步，交还事件循环让它落地
+      await settleAsync(tester);
+      await tester.pump();
+
+      // ① 数据真的写进去了（这是「点了没反应」的第一个根因：
+      //    markedDates 曾返回 const {}，add 直接抛 UnsupportedError，
+      //    异常在 async 链里没人接——既没写库也没重绘）
+      final stored = await repo.plans();
+      expect(stored.first.lastDoneOn, ReadingPlan.todayIso());
+      expect(stored.first.doneToday(), isTrue);
+
+      // ② 界面上能看出来。少了这个，即使写进去了也像没反应：
+      //    以前只有一个图标从空心圈变成实心圈，在安静的列表里几乎看不见。
+      expect(find.text('今天已完成'), findsOneWidget);
+
+      // ③ 按钮**不能消失**——这是每天都要做的周期任务，
+      //    打满一天就找不见入口，等于做成了一次性任务。
+      expect(find.text('今天读完了'), findsNothing);
+
+      // ④ 两条常驻反馈可核对：连续天数 + 打卡确认小字。
+      //    用卡片上的字而不是 SnackBar，是因为 SnackBar 会消失，
+      //    且它的状态会跨页面留存（同文件里下一个用例会因此断言失败）。
+      expect(find.text('连续打卡 1 天'), findsOneWidget);
+      expect(
+        find.text('今天读完了，连续打卡从今天重新开始。'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('每日型达成后按钮仍在（周期任务不能一次性消失）', (tester) async {
+      tallViewport(tester);
+      // 今天已读满 30 分钟 → 达成条件成立
+      final now = DateTime.now();
+      await repo.insert(book('b1', '今天读的书'));
+      await repo.addLog(ReadingLog(
+        id: 'l1',
+        bookId: 'b1',
+        date: '${now.year.toString().padLeft(4, '0')}-'
+            '${now.month.toString().padLeft(2, '0')}-'
+            '${now.day.toString().padLeft(2, '0')}',
+        durationMin: 45,
+      ));
+      await repo.upsertPlan(ReadingPlan(
+        id: 'p1',
+        kind: PlanKind.dailyMinutes,
+        dailyMinutes: 30,
+        createdAt: DateTime.now().toIso8601String(),
+      ));
+      await render(tester, const NotesPage());
+
+      // 达成了，但入口必须留着——明天还要继续读
+      expect(find.text('今天读完了'), findsOneWidget);
+    });
+
     testWidgets('计划空态给出引导而不是一片空白', (tester) async {
       tallViewport(tester);
       await render(tester, const NotesPage());
@@ -1005,19 +1072,23 @@ void main() {
       expect(find.textContaining('还没有'), findsOneWidget);
     });
 
-    testWidgets('报告设置页：默认只勾年报，月报要用户自己开', (tester) async {
+    testWidgets('报告设置页：年报与月报默认都开，且说明写清了触发时机',
+        (tester) async {
       bigViewport(tester);
       await render(tester, const ReportSettingsPage());
       await settleAsync(tester);
-      // 用户明确要求「默认生成年报，用户选择是否生成月报」
-      expect(find.text('年报'), findsOneWidget);
+      // 用户要求「年报次年首次打开自动生成、月报次月首次打开自动生成」，
+      // 两者都是默认行为，所以两个开关默认都勾。
+      expect(find.text('年报（去年）'), findsOneWidget);
       expect(find.text('月报'), findsOneWidget);
+      // 说明文案必须讲清「什么时候生成」——只写「自动生成」等于没说。
+      expect(find.textContaining('去年全年的年报'), findsOneWidget);
       final boxes = tester
           .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
           .toList();
       expect(boxes.length, 2);
       expect(boxes[0].value, isTrue, reason: '年报默认开');
-      expect(boxes[1].value, isFalse, reason: '月报默认关，由用户自己勾');
+      expect(boxes[1].value, isTrue, reason: '月报默认开');
     });
 
     testWidgets('报告设置页不再自动补生成，改成显式按钮', (tester) async {

@@ -1106,13 +1106,13 @@ class SEn extends S {
   String get s_772cbfcf => 'Auto-generate';
 
   @override
-  String get s_01955ddf => 'When this is on, opening this page automatically generates any missing yearly report and last month\'s monthly report.';
+  String get s_01955ddf => 'When on, opening the app fills in what\'s missing: last month\'s monthly report, and last year\'s annual report (generated the first time you open the app in the new year).';
 
   @override
   String get s_b2a52a3d => 'Auto-generate missing';
 
   @override
-  String get s_b233138e => 'Yearly';
+  String get s_b233138e => 'Annual (last year)';
 
   @override
   String get s_877b864d => 'Monthly';
@@ -2476,6 +2476,37 @@ class SEn extends S {
 
   @override
   String get reportNothingToBackfill => 'Every report that should exist is already here.';
+
+  @override
+  String get planCheckedIn => 'Marked as read for today. Your streak starts counting again from today.';
+
+  @override
+  String planCheckedInStreak({required int n}) {
+    return 'Checked in — $n days in a row.';
+  }
+
+  @override
+  String get planCheckinUndone => 'Today\'s check-in was undone.';
+
+  @override
+  String get planFinishedToast => 'Plan finished. Its deadline reminder was cancelled.';
+
+  @override
+  String reportAutoDone({required int count}) {
+    return '$count new report(s) generated automatically — see below.';
+  }
+
+  @override
+  String get reportAutoNothingDone => 'There were no reports to generate.';
+
+  @override
+  String get reportAutoNoticeTitle => 'Your reading report is ready';
+
+  @override
+  String get planRemindDailyWhen => 'Reminds you daily at 21:00; it comes back tomorrow.';
+
+  @override
+  String get planRemindBookWhen => 'Reminds you once, at 21:00 three days before the deadline.';
 
   @override
   String get reportHistoryEmpty => 'No reports yet. Pick a period and generate your first one below.';

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
@@ -161,14 +162,21 @@ class PlanReminderService {
     return false;
   }
 
+  /// 提醒的挂钟时刻（当地时间 24 小时制）。
+  ///
+  /// 用户明确要求：**每日计划与到期提醒都在晚上 9 点**。
+  /// 9 点是「今天还读得进去，但该收尾了」的时段——早上 9 点提醒「3 天后到期」
+  /// 既没用（那会儿用户多半没空决定读不读），也吵。
+  static const int reminderHour = 21;
+
   /// 为一条计划安排提醒。
   ///
-  /// 两种计划各自对应一个时间点：
-  ///  - 每日时长型：**每天 20:30**。用 `matchDateTimeComponents: time`
+  /// 两种计划各自对应一个时间点，**都在当地时间 [reminderHour] 点**：
+  ///  - 每日时长型：**每天 21:00**。用 `matchDateTimeComponents: time`
   ///    让系统按挂钟时间每天重复——这正是用户要的「周期任务」语义：
   ///    提醒是常驻的，不因为某天标了「今天读完」就消失。
   ///    关闭提醒 / 删除计划时用 [cancel] 撤掉。
-  ///  - 读完某本书：**截止日前 3 天**的早上 9:00。一次性。
+  ///  - 读完某本书：**截止日前 3 天**的 21:00。一次性。
   ///
   /// 返回值区分「排上了 / 按规则不用排 / 没权限 / 平台不可用」四种，
   /// 详见 [ReminderOutcome]。调用方据此决定要不要提示用户。
@@ -184,13 +192,7 @@ class PlanReminderService {
     final String body;
     final DateTimeComponents? repeat;
     if (plan.kind == PlanKind.dailyMinutes) {
-      var t = DateTime.now();
-      t = DateTime(t.year, t.month, t.day, 20, 30);
-      // 已经过点就排到明天，避免「设了提醒马上响」这种骚扰
-      if (!t.isAfter(DateTime.now())) {
-        t = t.add(const Duration(days: 1));
-      }
-      when = t;
+      when = nextDailySlot();
       title = appLoc.planReminderDailyTitle;
       body = appLoc.planReminderDailyBody(minutes: plan.dailyMinutes ?? 0);
       // 每日型是周期任务：只排一次，让系统按时间每天重复
@@ -199,9 +201,8 @@ class PlanReminderService {
       final due =
           plan.dueDate == null ? null : DateTime.tryParse(plan.dueDate!);
       if (due == null) return ReminderOutcome.skippedNotDue;
-      final t =
-          DateTime(due.year, due.month, due.day, 9, 0).subtract(const Duration(days: 3));
-      if (!t.isAfter(DateTime.now())) {
+      final t = bookReminderAt(due);
+      if (t == null || !t.isAfter(DateTime.now())) {
         // 截止日不足 3 天：一条马上要响的「还有 3 天到期」只会让人困惑。
         // 这不是失败，是「这条计划不需要提醒」。
         return ReminderOutcome.skippedNotDue;
@@ -231,6 +232,34 @@ class PlanReminderService {
     }
   }
 
+  /// 下一个尚未过去的「今天 [reminderHour]:00」；今天已过点则顺延到明天。
+  ///
+  /// 抽出成静态方法是为了能单测时刻计算，不用真机等时钟。
+  @visibleForTesting
+  static DateTime nextDailySlot([DateTime? now]) {
+    final t = now ?? DateTime.now();
+    var slot = DateTime(t.year, t.month, t.day, reminderHour, 0);
+    if (!slot.isAfter(t)) {
+      slot = slot.add(const Duration(days: 1));
+    }
+    return slot;
+  }
+
+  /// 「读完一本书」型计划的提醒时刻：截止日前 3 天的 [reminderHour] 点。
+  ///
+  /// 返回 null 表示不该排（缺截止日 / 距截止已不足 3 天）。
+  ///
+  /// **必须先减 3 天再造时刻**：反过来（先造 21:00 再减 3 天）结果一样，
+  /// 但减法跨月时 `DateTime` 会自动进位，写成同一天减法看不出差别，
+  /// 单测能立刻抓到这个顺序错误。
+  @visibleForTesting
+  static DateTime? bookReminderAt(DateTime due, {DateTime? now}) {
+    final t = now ?? DateTime.now();
+    final at = DateTime(due.year, due.month, due.day, reminderHour, 0)
+        .subtract(const Duration(days: 3));
+    return at.isAfter(t) ? at : null;
+  }
+
   Future<bool> _show({
     required int id,
     required String title,
@@ -238,22 +267,12 @@ class PlanReminderService {
     required DateTime when,
     DateTimeComponents? matchDateTimeComponents,
   }) async {
-    const details = NotificationDetails(
-      android: AndroidNotificationDetails(
-        'reading_plans',
-        '阅读计划提醒',
-        channelDescription: '每日阅读提醒与计划到期提醒',
-        importance: Importance.defaultImportance,
-        priority: Priority.defaultPriority,
-      ),
-      iOS: DarwinNotificationDetails(),
-    );
     await _plugin.zonedSchedule(
       id,
       title,
       body,
       _tz(when),
-      details,
+      _details('reading_plans'),
       // iOS 10 以前不支持时区，靠这个参数决定「绝对时刻」还是「挂钟时间」。
       // 我们构造的都是本地挂钟时间，所以选 wallClock。
       // 参数在 17.x 仍是必填，不能省。
@@ -264,6 +283,24 @@ class PlanReminderService {
     );
     return true;
   }
+
+  /// Android 通知渠道。
+  ///
+  /// 渠道一旦创建，用户在系统设置里改过重要性/声音之后再改代码是**不生效**
+  /// 的（系统沿用旧配置），所以这里按用途分渠道，并且一次定好不再变动。
+  ///
+  /// 渠道名与描述走中文常量而非 ARB：Android 渠道名只在系统设置里显示，
+  /// 那里没有本 App 的语言上下文；用 appLoc 反而会随 App 语言切换而错位。
+  NotificationDetails _details(String channelId) => NotificationDetails(
+        android: AndroidNotificationDetails(
+          channelId,
+          '阅读提醒',
+          channelDescription: '每日阅读提醒、计划到期提醒与阅读报告提醒',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: const DarwinNotificationDetails(),
+      );
 
   /// 取消一条计划的通知。计划完成 / 删除 / 关掉提醒开关时都要调。
   Future<void> cancel(String planId) async {
@@ -280,6 +317,28 @@ class PlanReminderService {
     if (!_ready) return;
     try {
       await _plugin.cancelAll();
+    } catch (_) {}
+  }
+
+  /// 立刻弹一条通知（不排期、立即显示）。
+  ///
+  /// 给「自动生成的报告已就绪」用——它不是计划提醒，而是一条
+  /// 「有事发生了、请回来看」的消息，与计划提醒共用通道与权限，
+  /// 所以放在同一个服务里，而不是再造一个插件实例。
+  ///
+  /// **不在这里索取权限**。若用户还没授权就静默返回：
+  /// 自动生成报告是后台行为，弹一个权限框既突兀又常被拒。
+  /// 真想提醒，就该在用户主动开启计划提醒时一并拿到授权。
+  Future<void> notifyNow({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await init();
+    if (!_ready) return;
+    if (!await hasPermission()) return;
+    try {
+      await _plugin.show(id, title, body, _details('reports'));
     } catch (_) {}
   }
 

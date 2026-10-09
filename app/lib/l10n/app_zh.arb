@@ -313,9 +313,9 @@
   "s_049eca89": "复制全文",
   "s_50bf9961": "报告已复制到剪贴板",
   "s_772cbfcf": "自动生成",
-  "s_01955ddf": "开启后，打开本页会自动补生成缺失的年报与上月月报。",
+  "s_01955ddf": "开启后，打开 App 时会补生成缺失的报告：上月的月报，以及去年全年的年报（次年首次打开时生成）。",
   "s_b2a52a3d": "自动补生成",
-  "s_b233138e": "年报",
+  "s_b233138e": "年报（去年）",
   "s_877b864d": "月报",
   "s_a3dfa2a6": "历史报告",
   "s_66772db6": "导出阅读数据",
@@ -3233,6 +3233,29 @@
   "reportSettings": "报告设置",
   "reportBackfill": "补生成缺失的报告",
   "reportNothingToBackfill": "所有该生成的报告都已存在，没有需要补的。",
+  "planCheckedIn": "今天读完了，连续打卡从今天重新开始。",
+  "planCheckedInStreak": "打卡成功，已连续 {n} 天。",
+  "@planCheckedInStreak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "planCheckinUndone": "已取消今天的打卡。",
+  "planFinishedToast": "计划已完成，到期提醒已取消。",
+  "reportAutoDone": "已自动生成 {count} 份新报告，到下面查看。",
+  "@reportAutoDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportAutoNothingDone": "没有需要补生成的报告。",
+  "reportAutoNoticeTitle": "你的阅读报告已生成",
+  "planRemindDailyWhen": "每天 21:00 提醒一次；今天读完后明天照旧。",
+  "planRemindBookWhen": "到期前 3 天的 21:00 提醒一次。",
   "reportHistoryEmpty": "还没有报告。选好周期，点下面的按钮生成第一份。",
   "reportNoKey": "还没有配置大模型，无法生成报告。请先到「设置」里填入 Key。",
   "settingsTheme": "皮肤",

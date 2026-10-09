@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -110,6 +112,14 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await loadSettings(ref);
       if (mounted) setState(() => _loaded = true);
+
+      // 自动补生成过期周期的报告（去年年报 / 上月月报）。
+      //
+      // 放在 loadSettings 之后、**不 await**：
+      // 它要读设置，也要在首帧之后才发起（否则用户看到的是启动期白屏）。
+      // 生成走大模型请求，通常几秒起步；挂在 await 后面会拖住整个界面。
+      // 失败一律自己吞掉——报告没生成出来绝不该影响 App 可用。
+      unawaited(runAutoReportsIfDue(ref).catchError((_) {}));
     });
   }
 

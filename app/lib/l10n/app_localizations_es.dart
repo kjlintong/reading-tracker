@@ -1106,13 +1106,13 @@ class SEs extends S {
   String get s_772cbfcf => 'Generar automáticamente';
 
   @override
-  String get s_01955ddf => 'Al activarlo, al abrir esta página se generan automáticamente los informes anuales que falten y el informe mensual del mes pasado.';
+  String get s_01955ddf => 'Si está activado, al abrir la aplicación se completa lo que falte: el informe mensual del mes pasado y el informe anual del año anterior (se genera la primera vez que se abre la aplicación en el nuevo año).';
 
   @override
   String get s_b2a52a3d => 'Generar los que falten';
 
   @override
-  String get s_b233138e => 'Anual';
+  String get s_b233138e => 'Anual (año anterior)';
 
   @override
   String get s_877b864d => 'Mensual';
@@ -2476,6 +2476,37 @@ class SEs extends S {
 
   @override
   String get reportNothingToBackfill => 'Ya están todos los informes que deberían existir.';
+
+  @override
+  String get planCheckedIn => 'Marcado como leído hoy. Tu racha vuelve a contar desde hoy.';
+
+  @override
+  String planCheckedInStreak({required int n}) {
+    return 'Marcado: $n días seguidos.';
+  }
+
+  @override
+  String get planCheckinUndone => 'Se ha deshecho la marca de hoy.';
+
+  @override
+  String get planFinishedToast => 'Plan completado. Se ha cancelado el recordatorio de vencimiento.';
+
+  @override
+  String reportAutoDone({required int count}) {
+    return 'Se han generado $count informes nuevos automáticamente; míralos abajo.';
+  }
+
+  @override
+  String get reportAutoNothingDone => 'No había ningún informe que generar.';
+
+  @override
+  String get reportAutoNoticeTitle => 'Tu informe de lectura está listo';
+
+  @override
+  String get planRemindDailyWhen => 'Te avisa cada día a las 21:00; y vuelve mañana.';
+
+  @override
+  String get planRemindBookWhen => 'Te avisa una vez a las 21:00, tres días antes de la fecha límite.';
 
   @override
   String get reportHistoryEmpty => 'Todavía no hay informes. Elige un periodo y genera el primero abajo.';

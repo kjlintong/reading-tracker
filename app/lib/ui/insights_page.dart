@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_localizations.dart';
+import '../providers.dart';
 import 'ai_report_page.dart';
+import 'archive_section.dart';
 import 'profile_sections.dart';
 
 /// 阅读档案：偏好分布 + 性格标签 + 阅读报告。
@@ -21,19 +24,28 @@ import 'profile_sections.dart';
 ///
 /// **阅读计划不在这里**。计划是「我正在做什么」，与笔记同属
 /// 「进行中的产出」，已并入第二栏「记录」；档案只留回顾性的内容。
-class InsightsPage extends StatelessWidget {
+class InsightsPage extends ConsumerWidget {
   const InsightsPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final l10n = S.of(context);
+    // 自动生成了一份新报告时，这里会非 null。关闭后置回 null，
+    // 状态存在 provider 里——放本地变量会在重建时丢失，
+    // 那条提示就永远消不掉了。
+    final notice = ref.watch(autoReportNoticeProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.insights)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (notice != null)
+            AutoReportNotice(
+              message: notice,
+              onDismiss: () => ref.read(autoReportNoticeProvider.notifier).state = null,
+            ),
           Text(l10n.insightsDesc,
               style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
           const SizedBox(height: 16),

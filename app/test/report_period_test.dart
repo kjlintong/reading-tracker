@@ -46,9 +46,9 @@ void main() {
   });
 
   group('候选与自动补生成', () {
-    test('候选含近 3 年与近 12 个已结束月份', () {
+    test('候选含近 4 年与近 12 个已结束月份', () {
       final list = ReportPeriod.candidates(now: DateTime(2026, 9, 30));
-      expect(list.where((p) => p.isYear).length, 3);
+      expect(list.where((p) => p.isYear).length, 4);
       expect(list.where((p) => !p.isYear).length, 12);
       // 当月不在候选里：当月月报数据还在长，生成出来第二天就过期
       expect(list.any((p) => p.key == '2026-09'), isFalse);
@@ -61,14 +61,16 @@ void main() {
       expect(list.any((p) => p.key == '2026-01'), isFalse);
     });
 
-    test('自动目标是「今年年报 + 上一个自然月」', () {
+    test('自动目标是「上月月报 + 去年年报」', () {
+      // 年报取去年而非今年：今年的 12 个月还没走完，
+      // 现在就出「今年年报」等于把残缺的一年当全年结论。
       final t = ReportPeriod.autoTargets(now: DateTime(2026, 9, 30));
-      expect(t.map((p) => p.key).toList(), ['2026-08', '2026']);
+      expect(t.map((p) => p.key).toList(), ['2026-08', '2025']);
     });
 
     test('自动目标跨年正确', () {
       final t = ReportPeriod.autoTargets(now: DateTime(2026, 1, 10));
-      expect(t.map((p) => p.key).toList(), ['2025-12', '2026']);
+      expect(t.map((p) => p.key).toList(), ['2025-12', '2025']);
     });
   });
 }

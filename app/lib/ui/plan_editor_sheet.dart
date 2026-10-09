@@ -327,8 +327,16 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
                         size: 20, color: cs.primary),
                     title: Text(appLoc.planRemind,
                         style: const TextStyle(fontSize: 13.5)),
+                    // 副标题随类型变化，把**什么时候会响**说清楚。
+                    // 以前两种类型都写「完成后自动取消」，于是每日型用户
+                    // 以为勾完就再也不响了（实际是每天都响），
+                    // 到期型用户也不知道到底提前几天提醒。
                     subtitle: Text(
-                      appLoc.planRemindOff,
+                      _remind
+                          ? (_kind == PlanKind.dailyMinutes
+                              ? appLoc.planRemindDailyWhen
+                              : appLoc.planRemindBookWhen)
+                          : appLoc.planRemindOff,
                       style: TextStyle(
                           fontSize: 11, color: cs.onSurfaceVariant),
                     ),

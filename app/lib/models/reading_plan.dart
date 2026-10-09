@@ -103,8 +103,14 @@ class ReadingPlan {
   }
 
   /// 已打卡的日期集合（yyyy-MM-dd）。
+  ///
+  /// **必须是可增长的集合**：调用方会拿到它直接 `add` / `remove`
+  /// （见 `plan_section.dart` 的打卡逻辑）。以前这里返回 `const {}`，
+  /// 于是第一次打卡时 `const {}..add(today)` 抛 `UnsupportedError`——
+  /// 异常在 async 链里没人接，表现为「点了完成毫无反应」，
+  /// 而且打卡记录永远写不进库（下次点还是从零开始，永远成功不了）。
   Set<String> get markedDates {
-    if (checkins == null || checkins!.isEmpty) return const {};
+    if (checkins == null || checkins!.isEmpty) return <String>{};
     return checkins!.split(',').where((e) => e.isNotEmpty).toSet();
   }
 

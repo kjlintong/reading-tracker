@@ -1982,7 +1982,7 @@ abstract class S {
   /// auto-extracted
   ///
   /// In en, this message translates to:
-  /// **'When this is on, opening this page automatically generates any missing yearly report and last month\'s monthly report.'**
+  /// **'When on, opening the app fills in what\'s missing: last month\'s monthly report, and last year\'s annual report (generated the first time you open the app in the new year).'**
   String get s_01955ddf;
 
   /// auto-extracted
@@ -1994,7 +1994,7 @@ abstract class S {
   /// auto-extracted
   ///
   /// In en, this message translates to:
-  /// **'Yearly'**
+  /// **'Annual (last year)'**
   String get s_b233138e;
 
   /// auto-extracted
@@ -4378,6 +4378,60 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Every report that should exist is already here.'**
   String get reportNothingToBackfill;
+
+  /// No description provided for @planCheckedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as read for today. Your streak starts counting again from today.'**
+  String get planCheckedIn;
+
+  /// No description provided for @planCheckedInStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked in — {n} days in a row.'**
+  String planCheckedInStreak({required int n});
+
+  /// No description provided for @planCheckinUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s check-in was undone.'**
+  String get planCheckinUndone;
+
+  /// No description provided for @planFinishedToast.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan finished. Its deadline reminder was cancelled.'**
+  String get planFinishedToast;
+
+  /// No description provided for @reportAutoDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new report(s) generated automatically — see below.'**
+  String reportAutoDone({required int count});
+
+  /// No description provided for @reportAutoNothingDone.
+  ///
+  /// In en, this message translates to:
+  /// **'There were no reports to generate.'**
+  String get reportAutoNothingDone;
+
+  /// No description provided for @reportAutoNoticeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your reading report is ready'**
+  String get reportAutoNoticeTitle;
+
+  /// No description provided for @planRemindDailyWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminds you daily at 21:00; it comes back tomorrow.'**
+  String get planRemindDailyWhen;
+
+  /// No description provided for @planRemindBookWhen.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminds you once, at 21:00 three days before the deadline.'**
+  String get planRemindBookWhen;
 
   /// No description provided for @reportHistoryEmpty.
   ///

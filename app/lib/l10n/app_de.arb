@@ -313,9 +313,9 @@
   "s_049eca89": "Alles kopieren",
   "s_50bf9961": "Bericht in Zwischenablage kopiert",
   "s_772cbfcf": "Automatisch generieren",
-  "s_01955ddf": "Wenn diese Option aktiviert ist, generiert das Öffnen dieser Seite automatisch alle fehlenden Jahresberichte und den Monatsbericht des letzten Monats.",
+  "s_01955ddf": "Wenn aktiviert, ergänzt das Öffnen der App Fehlendes: den Monatsbericht des letzten Monats und den Jahresbericht des Vorjahres (erzeugt beim ersten Öffnen im neuen Jahr).",
   "s_b2a52a3d": "Automatische Generierung fehlt",
-  "s_b233138e": "Jährlich",
+  "s_b233138e": "Jahresbericht (Vorjahr)",
   "s_877b864d": "Einmal im Monat",
   "s_a3dfa2a6": "Vergangene Berichte",
   "s_66772db6": "Lesedaten exportieren",
@@ -3233,6 +3233,29 @@
   "reportSettings": "Report-Einstellungen",
   "reportBackfill": "Fehlende Berichte generieren",
   "reportNothingToBackfill": "Jeder Bericht, der existieren sollte, ist bereits hier.",
+  "planCheckedIn": "Als heute gelesen markiert. Deine Serie zählt ab heute neu.",
+  "planCheckedInStreak": "Erledigt — {n} Tage in Folge.",
+  "@planCheckedInStreak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "planCheckinUndone": "Die heutige Eintragung wurde rückgängig gemacht.",
+  "planFinishedToast": "Plan erfüllt. Die Fristerinnerung wurde storniert.",
+  "reportAutoDone": "{count} neue Berichte automatisch erstellt — siehe unten.",
+  "@reportAutoDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportAutoNothingDone": "Es gab keine Berichte zu erstellen.",
+  "reportAutoNoticeTitle": "Dein Lesebericht ist fertig",
+  "planRemindDailyWhen": "Erinnert täglich um 21:00 Uhr; morgen wieder.",
+  "planRemindBookWhen": "Erinnert einmalig um 21:00 Uhr, drei Tage vor der Frist.",
   "reportHistoryEmpty": "Noch keine Berichte. Wählen Sie einen Zeitraum aus und erstellen Sie unten Ihren ersten.",
   "reportNoKey": "Kein Modell konfiguriert, daher können keine Berichte generiert werden. Fügen Sie zuerst einen Schlüssel in den Einstellungen hinzu.",
   "settingsTheme": "Theme",

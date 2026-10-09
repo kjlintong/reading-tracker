@@ -1106,13 +1106,13 @@ class SDe extends S {
   String get s_772cbfcf => 'Automatisch generieren';
 
   @override
-  String get s_01955ddf => 'Wenn diese Option aktiviert ist, generiert das Öffnen dieser Seite automatisch alle fehlenden Jahresberichte und den Monatsbericht des letzten Monats.';
+  String get s_01955ddf => 'Wenn aktiviert, ergänzt das Öffnen der App Fehlendes: den Monatsbericht des letzten Monats und den Jahresbericht des Vorjahres (erzeugt beim ersten Öffnen im neuen Jahr).';
 
   @override
   String get s_b2a52a3d => 'Automatische Generierung fehlt';
 
   @override
-  String get s_b233138e => 'Jährlich';
+  String get s_b233138e => 'Jahresbericht (Vorjahr)';
 
   @override
   String get s_877b864d => 'Einmal im Monat';
@@ -2476,6 +2476,37 @@ class SDe extends S {
 
   @override
   String get reportNothingToBackfill => 'Jeder Bericht, der existieren sollte, ist bereits hier.';
+
+  @override
+  String get planCheckedIn => 'Als heute gelesen markiert. Deine Serie zählt ab heute neu.';
+
+  @override
+  String planCheckedInStreak({required int n}) {
+    return 'Erledigt — $n Tage in Folge.';
+  }
+
+  @override
+  String get planCheckinUndone => 'Die heutige Eintragung wurde rückgängig gemacht.';
+
+  @override
+  String get planFinishedToast => 'Plan erfüllt. Die Fristerinnerung wurde storniert.';
+
+  @override
+  String reportAutoDone({required int count}) {
+    return '$count neue Berichte automatisch erstellt — siehe unten.';
+  }
+
+  @override
+  String get reportAutoNothingDone => 'Es gab keine Berichte zu erstellen.';
+
+  @override
+  String get reportAutoNoticeTitle => 'Dein Lesebericht ist fertig';
+
+  @override
+  String get planRemindDailyWhen => 'Erinnert täglich um 21:00 Uhr; morgen wieder.';
+
+  @override
+  String get planRemindBookWhen => 'Erinnert einmalig um 21:00 Uhr, drei Tage vor der Frist.';
 
   @override
   String get reportHistoryEmpty => 'Noch keine Berichte. Wählen Sie einen Zeitraum aus und erstellen Sie unten Ihren ersten.';

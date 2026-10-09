@@ -159,6 +159,14 @@ class _AiReportPanelState extends ConsumerState<AiReportPanel> {
   String _customPrompt = '';
   final _customPromptCtl = TextEditingController();
 
+  /// 手动订阅句柄。启动时的自动补生成会往库里写新报告，而这个面板的
+  /// 历史列表是在 initState 里拉一次的，不刷新就看不到刚生成的那几份——
+  /// 提示条说「已生成」，下面列表里却没有，等于白提醒。
+  ///
+  /// 用 [listenManual] 而不是 `ref.listen` 写在 build 里：后者要求严格在
+  /// build 方法内调用，放在 didChangeDependencies 里会断言失败
+  /// （"ref.listen can only be used within the build method"）。
+  ProviderSubscription<String?>? _noticeSub;
 
   @override
   void initState() {
@@ -166,6 +174,16 @@ class _AiReportPanelState extends ConsumerState<AiReportPanel> {
     _candidates = ReportPeriod.candidates();
     _period = _candidates.first;
     _loadAll();
+
+    _noticeSub = ref.listenManual<String?>(
+      autoReportNoticeProvider,
+      (prev, next) {
+        // 只在「从没有到有」时刷新。用户关闭提示条会把它置回 null，
+        // 那时不必再读一次库。
+        if (prev == null && next != null) _loadHistory();
+      },
+      fireImmediately: false,
+    );
   }
 
   Future<void> _loadAll() async {
@@ -187,17 +205,15 @@ class _AiReportPanelState extends ConsumerState<AiReportPanel> {
 
   @override
   void dispose() {
+    _noticeSub?.close();
     _customPromptCtl.dispose();
     super.dispose();
   }
-
 
   Future<void> _loadHistory() async {
     final rows = await ref.read(repoProvider).reports();
     if (mounted) setState(() => _history = rows);
   }
-
-  /// 为 [p] 生成并存档。返回正文；无书时返回 null。
 
   /// 为 [p] 生成并存档。返回正文；无书时返回 null。
   Future<String?> _generateFor(ReportPeriod p, {bool silent = false}) async {
@@ -648,7 +664,13 @@ class _ReportSettingsPageState extends ConsumerState<ReportSettingsPage> {
       _customPrompt = prompt ?? '';
       _customPromptCtl.text = _customPrompt;
       _autoEnabled = enabled != '0';
-      final k = kinds ?? 'year';
+      // 默认年报与月报都开：用户要的就是「过期了就自动补」，
+      // 只开年报等于月报永远得手动点。
+      //
+      // ⚠️ 这个默认值必须与 `runAutoReportsIfDue` 里的兜底一致，
+      // 否则「设置里没写过这个键」的用户在设置页看到月报是关的、
+      // 启动时却仍会生成月报——两处对不上，用户完全无法理解。
+      final k = kinds ?? 'year,month';
       _autoYear = k.contains('year');
       _autoMonth = k.contains('month');
       _loading = false;

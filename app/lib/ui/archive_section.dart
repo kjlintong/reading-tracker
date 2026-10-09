@@ -94,3 +94,68 @@ Widget archiveNote(String text, ColorScheme cs) => Text(
 /// `PreferenceSlice.label` 存的是**规范值**（「文学」这样的中文常量），
 /// 它是气泡图取色的 key，不能本地化。所有渲染点都必须过这一层。
 String localizedCategory(String canonical) => categoryLabel(canonical);
+
+/// 「自动生成了一份新报告」的一次性提示条。
+///
+/// 为什么放在档案页而不是弹 Snackbar / 弹窗：
+///
+/// - **Snackbar 会被打断**。它在启动流程末尾才出现，用户此时多半在
+///   书架页翻书，划一下就没了——等于没提醒。
+/// - **弹窗是打扰**。用户只是打开了 App，没有任何操作意图，
+///   却先被一个模态框拦住。
+/// - 而「阅读档案」正是这件事的家。用户主动来这里就是想看回顾，
+///   在这里留一条「已经为你生成了 N 份报告」并给出直达入口，是把提醒
+///   放在用户本来就会路过、而且此刻最想看的位置。
+///
+/// 可关闭：[dismissed] 为真后整条不再出现（状态由调用方持有）。
+class AutoReportNotice extends StatelessWidget {
+  final String message;
+  final VoidCallback? onTap;
+  final VoidCallback onDismiss;
+
+  const AutoReportNotice({
+    super.key,
+    required this.message,
+    required this.onDismiss,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+      decoration: BoxDecoration(
+        color: cs.primaryContainer.withOpacity(0.55),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.auto_awesome, size: 17, color: cs.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Text(
+                  message,
+                  style: const TextStyle(fontSize: 12.5),
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            iconSize: 17,
+            visualDensity: VisualDensity.compact,
+            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+            onPressed: onDismiss,
+            icon: const Icon(Icons.close),
+          ),
+        ],
+      ),
+    );
+  }
+}

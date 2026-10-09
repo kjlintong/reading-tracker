@@ -805,11 +805,27 @@ class BookRepository {
           sum += e.value;
         }
         final current = sum / days; // 日均
+        // ⚠️ 达成必须看**今天**，不能看日均。
+        //
+        // 日均是「创建至今」的平均值，只增不减：一旦某天读得多把日均拉过
+        // 目标，这个达成就永远为真，卡片上的「今天读完了」按钮会永久消失
+        // ——对一个每天都要做的周期任务来说，这等于「打满一周就再也不用点了」。
+        // 用户看到的就是「按钮不见了，计划没法打卡」。
+        //
+        // 达成口径 = 今天读满了 **或** 今天已手动打卡。
+        // 键的形状由 [minutesByDay] 决定（取 date 前 10 位），
+        // 这里必须用同一套截断，否则查不到今天的键。
+        final now = DateTime.now();
+        final todayKey =
+            '${now.year.toString().padLeft(4, '0')}-'
+            '${now.month.toString().padLeft(2, '0')}-'
+            '${now.day.toString().padLeft(2, '0')}';
+        final todayMin = perDay[todayKey] ?? 0;
         return PlanProgress(
           plan: p,
           target: target,
           current: current,
-          achieved: current >= target,
+          achieved: todayMin >= target || p.doneToday(),
         );
 
       case PlanKind.finishBook:

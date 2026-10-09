@@ -4,8 +4,12 @@ import 'package:dio/dio.dart';
 import 'ai/llm_protocol.dart';
 import 'data/category_prefs.dart';
 import 'data/database.dart';
+import 'data/report_period.dart';
+import 'data/report_style.dart';
 import 'ai/ai_client.dart';
 import 'import/import_manager.dart';
+import 'l10n/app_loc.dart';
+import 'services/auto_report_service.dart';
 import 'services/plan_reminder.dart';
 import 'services/secret_store.dart';
 import 'ui/theme.dart';
@@ -112,6 +116,102 @@ final metadataClientProvider = Provider<MetadataClient>((ref) {
 /// 阅读计划提醒。本地通知，不依赖任何后端；未授权时静默降级。
 final planReminderProvider =
     Provider<PlanReminderService>((ref) => PlanReminderService());
+
+/// 「过期周期自动补生成」的结果，供档案页显示提示条。
+///
+/// 存 null 表示「这一轮没有新报告」——也就是绝大多数时候，
+/// 档案页不该多出任何东西。
+final autoReportNoticeProvider = StateProvider<String?>((ref) => null);
+
+/// 启动后跑一轮自动生成：补上该出的月报 / 年报，完成后发通知。
+///
+/// ## 为什么放在 `loadSettings` 之后
+///
+/// 它要读「是否启用 / 启用哪几种 / 上次跑到哪」这三项设置，
+/// 而它们只在 [loadSettings] 之后才装载。顺序反了会读到空值，
+/// 于是自动生成永远判成「未启用」——一个不会报错的静默失效。
+///
+/// ## 为什么不 await 到首帧之后
+///
+/// 生成要发大模型请求，通常几秒到几十秒。挡住首帧等于 App 打开时白屏
+/// 等报告。所以这里 fire-and-forget：UI 先出来，报告在后台补，
+/// 好了再通过 [autoReportNoticeProvider] 与系统通知告知。
+///
+/// ## 为什么必须先查 llmClient.available
+///
+/// 没配 Key 时 `generateReportInsights` 会直接抛。放在可用性检查之后，
+/// 没配 Key 的用户连一次网络请求都不会发生。
+Future<void> runAutoReportsIfDue(WidgetRef ref) async {
+  final repo = ref.read(repoProvider);
+
+  final enabled = await repo.getSetting(AutoReportPlanner.enabledKey);
+  if (enabled == '0') return;
+  // 兜底 'year,month'，与报告设置页的默认值保持一致——
+  // 两处不一致会让「设置里没写过这个键」的用户看到一个关着的月报开关，
+  // 却每月照样自动生成月报。两边必须同源。
+  final kinds = (await repo.getSetting(AutoReportPlanner.kindsKey)) ?? 'year,month';
+  final wantYear = kinds.contains('year');
+  final wantMonth = kinds.contains('month');
+  final now = DateTime.now();
+  final ranThisMonth = await repo.getSetting(AutoReportPlanner.lastRunKey) ==
+      AutoReportPlanner.monthTag(now);
+
+  if (!AutoReportPlanner.shouldRun(
+    enabled: true,
+    wantYear: wantYear,
+    wantMonth: wantMonth,
+    alreadyRanThisMonth: ranThisMonth,
+    now: now,
+  )) {
+    return;
+  }
+
+  final llm = ref.read(llmClientProvider);
+  // 没配 Key：标记「本月已试过」也无意义，直接返回。
+  // 下次用户配好 Key 再打开时会重新判定——那时才该真的发请求。
+  if (!llm.available) return;
+
+  // 现有 period 集合。用 String 而不是 Map 存：只判存在性。
+  final existing = (await repo.reports(limit: 200))
+      .map((r) => '${r['period']}')
+      .toSet();
+  final pending = AutoReportPlanner.pending(
+    targets: ReportPeriod.autoTargets(now: now),
+    existing: existing,
+    wantYear: wantYear,
+    wantMonth: wantMonth,
+  );
+  // 没有待生成的也要记节流标记吗？**要**。否则每次打开都重算一遍
+  // 全量 reports（几百行）只为得出「没事干」，纯属浪费。
+  await repo.setSetting(
+      AutoReportPlanner.lastRunKey, AutoReportPlanner.monthTag(now));
+  if (pending.isEmpty) return;
+
+  final styleId = await repo.getSetting('report_style');
+  final custom = await repo.getSetting('report_custom_prompt');
+
+  final outcome = await AutoReportRunner(
+    repo: repo,
+    llm: llm,
+    model: ref.read(llmModelProvider),
+    style: ReportStyle.byId(styleId),
+    customPrompt: custom ?? '',
+  ).run(pending);
+
+  if (outcome.generated.isEmpty) return;
+
+  // 两处提醒，缺一不可：
+  //  - 系统通知：用户在别的页面甚至没打开 App 时也能知道；
+  //  - 档案页提示条：系统通知常被静音/免打扰吃掉，用户回到 App 里
+  //    仍然必须看得到这份报告已经存在了。
+  await ref.read(planReminderProvider).notifyNow(
+        id: 0x524e, // 'RN'
+        title: appLoc.reportAutoNoticeTitle,
+        body: appLoc.reportAutoDone(count: outcome.ok),
+      );
+  ref.read(autoReportNoticeProvider.notifier).state =
+      appLoc.reportAutoDone(count: outcome.ok);
+}
 
 final importManagerProvider = Provider<ImportManager>((ref) {
   return ImportManager(

@@ -313,9 +313,9 @@
   "s_049eca89": "Copiar todo",
   "s_50bf9961": "Informe copiado al portapapeles",
   "s_772cbfcf": "Generar automáticamente",
-  "s_01955ddf": "Al activarlo, al abrir esta página se generan automáticamente los informes anuales que falten y el informe mensual del mes pasado.",
+  "s_01955ddf": "Si está activado, al abrir la aplicación se completa lo que falte: el informe mensual del mes pasado y el informe anual del año anterior (se genera la primera vez que se abre la aplicación en el nuevo año).",
   "s_b2a52a3d": "Generar los que falten",
-  "s_b233138e": "Anual",
+  "s_b233138e": "Anual (año anterior)",
   "s_877b864d": "Mensual",
   "s_a3dfa2a6": "Informes anteriores",
   "s_66772db6": "Exportar los datos de lectura",
@@ -3233,6 +3233,29 @@
   "reportSettings": "Ajustes del informe",
   "reportBackfill": "Generar los informes que falten",
   "reportNothingToBackfill": "Ya están todos los informes que deberían existir.",
+  "planCheckedIn": "Marcado como leído hoy. Tu racha vuelve a contar desde hoy.",
+  "planCheckedInStreak": "Marcado: {n} días seguidos.",
+  "@planCheckedInStreak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "planCheckinUndone": "Se ha deshecho la marca de hoy.",
+  "planFinishedToast": "Plan completado. Se ha cancelado el recordatorio de vencimiento.",
+  "reportAutoDone": "Se han generado {count} informes nuevos automáticamente; míralos abajo.",
+  "@reportAutoDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportAutoNothingDone": "No había ningún informe que generar.",
+  "reportAutoNoticeTitle": "Tu informe de lectura está listo",
+  "planRemindDailyWhen": "Te avisa cada día a las 21:00; y vuelve mañana.",
+  "planRemindBookWhen": "Te avisa una vez a las 21:00, tres días antes de la fecha límite.",
   "reportHistoryEmpty": "Todavía no hay informes. Elige un periodo y genera el primero abajo.",
   "reportNoKey": "No hay ningún modelo configurado, así que no se pueden generar informes. Añade antes una key en Ajustes.",
   "settingsTheme": "Tema",

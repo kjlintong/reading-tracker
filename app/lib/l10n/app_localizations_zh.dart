@@ -1106,13 +1106,13 @@ class SZh extends S {
   String get s_772cbfcf => '自动生成';
 
   @override
-  String get s_01955ddf => '开启后，打开本页会自动补生成缺失的年报与上月月报。';
+  String get s_01955ddf => '开启后，打开 App 时会补生成缺失的报告：上月的月报，以及去年全年的年报（次年首次打开时生成）。';
 
   @override
   String get s_b2a52a3d => '自动补生成';
 
   @override
-  String get s_b233138e => '年报';
+  String get s_b233138e => '年报（去年）';
 
   @override
   String get s_877b864d => '月报';
@@ -2476,6 +2476,37 @@ class SZh extends S {
 
   @override
   String get reportNothingToBackfill => '所有该生成的报告都已存在，没有需要补的。';
+
+  @override
+  String get planCheckedIn => '今天读完了，连续打卡从今天重新开始。';
+
+  @override
+  String planCheckedInStreak({required int n}) {
+    return '打卡成功，已连续 $n 天。';
+  }
+
+  @override
+  String get planCheckinUndone => '已取消今天的打卡。';
+
+  @override
+  String get planFinishedToast => '计划已完成，到期提醒已取消。';
+
+  @override
+  String reportAutoDone({required int count}) {
+    return '已自动生成 $count 份新报告，到下面查看。';
+  }
+
+  @override
+  String get reportAutoNothingDone => '没有需要补生成的报告。';
+
+  @override
+  String get reportAutoNoticeTitle => '你的阅读报告已生成';
+
+  @override
+  String get planRemindDailyWhen => '每天 21:00 提醒一次；今天读完后明天照旧。';
+
+  @override
+  String get planRemindBookWhen => '到期前 3 天的 21:00 提醒一次。';
 
   @override
   String get reportHistoryEmpty => '还没有报告。选好周期，点下面的按钮生成第一份。';

@@ -313,9 +313,9 @@
   "s_049eca89": "Tout copier",
   "s_50bf9961": "Rapport copié dans le presse-papiers",
   "s_772cbfcf": "Génération automatique",
-  "s_01955ddf": "Quand c'est activé, ouvrir cette page génère automatiquement les rapports annuels manquants et le rapport mensuel du mois dernier.",
+  "s_01955ddf": "Activé, l'ouverture de l'application comble les manques : rapport mensuel du mois dernier et rapport annuel de l'année précédente (généré à la première ouverture de la nouvelle année).",
   "s_b2a52a3d": "Générer les manquants",
-  "s_b233138e": "Annuel",
+  "s_b233138e": "Annuel (année précédente)",
   "s_877b864d": "Mensuel",
   "s_a3dfa2a6": "Rapports précédents",
   "s_66772db6": "Exporter les données de lecture",
@@ -3233,6 +3233,29 @@
   "reportSettings": "Réglages du rapport",
   "reportBackfill": "Générer les rapports manquants",
   "reportNothingToBackfill": "Tous les rapports qui devraient exister sont déjà là.",
+  "planCheckedIn": "Marqué comme lu aujourd'hui. Ta série repart d'aujourd'hui.",
+  "planCheckedInStreak": "Coché — {n} jours d'affilée.",
+  "@planCheckedInStreak": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "planCheckinUndone": "L'entrée du jour a été annulée.",
+  "planFinishedToast": "Plan terminé. Le rappel d'échéance a été annulé.",
+  "reportAutoDone": "{count} nouveau(x) rapport(s) généré(s) automatiquement — voir ci-dessous.",
+  "@reportAutoDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "reportAutoNothingDone": "Il n'y avait aucun rapport à générer.",
+  "reportAutoNoticeTitle": "Votre rapport de lecture est prêt",
+  "planRemindDailyWhen": "Rappelle chaque jour à 21 h 00 ; et demain encore.",
+  "planRemindBookWhen": "Rappelle une fois à 21 h 00, trois jours avant l'échéance.",
   "reportHistoryEmpty": "Pas encore de rapports. Choisis une période et génère le premier ci-dessous.",
   "reportNoKey": "Aucun modèle configuré, les rapports ne peuvent donc pas être générés. Ajoute d'abord une clé dans les Réglages.",
   "settingsTheme": "Thème",

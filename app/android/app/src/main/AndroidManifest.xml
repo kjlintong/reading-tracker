@@ -5,6 +5,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <!-- 阅读计划提醒（Android 13+ 必须声明，否则请求权限会被系统静默拒绝） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- 计划提醒与自动报告提醒都是「未来某个时刻」触发的本地通知。
+         这个权限让插件在设备重启后能重新排期——重启后 AlarmManager 里的
+         待触发闹钟会被系统清空，没有它所有提醒在重启后永久消失。
+         ⚠️ 下面三个 <receiver> 同样不能少：缺了它们系统虽能收到闹钟广播，
+         却没有任何组件接收，定时通知**永远不会显示**。这是「排上了却从不响」
+         的头号原因，比权限问题常见得多（权限至少还会弹窗被拒）。 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- 拍照导入书架 -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <!-- Android 13+ 读取相册 -->
@@ -41,6 +48,23 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- flutter_local_notifications 的定时通知接收器。
+             ⚠️ 漏掉任何一个，AlarmManager 排的闹钟都不会变成用户看得见的通知。
+             export 必须为 false：这些 receiver 只应由系统广播触发。 -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false"/>
+        <!-- 重启 / 覆盖安装后重新排期，否则提醒在重启后就没了 -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
