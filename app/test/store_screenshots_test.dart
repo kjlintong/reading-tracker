@@ -67,7 +67,25 @@ void main() {
   /// 没有这个开关就什么都不做，保证 `flutter test` 的日常耗时不受影响。
   final enabled = Platform.environment['STORE_SHOTS'] == '1';
 
-  const outRoot = '../store/screenshots';
+  /// 出图用哪套皮肤。默认第一套（绿意）。
+  ///
+  /// 商店素材不该只出一种界面——换肤是这产品的卖点之一，
+  /// 不同页面/语言轮换几套皮肤，商店页和官网才能把「12 套皮肤」说出来。
+  /// 传入不存在的 id **必须直接报错、不能静默回退到默认**：
+  /// 静默回退会让人以为换了皮肤、实际图还是旧的。
+  final skinId = Platform.environment['STORE_SKIN'] ?? appThemes.first.id;
+  final skin = appThemes.firstWhere(
+    (t) => t.id == skinId,
+    orElse: () => throw StateError('STORE_SKIN=$skinId 不存在。可用：'
+        '${appThemes.map((t) => t.id).join(", ")}'),
+  );
+
+  /// 输出根目录。带皮肤后缀时写到 `screenshots-<后缀>`，
+  /// 免得换个皮肤就把上一套图覆盖掉（官网/上架素材还要用旧的）。
+  final skinSuffix = Platform.environment['STORE_SKIN_SUFFIX'];
+  final outRoot = (skinSuffix == null || skinSuffix.isEmpty)
+      ? '../store/screenshots'
+      : '../store/screenshots-$skinSuffix';
 
   late Database raw;
   late BookRepository repo;
@@ -141,7 +159,7 @@ void main() {
   /// 字体仍然是测试环境专用的：fontFamily 是「首选」，fontFamilyFallback
   /// 是「首选缺字形时按序回退」，两者必须分属**不同 family**（见 _loadFonts）。
   ThemeData theme() {
-    final base = buildTheme(appThemes.first, Brightness.light);
+    final base = buildTheme(skin, Brightness.light);
     // ⚠️ `ThemeData.copyWith` **不接受** fontFamily / fontFamilyFallback
     // （这两个只有 ThemeData 构造器有），而 buildTheme 里已经把
     // `fontFamily: 'Roboto'` 烘进了 textTheme。所以这里必须用
