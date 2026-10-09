@@ -2514,6 +2514,21 @@ class SZh extends S {
   String get themeRose => '樱粉';
 
   @override
+  String get themeMidnight => '黛蓝';
+
+  @override
+  String get themePlum => '檀紫';
+
+  @override
+  String get themeLagoon => '湖绿';
+
+  @override
+  String get themeCitrus => '蜜柑';
+
+  @override
+  String get themeBerry => '莓果';
+
+  @override
   String get settingsChannels => '第三方渠道';
 
   @override

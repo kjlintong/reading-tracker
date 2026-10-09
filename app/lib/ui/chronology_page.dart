@@ -187,12 +187,12 @@ class _ChronologyPageState extends ConsumerState<ChronologyPage> {
 /// 块头是「N 月 + 本数」，底下按本数走两种形态：≤ [ChronologyPage._previewCap] 本
 /// 一栏一栏摊开（看到书名），超过则降级成封面网格 + 「另有 N 本」。
 ///
-/// 月度的识别色取自共享调色板 [chartColorAt]：同一套色相在统计页、
+/// 月度的识别色取自当前皮肤的调色板 [chartColorAt]：同一套色相在统计页、
 /// 画像页已经用过，这里复用能让「三月是金色」这件事在不同页面里一致。
   Widget _monthBlock(BuildContext context, int index, List<Book> books) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final accent = chartColorAt(index);
+    final accent = chartColorAt(index, context);
     final monthLabel = appLoc.s_1a2e873e(month: index + 1);
 
     if (books.isEmpty) {

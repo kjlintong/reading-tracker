@@ -4451,6 +4451,36 @@ abstract class S {
   /// **'Rose'**
   String get themeRose;
 
+  /// No description provided for @themeMidnight.
+  ///
+  /// In en, this message translates to:
+  /// **'Midnight'**
+  String get themeMidnight;
+
+  /// No description provided for @themePlum.
+  ///
+  /// In en, this message translates to:
+  /// **'Plum'**
+  String get themePlum;
+
+  /// No description provided for @themeLagoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Lagoon'**
+  String get themeLagoon;
+
+  /// No description provided for @themeCitrus.
+  ///
+  /// In en, this message translates to:
+  /// **'Citrus'**
+  String get themeCitrus;
+
+  /// No description provided for @themeBerry.
+  ///
+  /// In en, this message translates to:
+  /// **'Berry'**
+  String get themeBerry;
+
   /// No description provided for @settingsChannels.
   ///
   /// In en, this message translates to:

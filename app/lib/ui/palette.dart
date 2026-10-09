@@ -28,12 +28,52 @@ const List<Color> chartPalette = [
   Color(0xFFCF5C9E), // 洋红
 ];
 
-/// 第 [i] 个系列的颜色。超出调色板长度时按**黄金角**旋转色相生成。
+/// 当前皮肤的图表色板，由 [buildTheme] 挂进 [ThemeData.extensions]。
 ///
-/// 黄金角（137.5°）能让相邻色相始终拉得开，比 `i % length` 强：
-/// 后者在第 13 个分类上会直接复用第 1 个分类的颜色。
-Color chartColorAt(int i) {
-  if (i >= 0 && i < chartPalette.length) return chartPalette[i];
+/// ## 为什么需要它
+///
+/// 此前所有皮肤共用一套色板。纸色被主色浸染之后（活泼皮肤），
+/// 同一个色板里总会有几个系列与背景对比不足——那不是「不好看」，
+/// 是**数据看不见了**。因此色板必须跟着皮肤走。
+///
+/// 取不到时退回全局默认色板，于是纯色板调用点（如 palette_test）
+/// 不必构造 Theme 也能工作。
+class ChartPalette extends ThemeExtension<ChartPalette> {
+  const ChartPalette(this.colors);
+
+  final List<Color> colors;
+
+  @override
+  ChartPalette copyWith({List<Color>? colors}) =>
+      ChartPalette(colors ?? this.colors);
+
+  @override
+  ChartPalette lerp(ThemeExtension<ChartPalette>? other, double t) {
+    if (other is! ChartPalette) return this;
+    // 色板不做逐色插值：中途插出来的颜色既不属于A 也不属于 B，
+    // 在浅色底上可能落到对比度不足的区间。切主题是瞬时事件，直接换。
+    return t < 0.5 ? this : other;
+  }
+}
+
+/// 取当前上下文的图表色板；不在 Theme 下时回退全局默认色板。
+List<Color> paletteOf([BuildContext? context]) {
+  if (context == null) return chartPalette;
+  return Theme.of(context).extension<ChartPalette>()?.colors ?? chartPalette;
+}
+
+/// 第 [i] 个系列的颜色，取自当前皮肤色板。
+///
+/// 页面里一律带上 [context]，否则换皮肤时图表不跟着变；
+/// 只有拿不到 context 的场合（CustomPainter、纯函数测试）才省略它，
+/// 此时用全局默认色板。
+///
+/// 超出调色板长度时按**黄金角**旋转色相生成。黄金角（137.5°）能让相邻
+/// 色相始终拉得开，比 `i % length` 强：后者在第 13 个分类上会直接复用
+/// 第 1 个分类的颜色。
+Color chartColorAt(int i, [BuildContext? context]) {
+  final p = paletteOf(context);
+  if (i >= 0 && i < p.length) return p[i];
   final hue = (i * 137.508) % 360;
   return HSLColor.fromAHSL(1, hue, 0.52, 0.52).toColor();
 }

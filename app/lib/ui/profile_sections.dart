@@ -251,7 +251,7 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
           items: [
             for (var i = 0; i < _profile.preferences.length; i++)
               LegendItem(
-                color: chartColorAt(i),
+                color: chartColorAt(i, context),
                 // ⚠️ 必须过 categoryLabel()：PreferenceSlice.label 存的是规范值，
                 // 它是气泡图取色的 key，不能本地化。
                 label: categoryLabel(_profile.preferences[i].label),
@@ -653,7 +653,7 @@ class _ProfileShareCard extends StatelessWidget {
                           minHeight: 10,
                           backgroundColor: const Color(0xFFEEEEEE),
                           valueColor:
-                              AlwaysStoppedAnimation(chartColorAt(i)),
+                              AlwaysStoppedAnimation(chartColorAt(i, context)),
                         ),
                       ),
                     ),

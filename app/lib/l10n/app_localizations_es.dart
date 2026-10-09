@@ -2514,6 +2514,21 @@ class SEs extends S {
   String get themeRose => 'Rosa';
 
   @override
+  String get themeMidnight => 'Medianoche';
+
+  @override
+  String get themePlum => 'Ciruela';
+
+  @override
+  String get themeLagoon => 'Laguna';
+
+  @override
+  String get themeCitrus => 'Cítrico';
+
+  @override
+  String get themeBerry => 'Baya';
+
+  @override
   String get settingsChannels => 'Servicios conectados';
 
   @override

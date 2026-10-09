@@ -885,11 +885,19 @@ class _Section extends StatelessWidget {
   }
 }
 
-/// 皮肤选择器：横向一排圆形色块，选中的带勾与描边。
+/// 皮肤选择器：一个预览块 + 一个下拉。
 ///
-/// 用色块而不是下拉列表：换肤是「看」出来的，让用户直接看到候选颜色
-/// 比读一串名字直观得多。色块里的颜色取该皮肤的浅色种子色——
-/// 它决定了整界面的主色，所见即所得。
+/// ## 为什么不是一排色块
+///
+/// 早期版本把 5 套皮肤铺成 5 个圆形色块。皮肤加到 10 套之后这条路走不通：
+/// 46px 的色块要占两行、占掉设置页里最贵的一块竖向空间，而且
+/// **看不出差别**——所有色块都只填种子色，而一套皮肤的气质大半在
+/// **纸色**上（见[AppTheme.paperTint]），不填纸色的色块等于
+/// 10 个几乎一样的圆点。
+///
+/// 现在改成「左边看、右边选」：预览块显示这套皮肤的**真实纸色与主色**
+/// （就是界面上真正会出现的那个配色），右边一个下拉列出全部皮肤名。
+/// 用户在下拉里读名字、在预览块里看效果，与设置页其他长选项的交互一致。
 class _ThemePicker extends StatelessWidget {
   final String value;
   final ValueChanged<String> onChanged;
@@ -899,33 +907,71 @@ class _ThemePicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+    final theme = AppTheme.byId(value);
+    final scheme = buildTheme(theme, Brightness.light).colorScheme;
+
+    return Row(
       children: [
-        for (final t in appThemes)
-          Tooltip(
-            message: t.label,
-            child: InkWell(
-              onTap: () => onChanged(t.id),
-              borderRadius: BorderRadius.circular(28),
-              child: Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: t.lightSeed,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: t.id == value ? cs.onSurface : Colors.transparent,
-                    width: 2.5,
-                  ),
+        // 预览块：外圈纸色 + 内芯主色，一眼看出这套皮肤的整体调子。
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: scheme.surface,
+            shape: BoxShape.circle,
+            border: Border.all(color: cs.outlineVariant, width: 1),
+          ),
+          padding: const EdgeInsets.all(7),
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
+            child: Center(
+              child: Text(
+                // 用皮肤名首字：不同皮肤的首字大多不同，色盲用户也能区分
+                theme.label.isEmpty ? '?' : theme.label.characters.first,
+                style: TextStyle(
+                  color: scheme.onPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
                 ),
-                child: t.id == value
-                    ? const Icon(Icons.check, color: Colors.white, size: 22)
-                    : null,
               ),
             ),
           ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            // ⚠️ Flutter 3.24 是 `value`，`initialValue` 要3.35+ 才有。
+            // 记忆里已记过这条（DropdownButtonFormField<String?> 是测试
+            // 里的唯一身份），这里再踩一次属于没长记性。
+            value: theme.id,
+            isExpanded: true,
+            decoration: const InputDecoration(),
+            items: [
+              for (final t in appThemes)
+                DropdownMenuItem<String>(
+                  value: t.id,
+                  child: Row(
+                    children: [
+                      // 每项右侧带一个色点，方便在列表里横向对比
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: buildTheme(t, Brightness.light).colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(t.label, overflow: TextOverflow.ellipsis),
+                    ],
+                  ),
+                ),
+            ],
+            onChanged: (id) {
+              if (id != null && id != value) onChanged(id);
+            },
+          ),
+        ),
       ],
     );
   }

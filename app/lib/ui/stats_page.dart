@@ -514,7 +514,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
           for (var i = 0; i < entries.length; i++)
             PieChartSectionData(
               value: entries[i].$2.toDouble(),
-              color: _palette[i % _palette.length],
+              color: chartColorAt(i, context),
               radius: 26,
               showTitle: false,
             ),
@@ -531,8 +531,8 @@ class _StatsPageState extends ConsumerState<StatsPage> {
         for (var i = 0; i < BookStatus.values.length; i++)
           if ((_status[BookStatus.values[i]] ?? 0) > 0)
             LegendRow(
-              color: _palette[_statusColorIndex(BookStatus.values[i]) %
-                  _palette.length],
+              color: chartColorAt(
+                  _statusColorIndex(BookStatus.values[i]), context),
               label: BookStatus.values[i].label,
               count: '${_status[BookStatus.values[i]]}',
               ratio: _ratioOf(_status[BookStatus.values[i]] ?? 0),
@@ -624,7 +624,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               barRods: [
                 BarChartRodData(
                   toY: (data[i]['c'] as int).toDouble(),
-                  color: _palette[i % _palette.length],
+                  color: chartColorAt(i, context),
                   width: 14,
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(3)),
@@ -644,7 +644,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
       children: [
         for (var i = 0; i < _categories.length && i < 8; i++)
           LegendRow(
-            color: _palette[i % _palette.length],
+            color: chartColorAt(i, context),
             label: categoryLabel(_categories[i]['name'] as String),
             count: '${_categories[i]['c']}',
             ratio: total == 0
@@ -735,12 +735,12 @@ class _StatsPageState extends ConsumerState<StatsPage> {
           LineChartBarData(
             isCurved: true,
             curveSmoothness: 0.25,
-            color: _palette[0],
+            color: chartColorAt(0, context),
             barWidth: 2.5,
             dotData: const FlDotData(show: true),
             belowBarData: BarAreaData(
               show: true,
-              color: _palette[0].withOpacity(0.15),
+              color: chartColorAt(0, context).withOpacity(0.15),
             ),
             spots: [
               for (var i = 0; i < values.length; i++)
@@ -775,7 +775,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
     // 一个 int 一个 double 会推出 num，赋值给 double? 就报类型错。
     final axisMax = maxY <= 4 ? 4.0 : (maxY * 1.15).ceilToDouble();
     final interval = math.max(1.0, (axisMax / 4).ceilToDouble());
-    final emptyMonth = _palette[3].withOpacity(0.25);
+    final emptyMonth = chartColorAt(3, context).withOpacity(0.25);
     final sameYear =
         axis.isEmpty || axis.every((m) => m.year == axis.first.year);
     final step = axis.length <= 6 ? 1 : (axis.length / 6).ceil();
@@ -845,7 +845,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
                   toY: values[i],
                   // 没读的月份画一根淡柱，而不是留空——
                   // 留空会让「连续几个月断了」这件事彻底隐身
-                  color: values[i] > 0 ? _palette[1] : emptyMonth,
+                  color: values[i] > 0 ? chartColorAt(1, context) : emptyMonth,
                   width: 12,
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(3)),
@@ -919,7 +919,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               barRods: [
                 BarChartRodData(
                   toY: (rated[i]['count'] as int).toDouble(),
-                  color: _palette[i % _palette.length],
+                  color: chartColorAt(i, context),
                   width: 20,
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(3)),
@@ -989,7 +989,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               barRods: [
                 BarChartRodData(
                   toY: (_progress[i]['count'] as int).toDouble(),
-                  color: _palette[(i + 4) % _palette.length],
+                  color: chartColorAt((i + 4), context),
                   width: 22,
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(3)),
@@ -1013,7 +1013,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
           for (var i = 0; i < src.length; i++)
             PieChartSectionData(
               value: (src[i]['c'] as int).toDouble(),
-              color: _palette[i % _palette.length],
+              color: chartColorAt(i, context),
               radius: 26,
               showTitle: false,
             ),
@@ -1031,7 +1031,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
       children: [
         for (var i = 0; i < src.length; i++)
           LegendRow(
-            color: _palette[i % _palette.length],
+            color: chartColorAt(i, context),
             label: BookSource.fromString(src[i]['name'] as String?).label,
             count: '${src[i]['c']}',
             ratio: total == 0
@@ -1156,9 +1156,15 @@ class _StatsPageState extends ConsumerState<StatsPage> {
   }
 }
 
-/// 图表配色集中在 `palette.dart`：阅读画像页要用同一套，
-/// 两处各写一份会让同一个分类在两个页面里是两种颜色。
-const List<Color> _palette = chartPalette;
+/// 页面的取色一律走 `chartColorAt(i, context)`，也就是**当前皮肤**的色板。
+///
+/// 为什么必须带 context：活泼皮肤的纸色被主色浸染，共用色板会出现
+/// 「某个系列与背景对比不足」——那不是不好看，是**数据看不见了**。
+/// 阅读画像页用的是同一个入口，两处各写一份会让同一个分类在两个页面里
+/// 是两种颜色。
+///
+/// 取色不再写 `% chartPalette.length`：调色板越界时 [chartColorAt]
+/// 自己按黄金角旋出**不重复**的颜色，比取模复用更安全。
 
 /// 「哪些图要显示」的设置抽屉。
 ///

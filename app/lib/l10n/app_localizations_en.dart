@@ -2514,6 +2514,21 @@ class SEn extends S {
   String get themeRose => 'Rose';
 
   @override
+  String get themeMidnight => 'Midnight';
+
+  @override
+  String get themePlum => 'Plum';
+
+  @override
+  String get themeLagoon => 'Lagoon';
+
+  @override
+  String get themeCitrus => 'Citrus';
+
+  @override
+  String get themeBerry => 'Berry';
+
+  @override
   String get settingsChannels => 'Connected services';
 
   @override

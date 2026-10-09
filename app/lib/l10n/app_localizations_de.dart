@@ -2514,6 +2514,21 @@ class SDe extends S {
   String get themeRose => 'Rose';
 
   @override
+  String get themeMidnight => 'Mitternacht';
+
+  @override
+  String get themePlum => 'Pflaume';
+
+  @override
+  String get themeLagoon => 'Lagune';
+
+  @override
+  String get themeCitrus => 'Zitrone';
+
+  @override
+  String get themeBerry => 'Beere';
+
+  @override
   String get settingsChannels => 'Verbundene Services';
 
   @override

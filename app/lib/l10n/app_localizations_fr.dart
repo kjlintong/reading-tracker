@@ -2514,6 +2514,21 @@ class SFr extends S {
   String get themeRose => 'Rose';
 
   @override
+  String get themeMidnight => 'Minuit';
+
+  @override
+  String get themePlum => 'Prune';
+
+  @override
+  String get themeLagoon => 'Lagon';
+
+  @override
+  String get themeCitrus => 'Agrume';
+
+  @override
+  String get themeBerry => 'Baie';
+
+  @override
   String get settingsChannels => 'Services connectés';
 
   @override
