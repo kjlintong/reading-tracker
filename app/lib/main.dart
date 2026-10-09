@@ -11,6 +11,7 @@ import 'ui/stats_page.dart';
 import 'ui/insights_page.dart';
 import 'ui/settings_page.dart';
 import 'ui/theme.dart';
+import 'ui/app_background.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -123,8 +124,21 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     final l10n = S.of(context);
+
+    // 皮肤（可能带贴图）从 provider 取，而不是从 AppTheme 静态表取——
+    // 换肤是运行时行为，静态表拿不到用户当前选的那套。
+    final skin = AppTheme.byId(ref.watch(appThemeProvider));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      body: _pages[_index],
+      // 背景层包住整个 Scaffold **内容**，而不是包 Scaffold 本身——
+      // 包在外面的话底栏（NavigationBar）会被盖住，
+      // 而底栏恰恰是「贴图上放控件」最需要验证可读性的地方。
+      body: AppBackground(
+        theme: skin,
+        brightness: isDark ? Brightness.dark : Brightness.light,
+        child: _pages[_index],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),

@@ -3242,17 +3242,11 @@
   "brightnessDark": "Sombre",
   "themeGreen": "Vert",
   "themeInk": "Encre",
-  "themeAmber": "Ambre",
   "themeBlue": "Montagne",
-  "themeRose": "Rose",
-  "themeMidnight": "Minuit",
-  "@themeMidnight": {},
   "themePlum": "Prune",
   "@themePlum": {},
   "themeLagoon": "Lagon",
   "@themeLagoon": {},
-  "themeCitrus": "Agrume",
-  "@themeCitrus": {},
   "themeBerry": "Baie",
   "@themeBerry": {},
   "settingsChannels": "Services connectés",
@@ -3401,5 +3395,33 @@
       "name": {},
       "count": {}
     }
+  },
+  "themeBgStarfield": "Ciel étoilé",
+  "@themeBgStarfield": {
+    "description": "皮肤名称：Ciel étoilé"
+  },
+  "themeBgMist": "Brume de montagne",
+  "@themeBgMist": {
+    "description": "皮肤名称：Brume de montagne"
+  },
+  "themeBgMoss": "Jardin de mousse",
+  "@themeBgMoss": {
+    "description": "皮肤名称：Jardin de mousse"
+  },
+  "themeBgDusk": "Lumière du soir",
+  "@themeBgDusk": {
+    "description": "皮肤名称：Lumière du soir"
+  },
+  "themeBgCat": "Sieste du chat",
+  "@themeBgCat": {
+    "description": "皮肤名称：Sieste du chat"
+  },
+  "themeBgDog": "Parc du chien",
+  "@themeBgDog": {
+    "description": "皮肤名称：Parc du chien"
+  },
+  "s_2f8a1c47": "Texturé",
+  "@s_2f8a1c47": {
+    "description": "Libellé de groupe dans le sélecteur de thème"
   }
 }

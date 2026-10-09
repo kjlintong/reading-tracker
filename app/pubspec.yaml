@@ -78,3 +78,8 @@ flutter:
     # 首批示例书库（38 本合成数据，分类与简介覆盖率 100%）
     # 首次启动自动灌库，让用户打开即见形态完整的书架而非空列表
     - assets/seed/library.json
+    - assets/seed/library.en.json
+    # 背景贴图皮肤资源（6 张 WebP，共约 90KB）。
+    # 刻意不给整个 assets/ 目录：那样会把 seed 下的种子书库也
+    # 当成可寻址资源打进 AssetManifest，白占索引。
+    - assets/backgrounds/

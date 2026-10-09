@@ -2505,25 +2505,13 @@ class SDe extends S {
   String get themeInk => 'Druckfarbe';
 
   @override
-  String get themeAmber => 'amber (Bernstein)';
-
-  @override
   String get themeBlue => 'Blue';
-
-  @override
-  String get themeRose => 'Rose';
-
-  @override
-  String get themeMidnight => 'Mitternacht';
 
   @override
   String get themePlum => 'Pflaume';
 
   @override
   String get themeLagoon => 'Lagune';
-
-  @override
-  String get themeCitrus => 'Zitrone';
 
   @override
   String get themeBerry => 'Beere';
@@ -2726,4 +2714,25 @@ class SDe extends S {
   String s_9d2e7f13({required Object name, required Object count}) {
     return 'Umbenannt in »$name«; $count Bücher aktualisiert';
   }
+
+  @override
+  String get themeBgStarfield => 'Sternenhimmel';
+
+  @override
+  String get themeBgMist => 'Bergnebel';
+
+  @override
+  String get themeBgMoss => 'Moosgarten';
+
+  @override
+  String get themeBgDusk => 'Abendlicht';
+
+  @override
+  String get themeBgCat => 'Katzenruhe';
+
+  @override
+  String get themeBgDog => 'Hundewiese';
+
+  @override
+  String get s_2f8a1c47 => 'Textur';
 }

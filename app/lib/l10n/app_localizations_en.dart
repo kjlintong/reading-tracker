@@ -2505,25 +2505,13 @@ class SEn extends S {
   String get themeInk => 'Ink';
 
   @override
-  String get themeAmber => 'Amber';
-
-  @override
   String get themeBlue => 'Blue';
-
-  @override
-  String get themeRose => 'Rose';
-
-  @override
-  String get themeMidnight => 'Midnight';
 
   @override
   String get themePlum => 'Plum';
 
   @override
   String get themeLagoon => 'Lagoon';
-
-  @override
-  String get themeCitrus => 'Citrus';
 
   @override
   String get themeBerry => 'Berry';
@@ -2726,4 +2714,25 @@ class SEn extends S {
   String s_9d2e7f13({required Object name, required Object count}) {
     return 'Renamed to “$name”; $count books updated';
   }
+
+  @override
+  String get themeBgStarfield => 'Starlit Sky';
+
+  @override
+  String get themeBgMist => 'Mountain Mist';
+
+  @override
+  String get themeBgMoss => 'Moss Garden';
+
+  @override
+  String get themeBgDusk => 'Dusk Film';
+
+  @override
+  String get themeBgCat => 'Cat Nap';
+
+  @override
+  String get themeBgDog => 'Dog Park';
+
+  @override
+  String get s_2f8a1c47 => 'Textured';
 }

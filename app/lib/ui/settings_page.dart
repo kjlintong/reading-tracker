@@ -898,6 +898,13 @@ class _Section extends StatelessWidget {
 /// 现在改成「左边看、右边选」：预览块显示这套皮肤的**真实纸色与主色**
 /// （就是界面上真正会出现的那个配色），右边一个下拉列出全部皮肤名。
 /// 用户在下拉里读名字、在预览块里看效果，与设置页其他长选项的交互一致。
+/// 皮肤选择器：预览块 + 下拉。
+///
+/// 为什么是「预览块 + 下拉」而不是一排色块：12 套皮肤铺成色块要占两三行，
+/// 而皮肤是「装完基本只调一次」的设置（约定：选项超过 4 个就收成下拉）。
+///
+/// 下拉里按 **纯色 / 贴图** 分组：这个区分对用户是实质性的——
+/// 纯色皮肤换了不起眼，贴图皮肤一眼就变，列在一起时需要标签才分得清。
 class _ThemePicker extends StatelessWidget {
   final String value;
   final ValueChanged<String> onChanged;
@@ -906,66 +913,24 @@ class _ThemePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final theme = AppTheme.byId(value);
-    final scheme = buildTheme(theme, Brightness.light).colorScheme;
 
     return Row(
       children: [
-        // 预览块：外圈纸色 + 内芯主色，一眼看出这套皮肤的整体调子。
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: scheme.surface,
-            shape: BoxShape.circle,
-            border: Border.all(color: cs.outlineVariant, width: 1),
-          ),
-          padding: const EdgeInsets.all(7),
-          child: DecoratedBox(
-            decoration: BoxDecoration(color: scheme.primary, shape: BoxShape.circle),
-            child: Center(
-              child: Text(
-                // 用皮肤名首字：不同皮肤的首字大多不同，色盲用户也能区分
-                theme.label.isEmpty ? '?' : theme.label.characters.first,
-                style: TextStyle(
-                  color: scheme.onPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ),
+        _SkinPreview(theme: theme, size: 52),
         const SizedBox(width: 14),
         Expanded(
           child: DropdownButtonFormField<String>(
-            // ⚠️ Flutter 3.24 是 `value`，`initialValue` 要3.35+ 才有。
-            // 记忆里已记过这条（DropdownButtonFormField<String?> 是测试
-            // 里的唯一身份），这里再踩一次属于没长记性。
+            // ⚠️ Flutter 3.24 是 `value`，`initialValue` 要 3.35+ 才有。
             value: theme.id,
             isExpanded: true,
             decoration: const InputDecoration(),
             items: [
-              for (final t in appThemes)
-                DropdownMenuItem<String>(
-                  value: t.id,
-                  child: Row(
-                    children: [
-                      // 每项右侧带一个色点，方便在列表里横向对比
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          color: buildTheme(t, Brightness.light).colorScheme.primary,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(t.label, overflow: TextOverflow.ellipsis),
-                    ],
-                  ),
-                ),
+              for (final group in [
+                (label: null, themes: appThemes.where((t) => !t.hasBackground)),
+                (label: appLoc.s_2f8a1c47, themes: appThemes.where((t) => t.hasBackground)),
+              ])
+                ..._dropdownGroup(context, group.label, group.themes.toList()),
             ],
             onChanged: (id) {
               if (id != null && id != value) onChanged(id);
@@ -973,6 +938,103 @@ class _ThemePicker extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  /// 一个分组标题 + 组内各皮肤项。
+  List<DropdownMenuItem<String>> _dropdownGroup(
+      BuildContext context, String? label, List<AppTheme> themes) {
+    return [
+      if (label != null)
+        DropdownMenuItem<String>(
+          enabled: false,
+          child: Text(label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              )),
+        ),
+      for (final t in themes)
+        DropdownMenuItem<String>(
+          value: t.id,
+          child: Row(
+            children: [
+              // 缩略图：贴图皮肤显示真实图片，纯色显示主色点。
+              // 尺寸压到 20px —— 下拉项高只有 24px 左右，再大就挤。
+              _SkinPreview(theme: t, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(t.label, overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
+        ),
+    ];
+  }
+}
+
+/// 单个皮肤的预览块。
+///
+/// 贴图皮肤要显示**真实图片**而不是主色块：贴图是这套皮肤的辨识度所在，
+/// 只给个主色圆点，用户在设置页根本判断不出换了这套会变成什么样。
+/// 每项都解码一张 540x810 的图会拖慢下拉展开，所以只在
+/// opacity 低到几乎看不见时才退回色点。
+class _SkinPreview extends StatelessWidget {
+  const _SkinPreview({required this.theme, required this.size});
+
+  final AppTheme theme;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = buildTheme(theme, Brightness.light).colorScheme;
+    final asset = theme.backgroundAsset;
+
+    final inner = asset != null
+        ? ClipRRect(
+            borderRadius: BorderRadius.circular(size * 0.22),
+            child: Image.asset(
+              asset,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              filterQuality: FilterQuality.low,
+              errorBuilder: (_, __, ___) =>
+                  ColoredBox(color: scheme.primary, child: const SizedBox()),
+            ),
+          )
+        : DecoratedBox(
+            decoration: BoxDecoration(
+              color: scheme.primary,
+              borderRadius: BorderRadius.circular(size * 0.22),
+            ),
+            child: Center(
+              child: Text(
+                theme.label.isEmpty ? '?' : theme.label.characters.first,
+                style: TextStyle(
+                  color: scheme.onPrimary,
+                  fontSize: size * 0.42,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+
+    // 外圈露一圈真实纸色，让「这套皮肤的底色」也能被看到 ——
+    // 纸色是从种子色相派生的，光看主色圆点判断不出来。
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          width: 1,
+        ),
+      ),
+      padding: EdgeInsets.all(size * 0.12),
+      child: ClipOval(child: inner),
     );
   }
 }

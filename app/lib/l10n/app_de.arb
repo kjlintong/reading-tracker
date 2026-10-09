@@ -3242,17 +3242,11 @@
   "brightnessDark": "Dunkel",
   "themeGreen": "Grün",
   "themeInk": "Druckfarbe",
-  "themeAmber": "amber (Bernstein)",
   "themeBlue": "Blue",
-  "themeRose": "Rose",
-  "themeMidnight": "Mitternacht",
-  "@themeMidnight": {},
   "themePlum": "Pflaume",
   "@themePlum": {},
   "themeLagoon": "Lagune",
   "@themeLagoon": {},
-  "themeCitrus": "Zitrone",
-  "@themeCitrus": {},
   "themeBerry": "Beere",
   "@themeBerry": {},
   "settingsChannels": "Verbundene Services",
@@ -3401,5 +3395,33 @@
       "name": {},
       "count": {}
     }
+  },
+  "themeBgStarfield": "Sternenhimmel",
+  "@themeBgStarfield": {
+    "description": "皮肤名称：Sternenhimmel"
+  },
+  "themeBgMist": "Bergnebel",
+  "@themeBgMist": {
+    "description": "皮肤名称：Bergnebel"
+  },
+  "themeBgMoss": "Moosgarten",
+  "@themeBgMoss": {
+    "description": "皮肤名称：Moosgarten"
+  },
+  "themeBgDusk": "Abendlicht",
+  "@themeBgDusk": {
+    "description": "皮肤名称：Abendlicht"
+  },
+  "themeBgCat": "Katzenruhe",
+  "@themeBgCat": {
+    "description": "皮肤名称：Katzenruhe"
+  },
+  "themeBgDog": "Hundewiese",
+  "@themeBgDog": {
+    "description": "皮肤名称：Hundewiese"
+  },
+  "s_2f8a1c47": "Textur",
+  "@s_2f8a1c47": {
+    "description": "Gruppenüberschrift im Skin-Auswahlfeld"
   }
 }

@@ -76,6 +76,72 @@ class AppTheme {
   /// 看着脏而不是精致。
   final double paperTint;
 
+  /// 背景贴图资源路径（相对 `assets/`）。为 null 表示这套皮肤是**纯色**的。
+  ///
+  /// ## 为什么贴图不直接当纸色用，而要单独一层
+  ///
+  /// 把图片直接铺成`colorScheme.surface` 会有两个硬伤：
+  ///  1. **文字不可读**。阅读类App 的主体是书名与笔记，任何纹理都可能
+  ///     正好压在字下面。行业做法（晋江 / Reeden / QQ 阅读）都是
+  ///     「图片 + 半透明遮罩 + 文字」，而不是让图片当底色。
+  ///  2. **无法微调**。用户嫌太花时，得有个强度旋钮可调，
+  ///     否则只能换图或不用。
+  ///
+  /// 所以贴图由 [backgroundOpacity] 决定可见强度，
+  /// 由 [backgroundBlur] 决定虚化程度，二者都可按皮肤单独定。
+  ///
+  /// ## 明暗共用同一张，不另出深色版
+  ///
+  /// 曾经为深色模式单独派生过一套 `_dark` 素材（一度是 12 个文件），
+  /// 后来按「每套皮肤保持自己的特点、贴图不必明暗各做适配」的做法
+  /// 合并回单张——纯色皮肤本来就有明暗两套纸色兜底，贴图没必要
+  /// 重复这份工作量，资源也少一半。
+  ///
+  /// 但**删掉深色版不能只删文件**，图本身的亮度必须重新居中，
+  /// 否则会出现「一图两用、深色下彻底隐形」。推导：
+  ///
+  /// ```
+  /// 合成结果 = 纸×scrim + (图×opacity + 纸×(1-opacity))×(1-scrim)
+  /// ```
+  ///
+  /// 代入浅色纸（med 0.98、scrim 0.58、opacity 0.42）与深色纸
+  /// （med 0.14、scrim 0.30）后可见：贴图必须落在**中间亮度**才两边都可见。
+  ///
+  /// | 贴图 med | 浅色纸合成 | 深色纸合成 | 深色下是否可见 |
+  /// |---|---|---|---|
+  /// | 0.14（旧浅色版） | 0.851，暗 0.13 | 0.138，暗 0.002 | ✗ 与纸色撞车，等于没做 |
+  /// | 0.32（当前） | 0.846，暗 0.13 | 0.208，亮 0.07 | ✓ 两边都浮得出来 |
+  ///
+  /// 旧版为什么撞车：深色纸 med 0.14，而旧贴图 med 0.135~0.28，
+  /// 与纸色几乎同亮——此时**遮罩和 opacity 怎么调都没用**，
+  /// 因为调低遮罩会让纸也跟着变亮，正好抵消掉贴图的贡献。
+  ///
+  /// 现在全部素材按**中位数**对齐到 0.32（实测 6 张落在 0.319~0.322），
+  /// 色相与彩度原样保留（星河 215° 蓝、猫 28° 暖粉、狗 33° 蜜黄…）。
+  /// 明暗差异只由遮罩强度体现：浅色靠「压暗成纸纹」、
+  /// 深色靠「提亮成微光」，这正是同一张图该有的两种表现。
+  final String? backgroundAsset;
+
+  /// 背景贴图的可见强度（0 = 完全看不见，等同纯色皮肤）。
+  ///
+  /// 定在偏低的区间（0.12~0.30）是刻意的：
+  /// 贴图的作用是「让这套皮肤有辨识度」，不是「让用户看图」。
+  /// 超过 0.4 之后，界面就开始读不清了——参考阅读类 App 的经验值，
+  /// 晋江的教程直接建议透明度留在 60%~80%（即不透明度 20%~40%），
+  /// 前提是图片本身低饱和、无强对比。我们这批贴图都已经过
+  /// 降彩度处理，比原始壁纸温和得多，所以再低一档。
+  final double backgroundOpacity;
+
+  /// 背景贴图的模糊半径（逻辑像素）。0 表示不模糊。
+  ///
+  /// 为什么要模糊而不是靠降彩度：低彩度只能压住「颜色」，
+  /// 压不住「高频细节」——一张低饱和的苔藓照仍有大量细密纹理，
+  /// 铺在文字后面依然会让字边缘发毛。模糊直接消掉高频，
+  /// 这是唯一能保证长段文字可读的手段。
+  ///
+  /// 只对内容密集的页面有意义；若完全不需要可设0。
+  final double backgroundBlur;
+
   const AppTheme({
     required this.id,
     required this.labelKey,
@@ -84,7 +150,13 @@ class AppTheme {
     this.chartPalette,
     this.chartPaletteDark,
     this.paperTint = 0.05,
+    this.backgroundAsset,
+    this.backgroundOpacity = 0.20,
+    this.backgroundBlur = 0,
   });
+
+  /// 这套皮肤是否为「贴图皮肤」。设置页用它分组显示。
+  bool get hasBackground => backgroundAsset != null;
 
   /// 显示名。用 [themeLabelOf] 查表，而不是 S.of(context)——
   /// 主题名要在 MaterialApp 构建之前（还不能取 context 时）就可能用到。
@@ -144,17 +216,26 @@ List<Color> _paperRamp(Color seed, bool isLight, double tint) {
 /// 混着中文，正是用户报的问题）。
 ///
 /// 新增皮肤时在 ARB 里补一条，键名与这里的 [AppTheme.labelKey] 对应。
+/// 键 → 显示名。返回 [labelKey] 兜底，而不是抛异常或返回空——
+///
+/// 皮肤表里写错键名时，界面会显示「themeBgCat」这样的原样字符串，
+/// 一眼就能看出是漏了翻译，而不是「皮肤名消失」这种更难查的现象。
+/// （`theme_system_test.dart` 有一条断言专门守这个兜底行为。）
 String themeLabelOf(String labelKey) => switch (labelKey) {
+      // 纯色
       'themeGreen' => appLoc.themeGreen,
       'themeInk' => appLoc.themeInk,
-      'themeAmber' => appLoc.themeAmber,
       'themeBlue' => appLoc.themeBlue,
-      'themeRose' => appLoc.themeRose,
-      'themeMidnight' => appLoc.themeMidnight,
       'themePlum' => appLoc.themePlum,
       'themeLagoon' => appLoc.themeLagoon,
-      'themeCitrus' => appLoc.themeCitrus,
       'themeBerry' => appLoc.themeBerry,
+      // 贴图
+      'themeBgStarfield' => appLoc.themeBgStarfield,
+      'themeBgMist' => appLoc.themeBgMist,
+      'themeBgMoss' => appLoc.themeBgMoss,
+      'themeBgDusk' => appLoc.themeBgDusk,
+      'themeBgCat' => appLoc.themeBgCat,
+      'themeBgDog' => appLoc.themeBgDog,
       _ => labelKey,
     };
 
@@ -163,6 +244,18 @@ String themeLabelOf(String labelKey) => switch (labelKey) {
 /// 加皮肤只需在末尾追加一条；`_themeLabels` 里补上对应文案。
 /// 后续用户自己设计皮肤的接入点就在这里。
 const List<AppTheme> appThemes = [
+  // ══ 纯色皮肤（6 套）════════════════════════════════════════════
+  // 精简依据是**实测色相间距**，不是印象。之前 10 套里有三对
+  // 肉眼难分辨（blue/midnight 同为 214°、amber/citrus 差 8°、
+  // rose/berry 差 4°），每组只保留色相唯一的那套。
+  //
+  //   green   93° 绿意（默认，图标与商店素材都是这个色系）
+  //   lagoon  173° 湖绿青
+  //   ink     200° 墨韵灰蓝
+  //   blue    214° 远山靛蓝
+  //   plum    287° 檀紫
+  //   berry   334° 莓果深玫红
+
   // ── 默认 ──────────────────────────────────────────────────────────
   // 默认：沿用产品最初的绿色（图标与商店素材都是这个色系）。
   // paperTint 极低：纸色几乎中性，主色是画面里唯一的彩色。
@@ -177,7 +270,8 @@ const List<AppTheme> appThemes = [
   ),
 
   // ── 高级向：纸色接近中性，主色克制，像好纸配硬壳 ────────────────
-  // 墨韵：接近中性的深灰蓝，偏「纸质书 / 严肃阅读」
+  // 墨韵：接近中性的深灰蓝，偏「纸质书/ 严肃阅读」。饱和度仅 18%，
+  // 是六套里最素的—— 高级感来自「几乎没有颜色」。
   AppTheme(
     id: 'ink',
     labelKey: 'themeInk',
@@ -187,7 +281,8 @@ const List<AppTheme> appThemes = [
     chartPalette: _slate,
     chartPaletteDark: _slateDark,
   ),
-  // 远山：靛蓝，偏「安静、理性」
+  // 远山：靛蓝，与墨韵同色相族但饱和度 64%（墨韵仅 18%），
+  // 两套并排能看出「素vs 浓」的差别，不至于糊成一套。
   AppTheme(
     id: 'blue',
     labelKey: 'themeBlue',
@@ -197,17 +292,7 @@ const List<AppTheme> appThemes = [
     chartPalette: _indigo,
     chartPaletteDark: _indigoDark,
   ),
-  // 黛蓝：比远山更深更沉，几乎是无彩色——高级感最强的一套
-  AppTheme(
-    id: 'midnight',
-    labelKey: 'themeMidnight',
-    lightSeed: Color(0xFF2A3B52),
-    darkSeed: Color(0xFF8FA6C4),
-    paperTint: 0.042,
-    chartPalette: _midnight,
-    chartPaletteDark: _midnightDark,
-  ),
-  // 檀紫：沉静的紫调，偏文学与诗集
+  // 檀紫：唯一的紫。287° 在冷色与暖色的分界上，是个稳重的中间色。
   AppTheme(
     id: 'plum',
     labelKey: 'themePlum',
@@ -218,28 +303,8 @@ const List<AppTheme> appThemes = [
     chartPaletteDark: _plumDark,
   ),
 
-  // ── 活泼向：纸色明显带主色，整屏一个色系 ────────────────────────
-  // 暖阳：暖橙，偏「夜晚台灯下读书」
-  AppTheme(
-    id: 'amber',
-    labelKey: 'themeAmber',
-    lightSeed: Color(0xFF9A5B00),
-    darkSeed: Color(0xFFE8A33D),
-    paperTint: 0.120,
-    chartPalette: _honey,
-    chartPaletteDark: _honeyDark,
-  ),
-  // 樱粉：柔和粉紫，偏「轻阅读 / 文学」
-  AppTheme(
-    id: 'rose',
-    labelKey: 'themeRose',
-    lightSeed: Color(0xFF9C3B5E),
-    darkSeed: Color(0xFFE79BB4),
-    paperTint: 0.130,
-    chartPalette: _blossom,
-    chartPaletteDark: _blossomDark,
-  ),
-  // 湖绿：清新青绿，偏旅行与自然
+  // ── 活泼向：纸色带上氛围，整屏一个色系 ──────────────────────────
+  // 湖绿：青绿 173°，六套里唯一的冷色活泼色。
   AppTheme(
     id: 'lagoon',
     labelKey: 'themeLagoon',
@@ -249,17 +314,8 @@ const List<AppTheme> appThemes = [
     chartPalette: _lagoon,
     chartPaletteDark: _lagoonDark,
   ),
-  // 蜜柑：明快的橙黄，最活泼的一套
-  AppTheme(
-    id: 'citrus',
-    labelKey: 'themeCitrus',
-    lightSeed: Color(0xFFB25000),
-    darkSeed: Color(0xFFFFB74D),
-    paperTint: 0.135,
-    chartPalette: _citrus,
-    chartPaletteDark: _citrusDark,
-  ),
-  // 莓果：亮玫红，偏言情与流行
+  // 莓果：334° 深玫红。艳度 79%，是活泼组里唯一「浓」的，
+  // 填补了活泼组只有青绿、缺少暖色的空档。
   AppTheme(
     id: 'berry',
     labelKey: 'themeBerry',
@@ -269,7 +325,114 @@ const List<AppTheme> appThemes = [
     chartPalette: _berry,
     chartPaletteDark: _berryDark,
   ),
+
+  // ══ 贴图皮肤（6 套）════════════════════════════════════════════
+  // 共同点：backgroundAsset 非空。贴图已过「降彩度 + 压亮度」处理
+  // （见 scripts/prep_backgrounds.py），这里只定可见强度与虚化。
+  //
+  // opacity 全部 ≤0.22：贴图的作用是「让皮肤有辨识度」，
+  // 不是「让用户看图」。超过 0.4 界面就读不清了。
+  //
+  // blur 的取舍：纹理密集的（苔藓、黄昏、猫狗都是软焦/微距）
+  // 必须虚化，否则字边缘发毛；星空与水墨本身平滑，给 0 反而更清楚。
+
+  // 星河：深空+ 极光。贴图本身已经很暗（med 0.135），
+  // 所以 opacity 给到 0.30 也不刺眼，是六张里最"敢给"的一张。
+  AppTheme(
+    id: 'bgStarfield',
+    labelKey: 'themeBgStarfield',
+    lightSeed: Color(0xFF2E4A7D),
+    darkSeed: Color(0xFF8FB0E8),
+    paperTint: 0.060,
+    chartPalette: _midnight,
+    chartPaletteDark: _midnightDark,
+    backgroundAsset: 'assets/backgrounds/bg_starfield.webp',
+    backgroundOpacity: 0.42,
+    backgroundBlur: 0,
+  ),
+
+  // 云岚：水墨山水。主色刻意用灰青 199° 而非贴图本身的米黄 31°——
+  // 让「主色」与「纸色」成冷暖对比，主色才是画面的重音；
+  // 若跟随贴图的米黄，整屏一片暖黄，主色就废了。
+  //
+  // paperTint 必须 ≥0.055：实测这条线的灰青色相在 8bit 量化下
+  // 有两个稳定态——tint≤0.050 时饱和度被量化到 0.053 但**色相
+  // 跳到 240°**（被判成无彩色，纸色发蓝紫，与主色差41.5°，
+  // 「换肤后底色不像那套皮肤」的 bug 回来了）；≥0.055 时色相
+  // 稳定在 180°（青），与主色只差 18.5°。0.055 是量化临界点。
+  AppTheme(
+    id: 'bgMist',
+    labelKey: 'themeBgMist',
+    lightSeed: Color(0xFF3F5A66),
+    darkSeed: Color(0xFF9DBCC7),
+    paperTint: 0.055,
+    chartPalette: _slate,
+    chartPaletteDark: _slateDark,
+    backgroundAsset: 'assets/backgrounds/bg_mist.webp',
+    backgroundOpacity: 0.38,
+    backgroundBlur: 0,
+  ),
+
+  // 苔痕：微距苔藓。细节极密，blur 给到 1.6 —— 这是唯一必须靠
+  // 虚化保证可读的一张：降彩度压不住高频纹理。
+  AppTheme(
+    id: 'bgMoss',
+    labelKey: 'themeBgMoss',
+    lightSeed: Color(0xFF3F5A2E),
+    darkSeed: Color(0xFFA3C77C),
+    paperTint: 0.070,
+    chartPalette: _evergreen,
+    chartPaletteDark: _evergreenDark,
+    backgroundAsset: 'assets/backgrounds/bg_moss.webp',
+    backgroundOpacity: 0.40,
+    backgroundBlur: 1.6,
+  ),
+
+  // 暮色：黄昏胶片。酒红方向，主色取暖橙 30°，与「暮」的气质一致。
+  AppTheme(
+    id: 'bgDusk',
+    labelKey: 'themeBgDusk',
+    lightSeed: Color(0xFF8A4B2A),
+    darkSeed: Color(0xFFE0A276),
+    paperTint: 0.075,
+    chartPalette: _honey,
+    chartPaletteDark: _honeyDark,
+    backgroundAsset: 'assets/backgrounds/bg_dusk.webp',
+    backgroundOpacity: 0.44,
+    backgroundBlur: 1.2,
+  ),
+
+  // 猫屿：暖奶油 + 猫影。主色用**粉橘** 而非贴图的米黄，
+  // 让「可爱」由主色承担，背景只做氛围。
+  AppTheme(
+    id: 'bgCat',
+    labelKey: 'themeBgCat',
+    lightSeed: Color(0xFFA85A4A),
+    darkSeed: Color(0xFFF0B49E),
+    paperTint: 0.090,
+    chartPalette: _blossom,
+    chartPaletteDark: _blossomDark,
+    backgroundAsset: 'assets/backgrounds/bg_cat.webp',
+    backgroundOpacity: 0.40,
+    backgroundBlur: 1.4,
+  ),
+
+  // 犬窝：蜜黄 + 爪印。主色用**暖棕** 26°，比猫屿更沉稳，
+  // 免得两套宠物皮肤看起来是同一套。
+  AppTheme(
+    id: 'bgDog',
+    labelKey: 'themeBgDog',
+    lightSeed: Color(0xFF8A5A1E),
+    darkSeed: Color(0xFFE8BE7A),
+    paperTint: 0.100,
+    chartPalette: _citrus,
+    chartPaletteDark: _citrusDark,
+    backgroundAsset: 'assets/backgrounds/bg_dog.webp',
+    backgroundOpacity: 0.42,
+    backgroundBlur: 1.4,
+  ),
 ];
+
 
 // ── 各皮肤的图表色板 ────────────────────────────────────────────────
 //
@@ -692,7 +855,16 @@ ThemeData buildTheme(AppTheme theme, Brightness brightness) {
             : (theme.chartPaletteDark ?? theme.chartPalette ?? chartPalette),
       ),
     ],
-    scaffoldBackgroundColor: scheme.surface,
+    // 贴图皮肤必须让 Scaffold 底色透明。
+    //
+    // Scaffold 会先用 scaffoldBackgroundColor 把自身铺满，再画 body，
+    // 所以只要它是**不透明**的，body 里的 AppBackground 就会被整片盖住——
+    // 表现是「贴图完全看不见，但代码里opacity 和路径都对」。
+    // 这个bug 找起来费劲：图能加载、参数没报错、测试也全绿，
+    // 只有肉眼看出「背景没生效」才发现。
+    // 纯色皮肤照旧给不透明底色（否则滚动时透出黑底）。
+    scaffoldBackgroundColor:
+        theme.hasBackground ? Colors.transparent : scheme.surface,
     visualDensity: VisualDensity.standard,
     textTheme: textTheme.copyWith(
       headlineSmall: textTheme.headlineSmall?.copyWith(

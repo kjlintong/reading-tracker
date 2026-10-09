@@ -85,3 +85,8 @@ node_modules/
 backups/
 i18n_keys.csv
 app/i18n_keys.csv
+
+# 背景贴图的处理中间产物（AI 生成的 1024x1536 原图，带生成器水印）。
+# 只保留处理后的 assets/backgrounds/*.webp（6 张共 100KB）。
+# 原始图不入库：12MB 的体积 + 带第三方水印，留着容易被误当成 App 资源。
+app/assets/backgrounds/0_raw/

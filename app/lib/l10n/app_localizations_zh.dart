@@ -2505,25 +2505,13 @@ class SZh extends S {
   String get themeInk => '墨韵';
 
   @override
-  String get themeAmber => '暖阳';
-
-  @override
   String get themeBlue => '远山';
-
-  @override
-  String get themeRose => '樱粉';
-
-  @override
-  String get themeMidnight => '黛蓝';
 
   @override
   String get themePlum => '檀紫';
 
   @override
   String get themeLagoon => '湖绿';
-
-  @override
-  String get themeCitrus => '蜜柑';
 
   @override
   String get themeBerry => '莓果';
@@ -2726,4 +2714,25 @@ class SZh extends S {
   String s_9d2e7f13({required Object name, required Object count}) {
     return '已重命名为「$name」，更新了 $count 本书';
   }
+
+  @override
+  String get themeBgStarfield => '星河';
+
+  @override
+  String get themeBgMist => '云岚';
+
+  @override
+  String get themeBgMoss => '苔痕';
+
+  @override
+  String get themeBgDusk => '暮色';
+
+  @override
+  String get themeBgCat => '猫屿';
+
+  @override
+  String get themeBgDog => '犬窝';
+
+  @override
+  String get s_2f8a1c47 => '贴图';
 }

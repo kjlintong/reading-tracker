@@ -3242,17 +3242,11 @@
   "brightnessDark": "深色",
   "themeGreen": "绿意",
   "themeInk": "墨韵",
-  "themeAmber": "暖阳",
   "themeBlue": "远山",
-  "themeRose": "樱粉",
-  "themeMidnight": "黛蓝",
-  "@themeMidnight": {},
   "themePlum": "檀紫",
   "@themePlum": {},
   "themeLagoon": "湖绿",
   "@themeLagoon": {},
-  "themeCitrus": "蜜柑",
-  "@themeCitrus": {},
   "themeBerry": "莓果",
   "@themeBerry": {},
   "settingsChannels": "第三方渠道",
@@ -3401,5 +3395,33 @@
       "name": {},
       "count": {}
     }
+  },
+  "themeBgStarfield": "星河",
+  "@themeBgStarfield": {
+    "description": "皮肤名称：星河"
+  },
+  "themeBgMist": "云岚",
+  "@themeBgMist": {
+    "description": "皮肤名称：云岚"
+  },
+  "themeBgMoss": "苔痕",
+  "@themeBgMoss": {
+    "description": "皮肤名称：苔痕"
+  },
+  "themeBgDusk": "暮色",
+  "@themeBgDusk": {
+    "description": "皮肤名称：暮色"
+  },
+  "themeBgCat": "猫屿",
+  "@themeBgCat": {
+    "description": "皮肤名称：猫屿"
+  },
+  "themeBgDog": "犬窝",
+  "@themeBgDog": {
+    "description": "皮肤名称：犬窝"
+  },
+  "s_2f8a1c47": "贴图",
+  "@s_2f8a1c47": {
+    "description": "设置页皮肤下拉里的分组标题"
   }
 }

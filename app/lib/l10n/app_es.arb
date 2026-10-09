@@ -3242,17 +3242,11 @@
   "brightnessDark": "Oscuro",
   "themeGreen": "Verde",
   "themeInk": "Tinta",
-  "themeAmber": "Ámbar",
   "themeBlue": "Montaña",
-  "themeRose": "Rosa",
-  "themeMidnight": "Medianoche",
-  "@themeMidnight": {},
   "themePlum": "Ciruela",
   "@themePlum": {},
   "themeLagoon": "Laguna",
   "@themeLagoon": {},
-  "themeCitrus": "Cítrico",
-  "@themeCitrus": {},
   "themeBerry": "Baya",
   "@themeBerry": {},
   "settingsChannels": "Servicios conectados",
@@ -3401,5 +3395,33 @@
       "name": {},
       "count": {}
     }
+  },
+  "themeBgStarfield": "Cielo estrellado",
+  "@themeBgStarfield": {
+    "description": "皮肤名称：Cielo estrellado"
+  },
+  "themeBgMist": "Niebla de montaña",
+  "@themeBgMist": {
+    "description": "皮肤名称：Niebla de montaña"
+  },
+  "themeBgMoss": "Jardín de musgo",
+  "@themeBgMoss": {
+    "description": "皮肤名称：Jardín de musgo"
+  },
+  "themeBgDusk": "Luz de atardecer",
+  "@themeBgDusk": {
+    "description": "皮肤名称：Luz de atardecer"
+  },
+  "themeBgCat": "Siesta felina",
+  "@themeBgCat": {
+    "description": "皮肤名称：Siesta felina"
+  },
+  "themeBgDog": "Parque canino",
+  "@themeBgDog": {
+    "description": "皮肤名称：Parque canino"
+  },
+  "s_2f8a1c47": "Con textura",
+  "@s_2f8a1c47": {
+    "description": "Etiqueta de grupo en el selector de tema"
   }
 }

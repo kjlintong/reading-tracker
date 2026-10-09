@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:reading_tracker/models/book.dart';
 import 'package:reading_tracker/ui/book_cover.dart';
+import 'package:reading_tracker/ui/app_background.dart';
 import 'package:reading_tracker/ui/palette.dart';
 import 'package:reading_tracker/ui/theme.dart';
 
@@ -46,6 +47,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final enabled = Platform.environment['SKIN_PREVIEW'] == '1';
+
   const outRoot = '../store/skin-preview';
 
   setUpAll(() async {
@@ -112,6 +114,10 @@ void main() {
     );
   }
 
+  // 贴图皮肤必须走**真实的 [AppBackground]**，不能自己拼一张图：
+  // 遮罩不透明度、模糊半径、纸色遮罩这三者的实际合成效果，
+  // 只有在真实组件上才看得准。自己拼的话看到的是「原图」，
+  // 而用户看到的是「原图 + 76% 纸色遮罩」，两者完全是两回事。
   Widget root(AppTheme t, Brightness b, Widget home, {int round = 0}) =>
       RepaintBoundary(
         key: shotKey,
@@ -119,7 +125,14 @@ void main() {
           key: ValueKey<String>('${t.id}-$b-$round'),
           theme: themeOf(t, b),
           locale: const Locale('zh'),
-          home: home,
+          home: AppBackground(
+            theme: t,
+            brightness: b,
+            // 必须注入真实字节：测试环境 rootBundle 里没有图片数据，
+            // 走 AssetImage 会静默失败，图就成了一张纯色纸。
+            imageProvider: _bgProvider(t, b),
+            child: home,
+          ),
         ),
       );
 
@@ -247,7 +260,8 @@ class _SkinSheet extends StatelessWidget {
                       Text(
                         'paperTint ${theme.paperTint.toStringAsFixed(3)}'
                         ' · ${brightness == Brightness.light ? "浅色" : "深色"}'
-                        ' · seed #${hexOf(seed)}',
+                        ' · seed #${hexOf(seed)}'
+                        '${theme.hasBackground ? ' · 贴图 ${(theme.backgroundOpacity * 100).round()}% blur ${theme.backgroundBlur.toStringAsFixed(1)}' : ''}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -382,6 +396,9 @@ class _SkinSheet extends StatelessWidget {
 /// 10 套皮肤总览。每套一格：色板条 + 3 张真实占位封面 + 名字。
 ///
 /// 这是给用户「挑皮肤」用的一张图——比逐张翻 10 个文件快得多。
+/// 12 套皮肤总览。每套一格：名字 + **真实背景** + 3 张占位封面。
+///
+/// 这是给用户「挑皮肤」用的一张图——比逐张翻 12 个文件快得多。
 class _Overview extends StatelessWidget {
   const _Overview(this.brightness);
 
@@ -389,9 +406,10 @@ class _Overview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final plain = appThemes.where((t) => !t.hasBackground).length;
     return Scaffold(
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -400,16 +418,19 @@ class _Overview extends StatelessWidget {
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 4),
-            Text('共 ${appThemes.length} 套',
+            Text('共 ${appThemes.length} 套（纯色 $plain · 贴图 '
+                '${appThemes.length - plain}）',
                 style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             GridView.count(
-              crossAxisCount: 2,
+              crossAxisCount: 3,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 3.1,
+              mainAxisSpacing: 14,
+              crossAxisSpacing: 14,
+              // 12 套 = 4 行。每格只放「名称 + 背景 + 3 张封面」，
+              // 够判断这套皮肤长什么样；细节看各自的详情图。
+              childAspectRatio: 1.55,
               children: [
                 for (final t in appThemes) _SkinCell(t, brightness),
               ],
@@ -421,8 +442,12 @@ class _Overview extends StatelessWidget {
   }
 }
 
-/// 总览里的一格。必须自带 [Theme]，因为它渲染的是**别的**皮肤——
-/// 外层 Theme.of(context) 拿到的是网格页自己的皮肤，不是这一格的。
+/// 总览里的一格。
+///
+/// 必须自带 [Theme] 与 [AppBackground]：它渲染的是**别的**皮肤，
+/// 外层的 Theme.of(context) 与背景层对它无效。
+/// 少了 AppBackground 这一层，贴图皮肤在总览里和纯色皮肤长得
+/// 一模一样（都是纯色纸），总览图就失去了对比的意义。
 class _SkinCell extends StatelessWidget {
   const _SkinCell(this.theme, this.brightness);
 
@@ -445,83 +470,101 @@ class _SkinCell extends StatelessWidget {
 
     return Theme(
       data: base,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: scheme.outlineVariant),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 26,
-                        height: 26,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                            color: scheme.primary, shape: BoxShape.circle),
-                        child: Text(
-                          theme.label.substring(0, 1),
-                          style: tt(13,
-                              c: scheme.onPrimary, w: FontWeight.w600),
+      child: AppBackground(
+        theme: theme,
+        brightness: brightness,
+        imageProvider: _bgProvider(theme, brightness),
+        child: Container(
+          padding: const EdgeInsets.all(11),
+          decoration: BoxDecoration(
+            // 透明：底色交给 AppBackground 的遮罩层，
+            // 这里再刷一层 surface 就把贴图盖住了。
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(color: scheme.outlineVariant),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      children: [
+                        // 贴图皮肤用小方块示意，纯色用首字圆点
+                        if (theme.hasBackground)
+                          Container(
+                            width: 22,
+                            height: 22,
+                            decoration: BoxDecoration(
+                              color: scheme.primary,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(Icons.image_outlined,
+                                size: 13, color: scheme.onPrimary),
+                          )
+                        else
+                          Container(
+                            width: 22,
+                            height: 22,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                                color: scheme.primary, shape: BoxShape.circle),
+                            child: Text(
+                              theme.label.characters.first,
+                              style: tt(11,
+                                  c: scheme.onPrimary, w: FontWeight.w600),
+                            ),
+                          ),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(theme.label,
+                              style: tt(14, w: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    // 12 色板压成一条，比排成方阵省地方，也更能看出是否同一色系。
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: SizedBox(
+                        height: 11,
+                        // stretch 的理由见 _row() 的注释：无 child 的 ColoredBox
+                        // 在 Row 里必须靠 stretch 才有高度，否则整条不可见。
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (final c in palette)
+                              Expanded(child: ColoredBox(color: c)),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(theme.label,
-                            style: tt(15, w: FontWeight.w600),
-                            overflow: TextOverflow.ellipsis),
-                      ),
-                      Text(
-                        theme.paperTint.toStringAsFixed(3),
-                        style: tt(11, c: scheme.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // 12 色板压成一条，比排成方阵省地方，也更能看出是否同一色系。
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: SizedBox(
-                      height: 14,
-                      // stretch 的理由见 _row() 的注释：无 child 的 ColoredBox
-                      // 在 Row 里必须靠 stretch 才有高度，否则整条不可见。
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          for (final c in palette)
-                            Expanded(child: ColoredBox(color: c)),
-                        ],
-                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            for (final title in const ['三体', 'Dune', '百年孤独'])
-              Padding(
-                padding: const EdgeInsets.only(left: 6),
-                child: SizedBox(
-                  width: 40,
-                  height: 58,
-                  child: BookCover(
-                      book: _book(title), radius: 5, placeholderFontSize: 9),
+                  ],
                 ),
               ),
-          ],
+              const SizedBox(width: 8),
+              for (final title in const ['三体', 'Dune', '百年孤独'])
+                Padding(
+                  padding: const EdgeInsets.only(left: 5),
+                  child: SizedBox(
+                    width: 33,
+                    height: 48,
+                    child: BookCover(
+                        book: _book(title), radius: 4, placeholderFontSize: 8),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
 
 Widget _section(BuildContext context, String label) => Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -614,4 +657,32 @@ Future<void> _loadFonts() async {
   await (FontLoader('MaterialIcons')
         ..addFont(bytesOf('test/fixtures/MaterialIcons-Regular.otf')))
       .load();
+}
+
+/// 背景图字节缓存。
+///
+/// 必须是**顶层**而不是 main() 里的局部变量：_SkinCell（总览的每一格）
+/// 也要读同一批图，局部变量它拿不到。
+/// 每例都重读磁盘的话，6 张图 × 12 套 × 明暗 = 144 次文件读。
+final Map<String, Uint8List> _bgCache = {};
+
+/// 取该皮肤的背景图 provider；纯色皮肤返回 null。
+///
+/// 明暗现在**共用同一张**素材（不再有 `bg_*_dark.webp`），
+/// 所以不用按亮度分支——贴图亮度已被重映射到 med 0.32，
+/// 落在浅色纸 0.98 与深色纸 0.14 的中间，两边都浮得出来。
+/// 出图脚本若仍按亮度挑文件，会去读已删除的 `_dark` 版本而直接抛错。
+ImageProvider? _bgProvider(AppTheme t, Brightness b) {
+  final asset = t.backgroundAsset;
+  if (asset == null) return null;
+  final bytes = _bgCache.putIfAbsent(asset, () {
+    final f = File(asset);
+    if (!f.existsSync()) {
+      // 静默跳过 = 这张样张图没有任何验证价值。
+      // 与其出一张看起来「背景没生效」的纯色图，不如直接失败。
+      throw StateError('背景图不存在：$asset');
+    }
+    return f.readAsBytesSync();
+  });
+  return MemoryImage(bytes);
 }

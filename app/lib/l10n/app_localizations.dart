@@ -4433,29 +4433,11 @@ abstract class S {
   /// **'Ink'**
   String get themeInk;
 
-  /// No description provided for @themeAmber.
-  ///
-  /// In en, this message translates to:
-  /// **'Amber'**
-  String get themeAmber;
-
   /// No description provided for @themeBlue.
   ///
   /// In en, this message translates to:
   /// **'Blue'**
   String get themeBlue;
-
-  /// No description provided for @themeRose.
-  ///
-  /// In en, this message translates to:
-  /// **'Rose'**
-  String get themeRose;
-
-  /// No description provided for @themeMidnight.
-  ///
-  /// In en, this message translates to:
-  /// **'Midnight'**
-  String get themeMidnight;
 
   /// No description provided for @themePlum.
   ///
@@ -4468,12 +4450,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Lagoon'**
   String get themeLagoon;
-
-  /// No description provided for @themeCitrus.
-  ///
-  /// In en, this message translates to:
-  /// **'Citrus'**
-  String get themeCitrus;
 
   /// No description provided for @themeBerry.
   ///
@@ -4846,6 +4822,48 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Renamed to “{name}”; {count} books updated'**
   String s_9d2e7f13({required Object name, required Object count});
+
+  /// 皮肤名称：Starlit Sky
+  ///
+  /// In en, this message translates to:
+  /// **'Starlit Sky'**
+  String get themeBgStarfield;
+
+  /// 皮肤名称：Mountain Mist
+  ///
+  /// In en, this message translates to:
+  /// **'Mountain Mist'**
+  String get themeBgMist;
+
+  /// 皮肤名称：Moss Garden
+  ///
+  /// In en, this message translates to:
+  /// **'Moss Garden'**
+  String get themeBgMoss;
+
+  /// 皮肤名称：Dusk Film
+  ///
+  /// In en, this message translates to:
+  /// **'Dusk Film'**
+  String get themeBgDusk;
+
+  /// 皮肤名称：Cat Nap
+  ///
+  /// In en, this message translates to:
+  /// **'Cat Nap'**
+  String get themeBgCat;
+
+  /// 皮肤名称：Dog Park
+  ///
+  /// In en, this message translates to:
+  /// **'Dog Park'**
+  String get themeBgDog;
+
+  /// Skin group label in the theme picker
+  ///
+  /// In en, this message translates to:
+  /// **'Textured'**
+  String get s_2f8a1c47;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

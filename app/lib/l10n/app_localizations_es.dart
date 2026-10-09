@@ -2505,25 +2505,13 @@ class SEs extends S {
   String get themeInk => 'Tinta';
 
   @override
-  String get themeAmber => 'Ámbar';
-
-  @override
   String get themeBlue => 'Montaña';
-
-  @override
-  String get themeRose => 'Rosa';
-
-  @override
-  String get themeMidnight => 'Medianoche';
 
   @override
   String get themePlum => 'Ciruela';
 
   @override
   String get themeLagoon => 'Laguna';
-
-  @override
-  String get themeCitrus => 'Cítrico';
 
   @override
   String get themeBerry => 'Baya';
@@ -2726,4 +2714,25 @@ class SEs extends S {
   String s_9d2e7f13({required Object name, required Object count}) {
     return 'Renombrada a «$name»; $count libros actualizados';
   }
+
+  @override
+  String get themeBgStarfield => 'Cielo estrellado';
+
+  @override
+  String get themeBgMist => 'Niebla de montaña';
+
+  @override
+  String get themeBgMoss => 'Jardín de musgo';
+
+  @override
+  String get themeBgDusk => 'Luz de atardecer';
+
+  @override
+  String get themeBgCat => 'Siesta felina';
+
+  @override
+  String get themeBgDog => 'Parque canino';
+
+  @override
+  String get s_2f8a1c47 => 'Con textura';
 }

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reading_tracker/models/book.dart';
@@ -217,6 +219,114 @@ void main() {
         expect(brighter, greaterThanOrEqualTo(10),
             reason: '${t.id} 深色模式下只有 $brighter/12 个系列比纸色亮，'
                 '其余会糊进背景');
+      }
+    });
+
+    // ── 背景贴图皮肤 ────────────────────────────────────────────
+
+    test('贴图皮肤与纯色皮肤分组正确', () {
+      final plain = appThemes.where((t) => !t.hasBackground).toList();
+      final textured = appThemes.where((t) => t.hasBackground).toList();
+      expect(plain, isNotEmpty, reason: '必须保留至少一套纯色皮肤');
+      expect(textured, isNotEmpty, reason: '贴图皮肤不能为空');
+      // 纯色在前、贴图在后：设置页下拉按列表顺序展示，
+      // 混排会让「贴图」这个分组标题出现在列表中间，很怪。
+      final firstTextured = appThemes.indexWhere((t) => t.hasBackground);
+      expect(firstTextured, greaterThan(0));
+      for (var i = firstTextured; i < appThemes.length; i++) {
+        expect(appThemes[i].hasBackground, isTrue,
+            reason: '${appThemes[i].id} 不该出现在贴图组之后');
+      }
+      // 默认皮肤必须是纯色：首屏若带贴图，等于一上来就糊着背景。
+      expect(appThemes.first.hasBackground, isFalse);
+    });
+
+    test('每套贴图皮肤的背景参数都在可读性安全区内', () {
+      for (final t in appThemes.where((x) => x.hasBackground)) {
+        expect(t.backgroundOpacity, greaterThan(0.05),
+            reason: '${t.id} 的贴图几乎看不见，等于白做这套皮肤');
+        //上限0.50。真正的「可读性安全区」是
+        // opacity × (1 - scrim)：浅色模式 scrim=0.58，
+        // 所以 0.50 × 0.42 ≈ 21% 的实际可见度，
+        // 深色文字对比度仍有 10:1 以上（WCAG AA 要求 4.5:1）。
+        // 单看 opacity 判不出安全区——两个衰减是**相乘**的，
+        // 这是这套参数最容易想歪的地方（曾经按 0.28 定上限，
+        // 结果遮罩一压，opacity 这一档形同虚设）。
+        expect(t.backgroundOpacity, lessThanOrEqualTo(0.50),
+            reason: '${t.id} 的贴图不透明度 ${t.backgroundOpacity} '
+                '过高——叠加遮罩后书名与笔记会读不清，'
+                '这正是阅读类 App 背景贴图最容易踩的坑');
+        expect(t.backgroundBlur, greaterThanOrEqualTo(0));
+        // 模糊半径过大在低端机上会明显掉帧，且看不出收益。
+        expect(t.backgroundBlur, lessThanOrEqualTo(2.0),
+            reason: '${t.id} 的模糊半径 ${t.backgroundBlur} 过大');
+      }
+    });
+
+    test('贴图皮肤两两不同源——不会出现两套皮肤共用一张图', () {
+      final assets = appThemes
+          .where((t) => t.hasBackground)
+          .map((t) => t.backgroundAsset)
+          .toList();
+      expect(assets.toSet().length, assets.length,
+          reason: '有皮肤共用同一张背景图：$assets');
+    });
+
+    test('背景资源路径都已登记进 pubspec 的 assets', () async {
+      // 不读 AssetManifest（widget 测试里 rootBundle 不可靠），
+      // 直接查文件系统——能抓到「代码里写了路径但文件不存在」这种
+      // 最常见的上线事故（改文件名忘了改代码）。
+      for (final t in appThemes.where((x) => x.hasBackground)) {
+        final f = File('${t.backgroundAsset}');
+        expect(f.existsSync(), isTrue,
+            reason: '${t.id} 的背景图不存在：${t.backgroundAsset}');
+      }
+    });
+
+    test('贴图皮肤的低对比贴图在两态下都能压住纸色', () {
+      // 贴图会被以 backgroundOpacity 混进纸色。若某套贴图本身
+      // 与纸色亮度太接近，混完之后界面等于没有皮肤。
+      for (final t in appThemes.where((x) => x.hasBackground)) {
+        for (final b in Brightness.values) {
+          final surface = buildTheme(t, b).colorScheme.surface;
+          // 纸色与主色的对比度：贴图再淡，主色仍必须站得住，
+          // 否则界面看起来就是「一张模糊的图」而非皮肤。
+          final primary = buildTheme(t, b).colorScheme.primary;
+          expect(primary.computeLuminance(),
+              isNot(equals(surface.computeLuminance())),
+              reason: '${t.id}/$b 的主色与纸色亮度相同，界面会糊成一片');
+        }
+      }
+    });
+
+    test('贴图亮度居中在明暗纸色之间——这是单张贴图两用的前提', () {
+      // 贴图已不按明暗分两套文件，只靠 AppBackground 的遮罩强度适配。
+      // 而遮罩只能压暗/提亮纸色，**无法把贴图的固有亮度挪走**：
+      // 若贴图 med 与某态纸色接近，那一态下贴图就等于隐形。
+      //
+      // 判据直接取自合成公式
+      //   结果 = 纸×scrim + (图×opacity + 纸×(1-opacity))×(1-scrim)
+      // 要求合成结果与纯纸色的差 ≥0.03，即「肉眼看得出身份」。
+      const minDelta = 0.03;
+      // 与 AppBackground._scrim 保持一致。
+      const scrims = {Brightness.light: 0.58, Brightness.dark: 0.30};
+      for (final t in appThemes.where((x) => x.hasBackground)) {
+        final op = t.backgroundOpacity;
+        // 用主题实际种子色反推贴图该有的亮度锚点：素材统一按中位数
+        // 对齐到 0.32（见 scripts/prep_backgrounds.py）。
+        const imgMedian = 0.32;
+        for (final b in Brightness.values) {
+          final surface =
+              buildTheme(t, b).colorScheme.surface.computeLuminance();
+          final s = scrims[b]!;
+          final mixed = op * imgMedian + (1 - op) * surface;
+          final blended = surface * s + mixed * (1 - s);
+          final delta = (blended - surface).abs();
+          expect(delta, greaterThanOrEqualTo(minDelta),
+              reason: '${t.id}/$b 下贴图与纸色只差 $delta'
+                  '（纸 $surface / 图 $imgMedian / opacity $op /遮罩 $s）——'
+                  '贴图已经隐形，这套皮肤等于白做');
+        }
       }
     });
 

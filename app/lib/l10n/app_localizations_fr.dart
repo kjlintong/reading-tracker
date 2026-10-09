@@ -2505,25 +2505,13 @@ class SFr extends S {
   String get themeInk => 'Encre';
 
   @override
-  String get themeAmber => 'Ambre';
-
-  @override
   String get themeBlue => 'Montagne';
-
-  @override
-  String get themeRose => 'Rose';
-
-  @override
-  String get themeMidnight => 'Minuit';
 
   @override
   String get themePlum => 'Prune';
 
   @override
   String get themeLagoon => 'Lagon';
-
-  @override
-  String get themeCitrus => 'Agrume';
 
   @override
   String get themeBerry => 'Baie';
@@ -2726,4 +2714,25 @@ class SFr extends S {
   String s_9d2e7f13({required Object name, required Object count}) {
     return 'Renommée en « $name » ; $count livres mis à jour';
   }
+
+  @override
+  String get themeBgStarfield => 'Ciel étoilé';
+
+  @override
+  String get themeBgMist => 'Brume de montagne';
+
+  @override
+  String get themeBgMoss => 'Jardin de mousse';
+
+  @override
+  String get themeBgDusk => 'Lumière du soir';
+
+  @override
+  String get themeBgCat => 'Sieste du chat';
+
+  @override
+  String get themeBgDog => 'Parc du chien';
+
+  @override
+  String get s_2f8a1c47 => 'Texturé';
 }
