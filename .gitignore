@@ -90,3 +90,6 @@ app/i18n_keys.csv
 # 只保留处理后的 assets/backgrounds/*.webp（6 张共 100KB）。
 # 原始图不入库：12MB 的体积 + 带第三方水印，留着容易被误当成 App 资源。
 app/assets/backgrounds/0_raw/
+
+# 一次性界面预览图（出完即弃，不该进版本库）
+store/update-preview/
