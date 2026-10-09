@@ -19,6 +19,7 @@ import '../import/llm_shelf_parser.dart';
 import '../import/ocr_line.dart';
 import '../import/shelf_layout.dart';
 import '../import/shelf_ocr_parser.dart';
+import 'theme.dart';
 
 /// 添加图书：底部抽屉，列出全部入库方式。
 ///
@@ -693,7 +694,7 @@ class _AddBookSheetState extends ConsumerState<AddBookSheet> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: cs.surfaceContainerHighest,
+                      color: panelColor(context, cs.surfaceContainerHighest),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(_message!, style: const TextStyle(fontSize: 13)),
@@ -802,7 +803,7 @@ class _AddBookSheetState extends ConsumerState<AddBookSheet> {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
+        color: panelColor(context, cs.surfaceContainerHighest),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: cs.outlineVariant),
       ),

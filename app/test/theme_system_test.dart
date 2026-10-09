@@ -139,6 +139,135 @@ void main() {
     });
   });
 
+  /// 从 [ThemeData] 直接取SkinChrome。
+  ///
+  ///不能用 `panelColor(context, …)` 那个入口：它要的是 BuildContext，
+  /// 而这里拿的是没挂 widget 的 ThemeData（纯数据比较，不该为此造一棵 widget 树）。
+  SkinChrome chromeOf(ThemeData data) =>
+      data.extension<SkinChrome>() ?? const SkinChrome(hasBackground: false);
+
+  group('贴图模式下页面自绘容器必须半透明', () {
+    // 回归守卫。背景贴图皮肤的价值在于「整屏一张图」，但界面上层层
+    // 不透明的框会把它盖得只剩边框缝里一条线。
+    //
+    // **踩过的坑**：半透明系数kPanelAlpha 原本是 buildTheme 里的局部闭包，
+    // 页面自己写的 `Container(color: cs.surface…)` 根本拿不到 ——
+    // 于是 Card / InputDecoration / 底栏（都走主题）正常，
+    // 而阅读计划页（整页 Material 实心）、统计指标块、AI 报告正文
+    // 这些**自己画框**的地方全被盖死。用户看到的是「部分页面皮肤没生效」。
+    //
+    // 所以规则是：页面里画框一律走 [panelColor] / [skinChromeOf]，
+    // 不允许直接用 colorScheme 的纸色。这条用例把规则钉死。
+
+    /// 页面里出现的不透明容器写法。正则匹配的是「直接拿 colorScheme
+    /// 的纸色当容器底色」——这是盖住贴图的唯一途径。
+    ///
+    /// 刻意**不**排除 dialog / bottomSheet / 皮肤预览色块：
+    /// 这几处保持不透明是对的，但它们得显式写明理由，不能靠"碰巧没被匹配"。
+    final opaqueBoxes = RegExp(
+      r'(color|backgroundColor):\s*(cs|scheme|context\.colorScheme)\.surface\b',
+    );
+
+    /// 这几处不透明是**有意为之**，附理由；新增例外必须在这里写清为什么。
+    const intentional = <String, String>{
+      'ui/settings_page.dart':
+          '皮肤预览圆点要显示的就是纸色本身，半透明就看不到这套皮肤什么颜色',
+      'ui/theme.dart':
+          'dialog / bottomSheet 是浮在内容之上的模态，半透明会让底下正文透上来叠字',
+    };
+
+    test('页面里没有直接把纸色当容器底色的写法', () {
+      final offenders = <String>[];
+      for (final f in Directory('lib/ui')
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.dart'))) {
+        final rel = 'ui/${f.uri.pathSegments.last}';
+        if (intentional.containsKey(rel)) continue;
+        final lines = File(f.path).readAsLinesSync();
+        for (var i = 0; i < lines.length; i++) {
+          final line = lines[i];
+          if (line.trimLeft().startsWith('//')) continue;
+          if (line.trimLeft().startsWith('///')) continue;
+          if (opaqueBoxes.hasMatch(line)) {
+            offenders.add('$rel:${i + 1}  ${line.trim()}');
+          }
+        }
+      }
+      expect(offenders, isEmpty,
+          reason: '这些容器在贴图皮肤下是不透明的，会盖住背景。\n'
+              '请改用 panelColor(context, cs.surface…)；'
+              '整页画布（Material/Scaffold）用 skinChromeOf(context).hasBackground '
+              '判断后给 Colors.transparent。\n'
+              '确需不透明就加进 intentional 并写明理由。\n\n'
+              '${offenders.join('\n')}');
+    });
+
+    test('SkinChrome 的半透明系数只由是否贴图决定，与明暗无关', () {
+      // 同一个系数覆盖明暗两态是有意的：贴图已经各自做过明暗适配，
+      // 这里再按明暗分叉会让两态的框「厚度」不一致，切主题时看着跳。
+      for (final t in appThemes) {
+        final light = buildTheme(t, Brightness.light);
+        final dark = buildTheme(t, Brightness.dark);
+        final a = chromeOf(light);
+        final b = chromeOf(dark);
+        expect(a.hasBackground, t.hasBackground, reason: t.id);
+        expect(b.hasBackground, t.hasBackground, reason: t.id);
+        expect(a.panelAlpha, b.panelAlpha, reason: t.id);
+        if (t.hasBackground) {
+          expect(a.panelAlpha, kPanelAlpha, reason: t.id);
+        } else {
+          expect(a.panelAlpha, 1.0, reason: '${t.id} 纯色皮肤必须不透明');
+        }
+      }
+    });
+
+    test('半透明只降 alpha，不动色相明度——否则是二次调色', () {
+      final scheme = ColorScheme.fromSeed(seedColor: const Color(0xFFA85A4A));
+      for (final theme in appThemes.where((t) => t.hasBackground)) {
+        final chrome = chromeOf(buildTheme(theme, Brightness.light));
+        for (final paper in <Color>[
+          scheme.surface,
+          scheme.surfaceContainerLowest,
+          scheme.surfaceContainerLow,
+          scheme.surfaceContainerHighest,
+        ]) {
+          final p = chrome.panel(paper);
+          // Color.alpha 是 0~255 的 double，Color.a 要 Flutter 3.27+，
+          // 这里统一用 opacity（0~1）读，避免版本差异。
+          // alpha 存的是 8bit，0.72 读回来是 184/255=0.7215…，
+          // 容差必须宽于量化误差（1/255≈0.0039），否则必挂。
+          expect(p.opacity, closeTo(chrome.panelAlpha, 1 / 255));
+          // RGB 必须逐通道原样保留
+          expect(p.red, paper.red, reason: theme.id);
+          expect(p.green, paper.green, reason: theme.id);
+          expect(p.blue, paper.blue, reason: theme.id);
+        }
+      }
+    });
+
+    testWidgets('纯色皮肤下 panelColor 原样返回，滚动超界不会透黑底',
+        (tester) async {
+      const paper = Color(0xFFF6F1E8);
+      for (final theme in appThemes.where((t) => !t.hasBackground)) {
+        for (final brightness in Brightness.values) {
+          late Color got;
+          await tester.pumpWidget(
+            MaterialApp(
+              theme: buildTheme(theme, brightness),
+              home: Builder(builder: (ctx) {
+                got = panelColor(ctx, paper);
+                return const SizedBox();
+              }),
+            ),
+          );
+          expect(got.opacity, 1.0, reason: '${theme.id}/$brightness');
+          expect(got, paper, reason: '${theme.id}/$brightness');
+        }
+      }
+    });
+  });
+
   group('图表色板跟随皮肤', () {
     testWidgets('Theme 里带着当前皮肤的色板', (tester) async {
       for (final t in appThemes) {

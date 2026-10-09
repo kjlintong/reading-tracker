@@ -784,6 +784,63 @@ enum AppBrightness {
       };
 }
 
+/// 贴图模式下框型区域的不透明度。
+///
+/// 0.72 是实测值：0.9 时贴图几乎看不见（等于没开），
+/// 0.5 时正文对比度掉到 7:1 以下、深色态尤其明显。
+/// 0.72 能看见背景纹理，又保住 WCAG AA 正文所需的对比度。
+const double kPanelAlpha = 0.72;
+
+/// 把「这套皮肤带不带贴图」和「框该多不透明」交给页面。
+///
+/// 为什么需要它：贴图模式下要把界面上一层层的框调半透明，背景才能透上来。
+/// 但 [buildTheme] 里的半透明闭包是**局部**的，页面自己写的
+/// `Container(decoration: BoxDecoration(color: cs.surface…))` 拿不到——
+/// 缺了这个出口，那些容器就全是实心的。
+///
+/// **这个类曾经不存在**，后果是阅读计划页、统计指标块、AI 报告正文等
+/// 十几处实心容器把贴图盖得只剩边框缝里一条线，而 Card / InputDecoration
+/// 因为走主题所以正常。看起来像「部分页面的皮肤失效」，
+/// 实际是「凡是自己画框的页面都失效」。
+@immutable
+class SkinChrome extends ThemeExtension<SkinChrome> {
+  const SkinChrome({required this.hasBackground});
+
+  /// 当前皮肤是否带贴图。
+  final bool hasBackground;
+
+  /// 框型区域的不透明度：纯色皮肤 1.0（不透明），贴图皮肤 [kPanelAlpha]。
+  double get panelAlpha => hasBackground ? kPanelAlpha : 1.0;
+
+  /// 把任意纸色按当前模式调成该有的不透明度。
+  Color panel(Color paper) => paper.withOpacity(panelAlpha);
+
+  @override
+  SkinChrome copyWith({bool? hasBackground}) =>
+      SkinChrome(hasBackground: hasBackground ?? this.hasBackground);
+
+  @override
+  SkinChrome lerp(ThemeExtension<SkinChrome>? other, double t) {
+    if (other is! SkinChrome) return this;
+    // 换皮肤是瞬时事件，中间态既不属于 A 也不属于 B，直接切。
+    return t < 0.5 ? this : other;
+  }
+}
+
+/// 取当前上下文的皮肤外壳信息；不在 Theme 下时按纯色处理（不透明）。
+SkinChrome skinChromeOf([BuildContext? context]) {
+  if (context == null) return const SkinChrome(hasBackground: false);
+  return Theme.of(context).extension<SkinChrome>() ??
+      const SkinChrome(hasBackground: false);
+}
+
+/// 页面里自定义的框型容器用它取底色，贴图皮肤下自动半透明。
+///
+/// **不要写 `cs.surface.withOpacity(0.72)`**：那个常数是贴图模式专属，
+/// 纯色皮肤下会让「纸」透出黑底（滚动超界时尤其明显）。
+Color panelColor(BuildContext context, Color paper) =>
+    skinChromeOf(context).panel(paper);
+
 /// 按皮肤 + 明暗构造 [ThemeData]。
 ///
 /// 集中在这里而不是散落在 main.dart：改主题细节（圆角、字体等）
@@ -825,14 +882,8 @@ ThemeData buildTheme(AppTheme theme, Brightness brightness) {
   // 什么时候不透明：贴图之外的纯色皮肤。它们的「纸」就是设计本身，
   // 调成半透明会露出黑底（滚动超界时尤其明显）。
   //
-  /// 贴图模式下框型区域的不透明度。
-  ///
-  /// 0.72 是实测值：0.9 时贴图几乎看不见（等于没开），
-  /// 0.5 时正文对比度掉到 7:1 以下、深色态尤其明显。
-  /// 0.72 能看见背景纹理，又保住 WCAG AA 正文所需的对比度。
-  const double panelAlphaValue = 0.72;
 
-  double panelAlpha() => theme.hasBackground ? panelAlphaValue : 1.0;
+  double panelAlpha() => theme.hasBackground ? kPanelAlpha : 1.0;
 
   /// 把纸色按 [panelAlphaValue] 调成半透明。
   Color panel(Color paper) => paper.withOpacity(panelAlpha());
@@ -853,6 +904,7 @@ ThemeData buildTheme(AppTheme theme, Brightness brightness) {
     // 图表色板跟着皮肤走：活泼皮肤的纸色被主色浸染，
     // 共用色板会出现「系列与背景对比不足」——那不是不好看，是数据看不见。
     extensions: <ThemeExtension<dynamic>>[
+      SkinChrome(hasBackground: theme.hasBackground),
       ChartPalette(
         // 深色模式优先用深色专用色板；没给就退回浅色那套。
         isLight

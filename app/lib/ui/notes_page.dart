@@ -7,6 +7,7 @@ import '../models/enums.dart';
 import '../providers.dart';
 import 'book_detail_page.dart';
 import 'plan_section.dart';
+import 'theme.dart';
 
 /// 记录页：笔记 + 阅读计划。
 ///
@@ -98,7 +99,11 @@ class _NotesPageState extends ConsumerState<NotesPage> {
     // 加载态同理——转圈也要转在正确的画布颜色上。
     if (!_loaded) {
       return Material(
-        color: cs.surface,
+        // 贴图模式下不能给纸色：这一层铺满整页，铺实了贴图就一点都透不上来。
+        // 阅读计划（PlanSection）长在本页，用户报的「计划页没皮肤」就是这里。
+        color: skinChromeOf(context).hasBackground
+            ? Colors.transparent
+            : cs.surface,
         child: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -109,7 +114,11 @@ class _NotesPageState extends ConsumerState<NotesPage> {
     // 用 shrinkWrap + NeverScrollableScrollPhysics 把它交给外层滚动，
     // 避免出现「列表套列表、滚动手势打架」的经典问题。
     return Material(
-      color: cs.surface,
+      // 同上：整页画布。贴图皮肤下必须透明，否则本页的所有卡片、计划板块
+      // 都压在一层实心纸上，背景等于没开。
+      color: skinChromeOf(context).hasBackground
+          ? Colors.transparent
+          : cs.surface,
       child: SafeArea(
         bottom: false,
         child: ListView(
@@ -195,7 +204,9 @@ class _Header extends StatelessWidget {
     // 但「只在 Scaffold 里能用」是个潜伏的坑——一旦有人把它放进对话框
     // 或独立路由就会崩。让页面自带 Material，代价为零。
     return Material(
-      color: cs.surface,
+      color: skinChromeOf(context).hasBackground
+          ? Colors.transparent
+          : cs.surface,
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),

@@ -14,6 +14,7 @@ import '../models/enums.dart';
 import '../providers.dart';
 import '../data/report_period.dart';
 import 'markdown_view.dart';
+import 'theme.dart';
 
 /// AI 阅读报告 —— **全 App 唯一的报告入口**。
 ///
@@ -117,7 +118,7 @@ class ReportDetailPage extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
                 decoration: BoxDecoration(
-                  color: cs.surface,
+                  color: panelColor(context, cs.surface),
                   border: Border.all(color: cs.outlineVariant.withOpacity(0.7)),
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -822,7 +823,7 @@ class _ReportSettingsPageState extends ConsumerState<ReportSettingsPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: cs.surfaceContainerHighest,
+              color: panelColor(context, cs.surfaceContainerHighest),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

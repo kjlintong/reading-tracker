@@ -16,6 +16,7 @@ import '../providers.dart';
 import 'chronology_page.dart';
 import 'palette.dart';
 import 'range_selector.dart';
+import 'theme.dart';
 
 /// 统计看板。
 ///
@@ -1125,7 +1126,7 @@ class _StatsPageState extends ConsumerState<StatsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: cs.surfaceContainerHighest,
+          color: panelColor(context, cs.surfaceContainerHighest),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(

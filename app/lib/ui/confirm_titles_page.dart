@@ -5,6 +5,7 @@ import '../import/import_manager.dart';
 import '../import/shelf_layout.dart';
 import '../import/shelf_ocr_parser.dart';
 import '../models/enums.dart';
+import 'theme.dart';
 
 /// 书名候选确认页。
 ///
@@ -102,7 +103,7 @@ class _ConfirmTitlesPageState extends State<ConfirmTitlesPage> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 4),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: cs.surfaceContainerHighest,
+                color: panelColor(context, cs.surfaceContainerHighest),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(

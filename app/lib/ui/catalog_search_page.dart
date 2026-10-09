@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../models/book.dart';
 import '../models/enums.dart';
 import '../providers.dart';
+import 'theme.dart';
 
 /// 公开书目搜索导入页。
 ///
@@ -247,7 +248,7 @@ class _CatalogSearchPageState extends ConsumerState<CatalogSearchPage> {
                 onChanged: (v) => setState(
                     () => v == true ? _selected.add(i) : _selected.remove(i)),
               ),
-              _cover(m.coverUrl, cs),
+              _cover(context, m.coverUrl, cs),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -294,13 +295,13 @@ class _CatalogSearchPageState extends ConsumerState<CatalogSearchPage> {
 
   /// 封面缩略图。公开书库的封面链接经常 404 或超时，
   /// errorBuilder / loadingBuilder 都要给，否则列表会闪白块。
-  static Widget _cover(String? url, ColorScheme cs) {
+  static Widget _cover(BuildContext context, String? url, ColorScheme cs) {
     const w = 40.0, h = 56.0;
     final placeholder = Container(
       width: w,
       height: h,
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest,
+        color: panelColor(context, cs.surfaceContainerHighest),
         borderRadius: BorderRadius.circular(4),
       ),
       child: Icon(Icons.menu_book_outlined, size: 18, color: cs.onSurfaceVariant),

@@ -6,6 +6,7 @@ import '../models/book.dart';
 import '../models/reading_plan.dart';
 import '../providers.dart';
 import 'plan_editor_sheet.dart';
+import 'theme.dart';
 
 /// 阅读计划板块。嵌在「记录」页（笔记 + 计划）里，不是独立导航栏。
 ///
@@ -295,7 +296,8 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
                 child: LinearProgressIndicator(
                   value: prog.ratio,
                   minHeight: 5,
-                  backgroundColor: cs.surfaceContainerHighest,
+                  backgroundColor:
+                      panelColor(context, cs.surfaceContainerHighest),
                 ),
               ),
             ],

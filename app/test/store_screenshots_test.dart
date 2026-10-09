@@ -22,6 +22,7 @@ import 'package:reading_tracker/ui/insights_page.dart';
 import 'package:reading_tracker/ui/theme.dart';
 
 import 'support/localized_app.dart';
+import 'package:reading_tracker/models/reading_plan.dart';
 
 /// 商店截图生成器 —— 输出**符合两个平台尺寸硬性要求**的双语截图。
 ///
@@ -433,6 +434,57 @@ void main() {
       });
 
       await t.pumpWidget(root(l, BookDetailPage(bookId: targetId!), round: shotRound));
+      await settle(t);
+    });
+  });
+
+  testWidgets('06 阅读计划与笔记', (tester) async {
+    await renderAll(tester, '06-plan', (t, l) async {
+      final zh = l.languageCode == 'zh';
+      final books = await repo.all();
+      final now = DateTime.now();
+      String ymd(DateTime d) =>
+          '${d.year.toString().padLeft(4, '0')}-'
+          '${d.month.toString().padLeft(2, '0')}-'
+          '${d.day.toString().padLeft(2, '0')}';
+
+      // 种两条**类型不同**的计划（每日时长 / 读完某本），让这一页展示得出
+      // 两种卡片的差别 —— 只种一条就等于没展示这个功能。
+      await repo.upsertPlan(ReadingPlan(
+        id: 'store_plan_daily',
+        kind: PlanKind.dailyMinutes,
+        title: zh ? '每天读 30 分钟' : '30 minutes a day',
+        dailyMinutes: 30,
+        createdAt: now.subtract(const Duration(days: 3)).toIso8601String(),
+        checkins: '${ymd(now.subtract(const Duration(days: 2)))},'
+            '${ymd(now.subtract(const Duration(days: 1)))}',
+      ));
+
+      if (books.isNotEmpty) {
+        await repo.upsertPlan(ReadingPlan(
+          id: 'store_plan_book',
+          kind: PlanKind.finishBook,
+          title: zh ? '读完《置身事内》' : 'Finish 《置身事内》',
+          bookId: books.first.id,
+          dueDate: ymd(now.add(const Duration(days: 5))),
+          createdAt: now.subtract(const Duration(days: 6)).toIso8601String(),
+        ));
+
+        await repo.addNote(Note(
+          id: 'store_plan_note',
+          bookId: books.first.id,
+          type: NoteType.thought,
+          content: zh
+              ? '读到第三章，把「中央—地方」这条线理顺之后，'
+                  '很多政策新闻就不再是孤立事件了。'
+              : 'Chapter three ties it together: once the central-versus-local '
+                  'thread clicks, most policy stories stop looking isolated.',
+          chapter: zh ? '第 3 章' : 'Chapter 3',
+          createdAt: now.toIso8601String(),
+        ));
+      }
+
+      await t.pumpWidget(root(l, const NotesPage(), round: shotRound));
       await settle(t);
     });
   });
