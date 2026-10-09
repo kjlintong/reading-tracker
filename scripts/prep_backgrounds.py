@@ -81,12 +81,12 @@ SRC, DST = sys.argv[1], sys.argv[2]
 # 而且因为都是「低饱和低对比」的图，肉眼很难立刻发现是谁配错了。
 # 名字靠猜时就该显式绑定。
 RAW_MAP = {
-    'Abstract_deep_space_night_sky__2026-10-09T03-55-39.png': 'starfield',
+    'Deep_space_night_sky_with_a_br_2026-10-09T07-19-08.png': 'starfield',
     'Traditional_Chinese_ink_wash_p_2026-10-09T03-55-40.png': 'mist',
     'Extreme_macro_photograph_of_we_2026-10-09T03-55-59.png': 'moss',
     'Warm_dusk_golden_hour_gradient_2026-10-09T03-55-59.png': 'dusk',
-    'Soft_warm_cream_and_beige_grad_2026-10-09T03-56-18.png': 'cat',
-    'Soft_warm_honey_and_pale_amber_2026-10-09T03-56-23.png': 'dog',
+    'Soft_warm_cream_and_beige_back_2026-10-09T07-19-08.png': 'cat',
+    'Soft_warm_honey_and_pale_amber_2026-10-09T07-19-07.png': 'dog',
 }
 
 WM_H = 0.075  # 底部水印带高度占比

@@ -333,11 +333,13 @@ const List<AppTheme> appThemes = [
   // opacity 全部 ≤0.22：贴图的作用是「让皮肤有辨识度」，
   // 不是「让用户看图」。超过 0.4 界面就读不清了。
   //
-  // blur 的取舍：纹理密集的（苔藓、黄昏、猫狗都是软焦/微距）
-  // 必须虚化，否则字边缘发毛；星空与水墨本身平滑，给 0 反而更清楚。
+  // blur 的取舍：纹理密集的（苔藓）必须虚化，否则字边缘发毛；
+  // 星空、水墨本身平滑，给 0 更清楚；
+  // 猫狗是**清晰的矢量图案平铺**，虚化会直接毁掉可辨识度，
+  // 只给0.5 压一压锐边（1.4 时猫脸完全糊成一团，已实测）。
 
-  // 星河：深空+ 极光。贴图本身已经很暗（med 0.135），
-  // 所以 opacity 给到 0.30 也不刺眼，是六张里最"敢给"的一张。
+  // 星河：深空 + 银河 + 极光。极光已经过降彩度（绿 0.053），
+  // 贴图本身中位亮度归到 0.32，所以 opacity 给到 0.42 也不刺眼。
   AppTheme(
     id: 'bgStarfield',
     labelKey: 'themeBgStarfield',
@@ -408,8 +410,10 @@ const List<AppTheme> appThemes = [
     backgroundBlur: 0.5,
   ),
 
-  // 猫屿：暖奶油 + 猫影。主色用**粉橘** 而非贴图的米黄，
-  // 让「可爱」由主色承担，背景只做氛围。
+  // 猫屿：奶油底+ 猫咪图案平铺（整幅都是猫，不是渐变）。
+  // 主色用**粉橘**而非贴图本身的米黄，让「可爱」由主色承担，
+  // 背景提供辨识度。blur 从 1.4 降到 0.5：图案换成清晰的矢量平铺后，
+  // 再虚化就只剩一团糊，猫脸认不出来了（1.4 时实测已完全看不出是猫）。
   AppTheme(
     id: 'bgCat',
     labelKey: 'themeBgCat',
@@ -420,10 +424,11 @@ const List<AppTheme> appThemes = [
     chartPaletteDark: _blossomDark,
     backgroundAsset: 'assets/backgrounds/bg_cat.webp',
     backgroundOpacity: 0.40,
-    backgroundBlur: 1.4,
+    backgroundBlur: 0.5,
   ),
 
-  // 犬窝：蜜黄 + 爪印。主色用**暖棕** 26°，比猫屿更沉稳，
+  // 犬窝：蜜黄底 + 小狗图案平铺。同样把 blur 从 1.4 降到 0.5，
+  // 理由同上。主色用**暖棕** 26°，比猫屿更沉稳，
   // 免得两套宠物皮肤看起来是同一套。
   AppTheme(
     id: 'bgDog',
@@ -435,7 +440,7 @@ const List<AppTheme> appThemes = [
     chartPaletteDark: _citrusDark,
     backgroundAsset: 'assets/backgrounds/bg_dog.webp',
     backgroundOpacity: 0.42,
-    backgroundBlur: 1.4,
+    backgroundBlur: 0.5,
   ),
 ];
 
