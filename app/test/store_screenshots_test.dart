@@ -19,6 +19,7 @@ import 'package:reading_tracker/ui/ai_report_page.dart';
 import 'package:reading_tracker/ui/book_detail_page.dart';
 import 'package:reading_tracker/ui/notes_page.dart';
 import 'package:reading_tracker/ui/insights_page.dart';
+import 'package:reading_tracker/ui/theme.dart';
 
 import 'support/localized_app.dart';
 
@@ -82,38 +83,143 @@ void main() {
     final appDb = AppDatabase.forTest(raw);
     await appDb.createSchema(raw);
     repo = BookRepository(appDb);
+  });
 
-    // 与 screenshot_test.dart 保持一致：灌同一份随包示例书库，
-    // 保证商店截图里看到的就是用户首次打开 App 时的形态。
-    final payload = jsonDecode(
-            await File('assets/seed/library.json').readAsString())
-        as Map<String, dynamic>;
+  /// 按语言灌示例书库。
+  ///
+  /// ## 为什么必须分语言两套种子
+  ///
+  /// 之前无论哪种语言都灌 `library.json`，那份库的书名全是中文
+  /// （三体、活着、史记……）。于是**英文截图里界面是英文、书名是中文**，
+  /// 看起来就像 bug——实际上是真的 bug，只是出在素材而不是代码。
+  ///
+  /// 两份库的 id、状态、进度、评分与时间轴**一一对应**（同一批骨架换内容），
+  /// 因此中英两版截图的图表形状完全一致，可以直接对比。
+  ///
+  /// 分类字段仍写中文规范值（'文学' / '历史'…）：`categoryLabel()` 在渲染时
+  /// 按当前语言翻译成 Literature / History。种子库若直接写英文，
+  /// 反而因为不在规范词表里而漏翻。
+  Future<void> seedLibrary(String code) async {
+    final file = code == 'en' ? 'assets/seed/library.en.json' : 'assets/seed/library.json';
+    final payload =
+        jsonDecode(await File(file).readAsString()) as Map<String, dynamic>;
 
     final books = (payload['books'] as List)
         .whereType<Map>()
         .map((e) => Book.fromMap(Map<String, dynamic>.from(e))
             .withNormalizedCategory())
         .toList();
-    await repo.insertMany(books);
+    // ⚠️ skipDuplicates 必须为 false。
+    //
+    // insertMany 默认 skipDuplicates: true，遇到已存在的 id 直接跳过。
+    // 中英两套种子库的 id 是**故意一一对应**的（同一批骨架换书名），
+    // 于是第一轮灌进去的中文书会把第二轮的英文书全部挡掉——英文截图里
+    // 就还是中文书。false 走 ConflictAlgorithm.replace，同 id 整行覆盖，
+    // 两种语言各渲染各的，同时也就顺带实现了「每轮换语言就重灌」。
+    await repo.insertMany(books, skipDuplicates: false);
 
     if (payload['stats'] is Map) {
       await repo.setSetting('wereadAnnualStats', jsonEncode(payload['stats']));
     }
-  });
+  }
 
   tearDown(() async {
     if (!enabled) return;
     await raw.close();
   });
 
-  ThemeData theme() => ThemeData(
-        useMaterial3: true,
-        // fontFamily 是「首选」，fontFamilyFallback 是「首选缺字形时按序回退」。
-        // 两者必须分属**不同 family**——详见 _loadFonts() 的说明。
-        fontFamily: _latinFamily,
-        fontFamilyFallback: const <String>[_cjkFamily],
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3B6D11)),
-      );
+  /// 商店截图必须用**App 真实主题**，不能另起一套配色。
+  ///
+  /// 之前这里写的是 `ColorScheme.fromSeed(0xFF3B6D11)` —— 种子色相同，
+  /// 但那只是一个裸 ThemeData：没有 surface 分层、没有排版层级、
+  /// 卡片/导航栏/输入框/按钮/弹层全是 M3 默认值。于是商店图和官网图
+  /// 呈现的是**用户根本看不到的界面**，主题改版后尤其明显。
+  ///
+  /// 现在直接走 [buildTheme]，即 `lib/ui/theme.dart` 里那一个函数——
+  /// 截图与真机共用同一份主题定义，主题改了这批图自动跟着变。
+  ///
+  /// 字体仍然是测试环境专用的：fontFamily 是「首选」，fontFamilyFallback
+  /// 是「首选缺字形时按序回退」，两者必须分属**不同 family**（见 _loadFonts）。
+  ThemeData theme() {
+    final base = buildTheme(appThemes.first, Brightness.light);
+    // ⚠️ `ThemeData.copyWith` **不接受** fontFamily / fontFamilyFallback
+    // （这两个只有 ThemeData 构造器有），而 buildTheme 里已经把
+    // `fontFamily: 'Roboto'` 烘进了 textTheme。所以这里必须用
+    // `textTheme.apply(fontFamily:)` 逐个 TextStyle 换字体族，
+    // 并显式带上 fallback —— 缺了 fallback，中文会整片变豆腐块。
+    // ⚠️ AppBar 标题必须单独处理，它不走 textTheme。
+    //
+    // buildTheme 里 AppBarTheme.titleTextStyle 是从 textTheme.titleLarge
+    // copyWith 出来的**已经烘死 `fontFamily: 'Roboto'`** 的 TextStyle。
+    // 上面 apply() 只换 textTheme / primaryTextTheme 两棵树，换不到它——
+    // 于是中文截图里标题「书架」整行变成豆腐块 ▯▯，而正文、按钮、
+    // 列表全都有中文（它们走的是 textTheme）。只补 textTheme 是治标。
+    //
+    // TextStyle.copyWith 支持 fontFamily / fontFamilyFallback
+    // （不支持的是 ThemeData.copyWith），所以这里逐个补一遍。
+    //
+    // 字段名按 Flutter 3.24 的实际签名来，别照抄新版文档：
+    //   - CardTheme 没有 titleTextStyle（3.27 才加）
+    //   - NavigationRailThemeData 没有 labelTextStyle
+    //   - navigationBarTheme.labelTextStyle 是
+    //     MaterialStateProperty<TextStyle?>，要经 fbState 包一层
+    //   - chipTheme.labelStyle / tabBarTheme.labelStyle 都是纯 TextStyle?，
+    //     直接用 fb（照抄新文档会把这两个搞反）
+    TextStyle? fb(TextStyle? style) => style?.copyWith(
+          fontFamily: _latinFamily,
+          fontFamilyFallback: const <String>[_cjkFamily],
+        );
+
+    // MaterialStateProperty 版要包一层：解包 → 改 → 包回。
+    MaterialStateProperty<TextStyle?>? fbState(
+            MaterialStateProperty<TextStyle?>? prop) =>
+        prop == null
+            ? null
+            : MaterialStateProperty.resolveWith<TextStyle?>(
+                (states) => fb(prop.resolve(states)));
+
+    TextTheme apply(TextTheme t) => t.apply(
+          fontFamily: _latinFamily,
+          fontFamilyFallback: const <String>[_cjkFamily],
+        );
+
+    return base.copyWith(
+      textTheme: apply(base.textTheme),
+      primaryTextTheme: apply(base.primaryTextTheme),
+      appBarTheme: base.appBarTheme.copyWith(
+        titleTextStyle: fb(base.appBarTheme.titleTextStyle),
+        toolbarTextStyle: fb(base.appBarTheme.toolbarTextStyle),
+      ),
+      listTileTheme: base.listTileTheme.copyWith(
+        titleTextStyle: fb(base.listTileTheme.titleTextStyle),
+        subtitleTextStyle: fb(base.listTileTheme.subtitleTextStyle),
+      ),
+      inputDecorationTheme: base.inputDecorationTheme.copyWith(
+        labelStyle: fb(base.inputDecorationTheme.labelStyle),
+        helperStyle: fb(base.inputDecorationTheme.helperStyle),
+        hintStyle: fb(base.inputDecorationTheme.hintStyle),
+        errorStyle: fb(base.inputDecorationTheme.errorStyle),
+        prefixStyle: fb(base.inputDecorationTheme.prefixStyle),
+        suffixStyle: fb(base.inputDecorationTheme.suffixStyle),
+      ),
+      chipTheme:
+          base.chipTheme.copyWith(labelStyle: fb(base.chipTheme.labelStyle)),
+      navigationBarTheme: base.navigationBarTheme.copyWith(
+        labelTextStyle: fbState(base.navigationBarTheme.labelTextStyle),
+      ),
+      dialogTheme: base.dialogTheme.copyWith(
+        titleTextStyle: fb(base.dialogTheme.titleTextStyle),
+        contentTextStyle: fb(base.dialogTheme.contentTextStyle),
+      ),
+      snackBarTheme: base.snackBarTheme.copyWith(
+        contentTextStyle: fb(base.snackBarTheme.contentTextStyle),
+      ),
+      tabBarTheme: base.tabBarTheme.copyWith(
+        labelStyle: fb(base.tabBarTheme.labelStyle),
+        unselectedLabelStyle: fb(base.tabBarTheme.unselectedLabelStyle),
+      ),
+    );
+  }
 
   // ── 渲染外壳 ────────────────────────────────────────────────────────
   //
@@ -218,6 +324,9 @@ void main() {
         // 下一轮一开始就停在那一页上，历史列表压根不在树上。
         // 详见 [root] 的说明。
         shotRound++;
+        // 每轮换语言就得换书库：同一轮要重灌，否则上一轮的语言内容会留下来
+        // （英文轮里冒出中文书名，正是这个 bug 的另一面）。
+        await tester.runAsync(() => seedLibrary(code));
         await draw(tester, locale);
 
         // 交给 flutter_test 的异常不会说明是哪一个「规格 / 语言」出的问题，

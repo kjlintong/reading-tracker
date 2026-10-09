@@ -19,9 +19,9 @@ class AppInfo {
   /// 包名不暴露给用户，改名会破坏 24 个以 `package:reading_tracker/` 导入的文件。
   static const String name = 'Readnest';
 
-  /// 与 `pubspec.yaml` 的 `version: 1.0.0+14` 对应。
+  /// 与 `pubspec.yaml` 的 `version: 1.0.0+15` 对应。
   static const String version = '1.0.0';
-  static const String buildNumber = '14';
+  static const String buildNumber = '15';
 
   /// 完整的版本展示串，例如 `0.5.0 (5)`。
   static String get versionLabel => '$version ($buildNumber)';
