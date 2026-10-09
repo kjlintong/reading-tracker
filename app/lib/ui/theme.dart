@@ -169,13 +169,146 @@ enum AppBrightness {
 /// 集中在这里而不是散落在 main.dart：改主题细节（圆角、字体等）
 /// 只改这一个函数，全部皮肤一起生效。
 ThemeData buildTheme(AppTheme theme, Brightness brightness) {
-  final seed = brightness == Brightness.light ? theme.lightSeed : theme.darkSeed;
-  final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
+  final seed =
+      brightness == Brightness.light ? theme.lightSeed : theme.darkSeed;
+  final base = ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
+  final isLight = brightness == Brightness.light;
+  // A quiet paper canvas gives the collection room to breathe without
+  // replacing the selected theme's accent or changing its light/dark behavior.
+  final scheme = base.copyWith(
+    surface: isLight ? const Color(0xFFFCFBF7) : const Color(0xFF171A16),
+    background: isLight ? const Color(0xFFFCFBF7) : const Color(0xFF171A16),
+    surfaceContainerLowest:
+        isLight ? const Color(0xFFFFFEFB) : const Color(0xFF121510),
+    surfaceContainerLow:
+        isLight ? const Color(0xFFF7F5EF) : const Color(0xFF1D211C),
+    surfaceContainer:
+        isLight ? const Color(0xFFF1EFE8) : const Color(0xFF232720),
+    surfaceContainerHigh:
+        isLight ? const Color(0xFFEAE8E0) : const Color(0xFF2B3029),
+    surfaceContainerHighest:
+        isLight ? const Color(0xFFE4E2D9) : const Color(0xFF343A32),
+  );
+  final outline = scheme.outlineVariant.withOpacity(isLight ? 0.72 : 0.65);
+  final baseTextTheme = isLight
+      ? Typography.material2021().black
+      : Typography.material2021().white;
+  final textTheme = baseTextTheme.apply(
+    bodyColor: scheme.onSurface,
+    displayColor: scheme.onSurface,
+    fontFamily: 'Roboto',
+  );
+
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    // 卡片与导航栏用 surface 系，避免 M3 默认的 tinted surface 在
-    // 某些皮肤下把正文衬得过灰（可读性问题，不是审美偏好）
     scaffoldBackgroundColor: scheme.surface,
+    visualDensity: VisualDensity.standard,
+    textTheme: textTheme.copyWith(
+      headlineSmall: textTheme.headlineSmall?.copyWith(
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        height: 1.15,
+        letterSpacing: -0.6,
+      ),
+      titleLarge: textTheme.titleLarge?.copyWith(
+        fontSize: 21,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.35,
+      ),
+      titleMedium: textTheme.titleMedium?.copyWith(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.1,
+      ),
+      bodyLarge: textTheme.bodyLarge?.copyWith(fontSize: 15, height: 1.45),
+      bodyMedium: textTheme.bodyMedium?.copyWith(fontSize: 14, height: 1.4),
+    ),
+    appBarTheme: AppBarTheme(
+      backgroundColor: scheme.surface,
+      foregroundColor: scheme.onSurface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0.5,
+      centerTitle: false,
+      titleTextStyle: textTheme.titleLarge?.copyWith(
+        color: scheme.onSurface,
+        fontSize: 21,
+        fontWeight: FontWeight.w600,
+        letterSpacing: -0.35,
+      ),
+    ),
+    cardTheme: CardTheme(
+      color: scheme.surfaceContainerLowest,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: outline),
+      ),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      height: 68,
+      backgroundColor: scheme.surfaceContainerLow,
+      surfaceTintColor: Colors.transparent,
+      indicatorColor: scheme.secondaryContainer,
+      labelTextStyle: MaterialStateProperty.resolveWith(
+          (states) => textTheme.labelSmall?.copyWith(
+                fontWeight: states.contains(MaterialState.selected)
+                    ? FontWeight.w600
+                    : FontWeight.w500,
+              )),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: scheme.surfaceContainerLow,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: outline),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: scheme.primary, width: 1.5),
+      ),
+    ),
+    dividerTheme: DividerThemeData(
+      color: outline,
+      thickness: 1,
+      space: 1,
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        minimumSize: const Size(48, 48),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(48, 48),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        side: BorderSide(color: outline),
+      ),
+    ),
+    dialogTheme: DialogTheme(
+      backgroundColor: scheme.surfaceContainerLowest,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+    ),
+    bottomSheetTheme: BottomSheetThemeData(
+      backgroundColor: scheme.surfaceContainerLowest,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      showDragHandle: true,
+    ),
   );
 }
