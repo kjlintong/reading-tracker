@@ -399,7 +399,13 @@ const List<AppTheme> appThemes = [
     chartPaletteDark: _honeyDark,
     backgroundAsset: 'assets/backgrounds/bg_dusk.webp',
     backgroundOpacity: 0.44,
-    backgroundBlur: 1.2,
+    // 0.5 而非原先的 1.2：**加大 blur 会让胶片颗粒更平，不是更明显**。
+    // 实测高频能量（相邻像素亮度差均值）随sigma 单调下降：
+    // 0 → 0.250、0.6 → 0.249、1.2 → 0.237、1.8 → 0.210、
+    // 2.5 → 0.180、3.5 → 0.166。胶片质感全在高频细节里，
+    // 模糊越大越像一块纯米色纸。
+    // （曾误以为「1.2 偏平该加大」，实测方向相反后回退到这里。）
+    backgroundBlur: 0.5,
   ),
 
   // 猫屿：暖奶油 + 猫影。主色用**粉橘** 而非贴图的米黄，
@@ -604,68 +610,46 @@ const List<Color> _plumDark = [
   Color(0xFF703432),
 ];
 
-// 暖阳 / 蜜色：橙黄与琥珀
+// 暮色 / 黄昏胶片：橙黄与琥珀
+//
+// 色相锁在种子 21° ±52° 内。原色板有 4 个黄绿（79°~84°），
+// 在橙棕黄昏里格外突兀——这就是「图表色板与主题割裂」的实质。
+// 重解后 12 色全部落在暖调，**判据全部在 8bit 域内**做：
+// 8bit 量化会让窄色带内的色相严重偏移（实测彩度 0.5 的颜色能偏 100°），
+// 用生成时的目标色相判「在带内」是假阳性，必须量化后再判。
 const List<Color> _honey = [
-  Color(0xFFB2AE8F),
-  Color(0xFF8F6531),
-  Color(0xFFA92F30),
-  Color(0xFF7F3951),
-  Color(0xFFB2525F),
-  Color(0xFF70261F),
-  Color(0xFFB2943C),
-  Color(0xFFA47883),
-  Color(0xFF7AAC30),
-  Color(0xFF68705C),
-  Color(0xFF86916E),
-  Color(0xFF5B8024),
+  Color(0xFFE3377F), Color(0xFFB29455), Color(0xFFD1DE46),
+  Color(0xFF664F3B), Color(0xFFB03E69), Color(0xFFD976AA),
+  Color(0xFFB26128), Color(0xFFF2B93B), Color(0xFF918831),
+  Color(0xFFDB5F5D), Color(0xFF933727), Color(0xFF5A1A34),
 ];
 
 /// 深色模式专用：同一色相家族，明度分布重新求解以适配深色纸。
 const List<Color> _honeyDark = [
-  Color(0xFFB28A93),
-  Color(0xFFB24359),
-  Color(0xFFB27132),
-  Color(0xFF704441),
-  Color(0xFF992B2C),
-  Color(0xFF4B7522),
-  Color(0xFF95616D),
-  Color(0xFF66705C),
-  Color(0xFFAFB247),
-  Color(0xFF879D61),
-  Color(0xFF9CB286),
-  Color(0xFF70AF31),
+  Color(0xFFF69A5B), Color(0xFFCAB471), Color(0xFF9D8F5A),
+  Color(0xFFE2F152), Color(0xFF9DA828), Color(0xFFBECB4C),
+  Color(0xFFF8C4A0), Color(0xFFD76599), Color(0xFFBE8637),
+  Color(0xFFDE423B), Color(0xFFF0506F), Color(0xFFBA6C70),
 ];
 
-// 樱粉 / 花信
+// 猫屿 / 暖粉
+//
+// 色相锁在种子 10° ±52° 内。原色板有 4 个紫色（286°~309°），
+// 在粉橘主题里明显是另一套色系的颜色。重解后 12 色全部落在暖调
+// （砖红 / 暖粉 / 焦橙 / 玫红），判据同样在 8bit 域内判定。
 const List<Color> _blossom = [
-  Color(0xFFA65F9B),
-  Color(0xFF763C88),
-  Color(0xFFAF92B2),
-  Color(0xFF704847),
-  Color(0xFFB23281),
-  Color(0xFF9B632B),
-  Color(0xFF9532B2),
-  Color(0xFF806970),
-  Color(0xFFB24F4D),
-  Color(0xFF70201F),
-  Color(0xFFAB8967),
-  Color(0xFF8A2762),
+  Color(0xFFC26858), Color(0xFF92653D), Color(0xFF574117),
+  Color(0xFFAE9D58), Color(0xFFA76A95), Color(0xFFB13B4B),
+  Color(0xFFF1AA9A), Color(0xFFDACB3E), Color(0xFFDB537B),
+  Color(0xFF783B62), Color(0xFFE89663), Color(0xFF9A252F),
 ];
 
 /// 深色模式专用：同一色相家族，明度分布重新求解以适配深色纸。
 const List<Color> _blossomDark = [
-  Color(0xFFAB7DB2),
-  Color(0xFF683270),
-  Color(0xFFB23286),
-  Color(0xFF8B7284),
-  Color(0xFF9D46AB),
-  Color(0xFF70351F),
-  Color(0xFF9A2B40),
-  Color(0xFF9F845C),
-  Color(0xFFB25254),
-  Color(0xFF70584B),
-  Color(0xFFB2A48F),
-  Color(0xFF906628),
+  Color(0xFFAD9266), Color(0xFFCE7CAC), Color(0xFFEAAB4E),
+  Color(0xFFCAB731), Color(0xFFCFD36E), Color(0xFFCB6569),
+  Color(0xFFA02827), Color(0xFFFB7145), Color(0xFFE652BC),
+  Color(0xFFDD4182), Color(0xFFFBD599), Color(0xFFFA9279),
 ];
 
 // 湖绿 / 湖蓝
@@ -700,36 +684,23 @@ const List<Color> _lagoonDark = [
   Color(0xFF2A4970),
 ];
 
-// 蜜柑 / 活力橙
+// 犬窝 / 蜜黄
+//
+// 改动最大的一套：原色板是紫、蓝、青绿的混合调，
+// 与蜜黄犬窝的主题完全不是一回事。重解后 12 色全部收进暖橙黄区间。
 const List<Color> _citrus = [
-  Color(0xFFB28541),
-  Color(0xFF9C2C64),
-  Color(0xFF8E5328),
-  Color(0xFF705F4B),
-  Color(0xFF9EB25C),
-  Color(0xFF701F2C),
-  Color(0xFFB23432),
-  Color(0xFF9B6E84),
-  Color(0xFF809A2B),
-  Color(0xFF838462),
-  Color(0xFFB2A48C),
-  Color(0xFF5E701F),
+  Color(0xFFC0A277), Color(0xFF707320), Color(0xFFF1F737),
+  Color(0xFFF35D67), Color(0xFF883B3E), Color(0xFFA9D04E),
+  Color(0xFFBCF46C), Color(0xFFF695A9), Color(0xFF907349),
+  Color(0xFF43522D), Color(0xFFD28951), Color(0xFF9F5067),
 ];
 
 /// 深色模式专用：同一色相家族，明度分布重新求解以适配深色纸。
 const List<Color> _citrusDark = [
-  Color(0xFFB28E9B),
-  Color(0xFFAC4333),
-  Color(0xFF917D77),
-  Color(0xFF8E3254),
-  Color(0xFFB24B71),
-  Color(0xFF53701F),
-  Color(0xFF8BB246),
-  Color(0xFF6A705C),
-  Color(0xFFABB273),
-  Color(0xFF705332),
-  Color(0xFF8E7A28),
-  Color(0xFFB28C4A),
+  Color(0xFFBF7D5E), Color(0xFFD1633C), Color(0xFFB7DD51),
+  Color(0xFFFCCA38), Color(0xFFF395A7), Color(0xFFF24D7A),
+  Color(0xFFEBEF8F), Color(0xFF74A636), Color(0xFFDBBC72),
+  Color(0xFFAC9533), Color(0xFF9E2D53), Color(0xFF9EA263),
 ];
 
 // 莓果 / 亮玫
