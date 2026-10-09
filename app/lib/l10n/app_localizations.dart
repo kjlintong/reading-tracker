@@ -4864,6 +4864,102 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Textured'**
   String get s_2f8a1c47;
+
+  /// 设置页「检查更新」按钮文案
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get checkUpdate;
+
+  /// 「检查更新」区块副标题
+  ///
+  /// In en, this message translates to:
+  /// **'See whether a newer version exists. If it does, it will say what changed.'**
+  String get checkUpdateDesc;
+
+  /// 检查进行中的按钮态
+  ///
+  /// In en, this message translates to:
+  /// **'Checking…'**
+  String get checkingForUpdate;
+
+  /// 已是最新版的弹窗标题
+  ///
+  /// In en, this message translates to:
+  /// **'You are on the latest version'**
+  String get updateUpToDate;
+
+  /// 已是最新版的弹窗正文，含当前版本号占位符
+  ///
+  /// In en, this message translates to:
+  /// **'You are on {version}. No newer version is available yet.'**
+  String updateUpToDateDesc({required String version});
+
+  /// 发现新版的弹窗标题，含新版本号占位符
+  ///
+  /// In en, this message translates to:
+  /// **'{version} is available'**
+  String updateAvailable({required String version});
+
+  /// 发现新版的弹窗正文，含当前版与新版本号占位符
+  ///
+  /// In en, this message translates to:
+  /// **'You are on {current}. Update to {latest} when you like — nothing is downloaded automatically.'**
+  String updateAvailableDesc({required String current, required String latest});
+
+  /// 更新说明列表的标题
+  ///
+  /// In en, this message translates to:
+  /// **'What changed'**
+  String get updateNotesTitle;
+
+  /// 发布者未写更新说明时的占位说明
+  ///
+  /// In en, this message translates to:
+  /// **'The publisher didn’t write release notes this time.'**
+  String get updateNoNotes;
+
+  /// 弹窗里的下载按钮，含版本号占位符
+  ///
+  /// In en, this message translates to:
+  /// **'Download {version}'**
+  String updateDownload({required String version});
+
+  /// 拿不到 APK 直链时改为打开发布页的按钮
+  ///
+  /// In en, this message translates to:
+  /// **'Open the release page'**
+  String get updateOpenRelease;
+
+  /// 检查失败弹窗标题
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t check for updates'**
+  String get updateCheckFailed;
+
+  /// 网络不可达时的错误说明
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t reach the server. Check your connection and try again.'**
+  String get updateCheckFailedNetwork;
+
+  /// 返回内容无法解析时的错误说明
+  ///
+  /// In en, this message translates to:
+  /// **'The server sent something unexpected. Please try again later.'**
+  String get updateCheckFailedMalformed;
+
+  /// Release 存在但找不到 APK 时的说明
+  ///
+  /// In en, this message translates to:
+  /// **'No installer found: {version} is published, but no APK could be found.'**
+  String updateNeverInstalled({required String version});
+
+  /// 弹窗里的发布时间，含日期占位符
+  ///
+  /// In en, this message translates to:
+  /// **'Published {date}'**
+  String updateReleasedOn({required String date});
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

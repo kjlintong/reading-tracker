@@ -2735,4 +2735,64 @@ class SEs extends S {
 
   @override
   String get s_2f8a1c47 => 'Con textura';
+
+  @override
+  String get checkUpdate => 'Buscar actualizaciones';
+
+  @override
+  String get checkUpdateDesc => 'Comprueba si hay una versión más reciente. Si la hay, indicará qué cambió.';
+
+  @override
+  String get checkingForUpdate => 'Comprobando…';
+
+  @override
+  String get updateUpToDate => 'Ya tienes la última versión';
+
+  @override
+  String updateUpToDateDesc({required String version}) {
+    return 'Estás en la versión $version. Aún no hay una versión más reciente.';
+  }
+
+  @override
+  String updateAvailable({required String version}) {
+    return 'La versión $version está disponible';
+  }
+
+  @override
+  String updateAvailableDesc({required String current, required String latest}) {
+    return 'Estás en $current. Actualiza a $latest cuando quieras: no se descarga nada automáticamente.';
+  }
+
+  @override
+  String get updateNotesTitle => 'Qué ha cambiado';
+
+  @override
+  String get updateNoNotes => 'El publicador no escribió notas de esta versión.';
+
+  @override
+  String updateDownload({required String version}) {
+    return 'Descargar $version';
+  }
+
+  @override
+  String get updateOpenRelease => 'Abrir la página de la versión';
+
+  @override
+  String get updateCheckFailed => 'No se pudo buscar actualizaciones';
+
+  @override
+  String get updateCheckFailedNetwork => 'No se pudo contactar con el servidor. Revisa la conexión e inténtalo de nuevo.';
+
+  @override
+  String get updateCheckFailedMalformed => 'El servidor devolvió algo ilegible. Inténtalo más tarde.';
+
+  @override
+  String updateNeverInstalled({required String version}) {
+    return 'No se encontró instalador: $version está publicado, pero no se encontró ningún APK.';
+  }
+
+  @override
+  String updateReleasedOn({required String date}) {
+    return 'Publicado el $date';
+  }
 }

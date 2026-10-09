@@ -2735,4 +2735,64 @@ class SDe extends S {
 
   @override
   String get s_2f8a1c47 => 'Textur';
+
+  @override
+  String get checkUpdate => 'Nach Updates suchen';
+
+  @override
+  String get checkUpdateDesc => 'Prüfen, ob eine neuere Version vorliegt – wenn ja, steht hier, was sich geändert hat.';
+
+  @override
+  String get checkingForUpdate => 'Wird geprüft…';
+
+  @override
+  String get updateUpToDate => 'Du hast bereits die neueste Version';
+
+  @override
+  String updateUpToDateDesc({required String version}) {
+    return 'Du verwendest $version. Es gibt derzeit keine neuere Version.';
+  }
+
+  @override
+  String updateAvailable({required String version}) {
+    return '$version ist verfügbar';
+  }
+
+  @override
+  String updateAvailableDesc({required String current, required String latest}) {
+    return 'Du verwendest $current. Aktualisiere auf $latest, wenn du möchtest – es wird nichts automatisch geladen.';
+  }
+
+  @override
+  String get updateNotesTitle => 'Was sich geändert hat';
+
+  @override
+  String get updateNoNotes => 'Diesmal wurden keine Versionshinweise geschrieben.';
+
+  @override
+  String updateDownload({required String version}) {
+    return '$version herunterladen';
+  }
+
+  @override
+  String get updateOpenRelease => 'Release-Seite öffnen';
+
+  @override
+  String get updateCheckFailed => 'Update-Prüfung fehlgeschlagen';
+
+  @override
+  String get updateCheckFailedNetwork => 'Server nicht erreichbar. Bitte Netzwerk prüfen und erneut versuchen.';
+
+  @override
+  String get updateCheckFailedMalformed => 'Die Serverantwort war unlesbar. Bitte später erneut versuchen.';
+
+  @override
+  String updateNeverInstalled({required String version}) {
+    return 'Kein Installationspaket gefunden: $version ist veröffentlicht, aber es wurde keine APK gefunden.';
+  }
+
+  @override
+  String updateReleasedOn({required String date}) {
+    return 'Veröffentlicht $date';
+  }
 }

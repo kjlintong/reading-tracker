@@ -2735,4 +2735,64 @@ class SFr extends S {
 
   @override
   String get s_2f8a1c47 => 'Texturé';
+
+  @override
+  String get checkUpdate => 'Vérifier les mises à jour';
+
+  @override
+  String get checkUpdateDesc => 'Voir si une version plus récente existe. Si oui, elle indiquera ce qui a changé.';
+
+  @override
+  String get checkingForUpdate => 'Vérification…';
+
+  @override
+  String get updateUpToDate => 'Vous utilisez déjà la dernière version';
+
+  @override
+  String updateUpToDateDesc({required String version}) {
+    return 'Vous utilisez la version $version. Aucune version plus récente n’est disponible.';
+  }
+
+  @override
+  String updateAvailable({required String version}) {
+    return 'La version $version est disponible';
+  }
+
+  @override
+  String updateAvailableDesc({required String current, required String latest}) {
+    return 'Vous utilisez $current. Mettez à jour vers $latest quand vous voulez — rien n’est téléchargé automatiquement.';
+  }
+
+  @override
+  String get updateNotesTitle => 'Ce qui a changé';
+
+  @override
+  String get updateNoNotes => 'L’éditeur n’a pas fourni de notes de version cette fois-ci.';
+
+  @override
+  String updateDownload({required String version}) {
+    return 'Télécharger $version';
+  }
+
+  @override
+  String get updateOpenRelease => 'Ouvrir la page de publication';
+
+  @override
+  String get updateCheckFailed => 'Échec de la vérification des mises à jour';
+
+  @override
+  String get updateCheckFailedNetwork => 'Serveur injoignable. Vérifiez la connexion et réessayez.';
+
+  @override
+  String get updateCheckFailedMalformed => 'Le serveur a renvoyé une réponse illisible. Réessayez plus tard.';
+
+  @override
+  String updateNeverInstalled({required String version}) {
+    return 'Aucun installateur trouvé : $version est publié, mais aucun APK n’a été trouvé.';
+  }
+
+  @override
+  String updateReleasedOn({required String date}) {
+    return 'Publié le $date';
+  }
 }

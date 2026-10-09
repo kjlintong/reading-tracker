@@ -91,9 +91,49 @@ void main() {
   /// 测试环境的 rootBundle 里 AssetManifest 只有条目名、没有像素，
   /// 解码失败后 errorBuilder 静默返回空 —— 出图是一张纯色纸，
   /// 看起来像「背景没生效」，实际是图根本没加载。
-  final bgBytes = skin.hasBackground
-      ? File(skin.backgroundAsset!).readAsBytesSync()
-      : Uint8List(0);
+  // ── 逐页皮肤 / 明暗覆盖 ──────────────────────────────────────────
+  //
+  // 商店素材一共就这 8 张，不该为了多展示几套皮肤而多出图片。所以让
+  // 「哪一页用哪套皮肤、哪个明暗」可配：
+  //
+  //   STORE_SKIN_MAP='01-shelf=bgStarfield:dark,02-stats=bgCat:dark'
+  //
+  // 一轮出图就能同时出现深色星河、深色猫屿、浅色纯色……皮肤展示得多，
+  // 但**图片数量不变**，商店页与官网版式都不用改。
+  //
+  // 格式：`<slug>=<skinId>[:light|dark]`，多组逗号分隔。
+  // 皮肤 id 不认识直接报错——静默回退会让人以为换了皮肤、实际图还是旧的。
+  final skinOverrides = <String, ({String id, Brightness mode})>{};
+  for (final entry
+      in(Platform.environment['STORE_SKIN_MAP'] ?? '').split(',')
+          .where((e) => e.trim().isNotEmpty)) {
+    final parts = entry.split('=');
+    if (parts.length != 2) {
+      throw StateError('STORE_SKIN_MAP 条目应为 slug=skin[:mode]，收到：$entry');
+    }
+    final spec = parts[1].split(':');
+    final id = spec.first;
+    final mode = spec.length > 1 ? spec[1] : 'light';
+    if (mode != 'light' && mode != 'dark') {
+      throw StateError('STORE_SKIN_MAP 的明暗只能是 light/dark，收到：$mode');
+    }
+    if (!appThemes.any((t) => t.id == id)) {
+      throw StateError('STORE_SKIN_MAP 里的皮肤 $id 不存在。可用：'
+          '${appThemes.map((t) => t.id).join(', ')}');
+    }
+    skinOverrides[parts[0].trim()] =
+        (id: id, mode: mode == 'dark' ? Brightness.dark : Brightness.light);
+  }
+
+  /// 当前这一页的皮肤与明暗。renderAll 每轮按 slug 改写，
+  /// theme() / root() 都是闭包，直接读这两个变量。
+  var pageSkin = skin;
+  var pageBrightness = Brightness.light;
+
+  /// 贴图字节缓存。同一张图会被多页复用（不同明暗），不必每次重读磁盘。
+  final bgCache = <String, Uint8List>{};
+  Uint8List bytesOf(AppTheme t) => bgCache.putIfAbsent(
+      t.backgroundAsset!, () => File(t.backgroundAsset!).readAsBytesSync());
   final outRoot = (skinSuffix == null || skinSuffix.isEmpty)
       ? '../store/screenshots'
       : '../store/screenshots-$skinSuffix';
@@ -170,7 +210,7 @@ void main() {
   /// 字体仍然是测试环境专用的：fontFamily 是「首选」，fontFamilyFallback
   /// 是「首选缺字形时按序回退」，两者必须分属**不同 family**（见 _loadFonts）。
   ThemeData theme() {
-    final base = buildTheme(skin, Brightness.light);
+    final base = buildTheme(pageSkin, pageBrightness);
     // ⚠️ `ThemeData.copyWith` **不接受** fontFamily / fontFamilyFallback
     // （这两个只有 ThemeData 构造器有），而 buildTheme 里已经把
     // `fontFamily: 'Roboto'` 烘进了 textTheme。所以这里必须用
@@ -288,11 +328,12 @@ void main() {
             // 与生产同构（见 localized_app.dart 的注释）。
             // 漏了它就会出「贴图皮肤但不画贴图」的半透明 PNG——
             // 上传到官网就是一片透明，露出网页自己的底色。
-            backgroundTheme: skin.hasBackground ? skin : null,
+            backgroundTheme: pageSkin.hasBackground ? pageSkin : null,
             // imageProvider 注入 MemoryImage：测试环境的rootBundle
             // 只有 AssetManifest 条目、没有图片字节，Image.asset 会解不出图。
-            backgroundImage:
-                skin.hasBackground ? MemoryImage(bgBytes) : null,
+            backgroundImage: pageSkin.hasBackground
+                ? MemoryImage(bytesOf(pageSkin))
+                : null,
             home: home,
           ),
         ),
@@ -350,6 +391,12 @@ void main() {
     Future<void> Function(WidgetTester, Locale) draw,
   ) async {
     if (!enabled) return;
+
+    // 本页用哪套皮肤/明暗。没配就用 STORE_SIN 给的默认值。
+    final ov = skinOverrides[name];
+    pageSkin = ov == null ? skin : appThemes.firstWhere((t) => t.id == ov.id);
+    pageBrightness = ov?.mode ?? Brightness.light;
+
     for (final dev in _devices) {
       for (final code in const ['zh', 'en']) {
         final locale = Locale(code);

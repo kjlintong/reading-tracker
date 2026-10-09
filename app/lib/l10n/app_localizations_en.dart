@@ -2735,4 +2735,64 @@ class SEn extends S {
 
   @override
   String get s_2f8a1c47 => 'Textured';
+
+  @override
+  String get checkUpdate => 'Check for updates';
+
+  @override
+  String get checkUpdateDesc => 'See whether a newer version exists. If it does, it will say what changed.';
+
+  @override
+  String get checkingForUpdate => 'Checking…';
+
+  @override
+  String get updateUpToDate => 'You are on the latest version';
+
+  @override
+  String updateUpToDateDesc({required String version}) {
+    return 'You are on $version. No newer version is available yet.';
+  }
+
+  @override
+  String updateAvailable({required String version}) {
+    return '$version is available';
+  }
+
+  @override
+  String updateAvailableDesc({required String current, required String latest}) {
+    return 'You are on $current. Update to $latest when you like — nothing is downloaded automatically.';
+  }
+
+  @override
+  String get updateNotesTitle => 'What changed';
+
+  @override
+  String get updateNoNotes => 'The publisher didn’t write release notes this time.';
+
+  @override
+  String updateDownload({required String version}) {
+    return 'Download $version';
+  }
+
+  @override
+  String get updateOpenRelease => 'Open the release page';
+
+  @override
+  String get updateCheckFailed => 'Couldn’t check for updates';
+
+  @override
+  String get updateCheckFailedNetwork => 'Couldn’t reach the server. Check your connection and try again.';
+
+  @override
+  String get updateCheckFailedMalformed => 'The server sent something unexpected. Please try again later.';
+
+  @override
+  String updateNeverInstalled({required String version}) {
+    return 'No installer found: $version is published, but no APK could be found.';
+  }
+
+  @override
+  String updateReleasedOn({required String date}) {
+    return 'Published $date';
+  }
 }

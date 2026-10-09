@@ -423,8 +423,14 @@ const List<AppTheme> appThemes = [
     chartPalette: _blossom,
     chartPaletteDark: _blossomDark,
     backgroundAsset: 'assets/backgrounds/bg_cat.webp',
-    backgroundOpacity: 0.40,
-    backgroundBlur: 0.5,
+    // 0.50 是可读性安全区的上限。猫屿是**大面积平铺**的图案，
+    // 视觉分布与星河那种「小面积高亮点」完全不同：同样的
+    // opacity，星河看得见星点，猫屿就只剩一片均匀底色。
+    // 实际可见度 浅 0.50×0.42≈21% / 深 0.50×0.70≈35%。
+    backgroundOpacity: 0.50,
+    // 0.5 是当初「软焦渐变」时期留下的值。素材换成清晰的矢量平铺后，
+    // 0.5 会把猫脸的圆弧磨平；0.2 只压锐边、不丢形状。
+    backgroundBlur: 0.2,
   ),
 
   // 犬窝：蜜黄底 + 小狗图案平铺。同样把 blur 从 1.4 降到 0.5，
@@ -439,8 +445,9 @@ const List<AppTheme> appThemes = [
     chartPalette: _citrus,
     chartPaletteDark: _citrusDark,
     backgroundAsset: 'assets/backgrounds/bg_dog.webp',
-    backgroundOpacity: 0.42,
-    backgroundBlur: 0.5,
+    // 同猫屿：平铺类图案需要比「点状高亮」更高的可见度才认得出主体。
+    backgroundOpacity: 0.50,
+    backgroundBlur: 0.2,
   ),
 ];
 

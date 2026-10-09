@@ -2735,4 +2735,64 @@ class SZh extends S {
 
   @override
   String get s_2f8a1c47 => '贴图';
+
+  @override
+  String get checkUpdate => '检查更新';
+
+  @override
+  String get checkUpdateDesc => '看看有没有新版本，有的话这里会告诉你改了什么。';
+
+  @override
+  String get checkingForUpdate => '正在检查…';
+
+  @override
+  String get updateUpToDate => '已经是最新版本了';
+
+  @override
+  String updateUpToDateDesc({required String version}) {
+    return '当前版本 $version，暂时没有新版本。';
+  }
+
+  @override
+  String updateAvailable({required String version}) {
+    return '有 $version 了';
+  }
+
+  @override
+  String updateAvailableDesc({required String current, required String latest}) {
+    return '当前 $current，可以更新到 $latest。是否更新由你决定，不会自动下载。';
+  }
+
+  @override
+  String get updateNotesTitle => '这一版改了什么';
+
+  @override
+  String get updateNoNotes => '发布者这次没有写更新说明。';
+
+  @override
+  String updateDownload({required String version}) {
+    return '下载 $version';
+  }
+
+  @override
+  String get updateOpenRelease => '打开发布页';
+
+  @override
+  String get updateCheckFailed => '检查更新失败';
+
+  @override
+  String get updateCheckFailedNetwork => '连不上服务器，请检查网络后重试。';
+
+  @override
+  String get updateCheckFailedMalformed => '服务返回的内容看不懂，请稍后重试。';
+
+  @override
+  String updateNeverInstalled({required String version}) {
+    return '安装包不在本地：$version 已发布，但没有找到可下载的 APK。';
+  }
+
+  @override
+  String updateReleasedOn({required String date}) {
+    return '发布于 $date';
+  }
 }
