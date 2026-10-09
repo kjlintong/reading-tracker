@@ -699,8 +699,8 @@ const List<Color> _citrus = [
 const List<Color> _citrusDark = [
   Color(0xFFBF7D5E), Color(0xFFD1633C), Color(0xFFB7DD51),
   Color(0xFFFCCA38), Color(0xFFF395A7), Color(0xFFF24D7A),
-  Color(0xFFEBEF8F), Color(0xFF74A636), Color(0xFFDBBC72),
-  Color(0xFFAC9533), Color(0xFF9E2D53), Color(0xFF9EA263),
+  Color(0xFFEBEF8F), Color(0xFF73A629), Color(0xFFDBBC72),
+  Color(0xFFAC9533), Color(0xFF9E2D4E), Color(0xFF9EA263),
 ];
 
 // 莓果 / 亮玫

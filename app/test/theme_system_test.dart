@@ -183,6 +183,39 @@ void main() {
       }
     });
 
+    test('色板色相留在皮肤色系内——混进异色系就是「配色事故」', () {
+      // 「两两可分」只管颜色互不相同，管不到它们是不是同一个色系。
+      // 犬窝曾整套是紫/蓝/青绿的混合调（跟蜜黄犬窝毫无关系），
+      // 每两个色都拉开了距离，测试照样全绿，肉眼却一眼看出割裂。
+      // 这条约束就是补这个洞：色相必须与该皮肤的种子同族。
+      //
+      // 阈值 78°（不是色相学上的「同族」，而是从实测反推的可行上限）。
+      // 全量扫过12 套 × 明暗 × 12 色后，真实的越界只有 8 处：
+      // - plum 的 5 个浆果红（色相 357°~3°，偏离紫种子 70°~76°）—— 这不是事故，
+      //   紫+正红本来就是浆果色系，硬判它「越界」只会逼人把好看的配色改掉。
+      // - bgMist/bgMoss 的 3 处只超 0.1°~1.2°，纯 8bit 量化抖动。
+      // 反过来看，真正需要这条约束拦的是犬窝那类**整族偏移**：
+      // 旧色板 12 个色散在紫/蓝/青绿（跨度 256°），单看色相就能判出来。
+      // 78° 恰好把这两类区分开：族内扩散放行，整族偏移拦下。
+      for (final t in appThemes) {
+        const band = 78.0;
+        final seedHue = HSLColor.fromColor(t.lightSeed).hue;
+        for (final b in Brightness.values) {
+          final palette = _paletteInUse(t, b);
+          for (var i = 0; i < palette.length; i++) {
+            final h = HSLColor.fromColor(palette[i]).hue;
+            var d = (h - seedHue).abs();
+            if (d > 180) d = 360 - d;
+            expect(d, lessThanOrEqualTo(band),
+                reason: '${t.id}/$b 色板第 $i 个色'
+                    '（${palette[i]}）色相 ${h.toStringAsFixed(0)}° '
+                    '偏离种子 ${seedHue.toStringAsFixed(0)}° 达 ${d.toStringAsFixed(1)}°，'
+                    '已经是另一个色系的颜色');
+          }
+        }
+      }
+    });
+
     test('色板与纸色有足够亮度差——图上要能看见数据', () {
       for (final t in appThemes) {
         for (final b in Brightness.values) {
