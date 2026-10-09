@@ -3423,5 +3423,102 @@
   "s_2f8a1c47": "贴图",
   "@s_2f8a1c47": {
     "description": "设置页皮肤下拉里的分组标题"
+  },
+  "checkUpdate": "检查更新",
+  "@checkUpdate": {
+    "description": "设置页「检查更新」按钮文案"
+  },
+  "checkUpdateDesc": "看看有没有新版本，有的话这里会告诉你改了什么。",
+  "@checkUpdateDesc": {
+    "description": "「检查更新」区块副标题"
+  },
+  "checkingForUpdate": "正在检查…",
+  "@checkingForUpdate": {
+    "description": "检查进行中的按钮态"
+  },
+  "updateUpToDate": "已经是最新版本了",
+  "@updateUpToDate": {
+    "description": "已是最新版的弹窗标题"
+  },
+  "updateUpToDateDesc": "当前版本 {version}，暂时没有新版本。",
+  "@updateUpToDateDesc": {
+    "description": "已是最新版的弹窗正文，含当前版本号占位符",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailable": "有 {version} 了",
+  "@updateAvailable": {
+    "description": "发现新版的弹窗标题，含新版本号占位符",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableDesc": "当前 {current}，可以更新到 {latest}。是否更新由你决定，不会自动下载。",
+  "@updateAvailableDesc": {
+    "description": "发现新版的弹窗正文，含当前版与新版本号占位符",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "latest": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNotesTitle": "这一版改了什么",
+  "@updateNotesTitle": {
+    "description": "更新说明列表的标题"
+  },
+  "updateNoNotes": "发布者这次没有写更新说明。",
+  "@updateNoNotes": {
+    "description": "发布者未写更新说明时的占位说明"
+  },
+  "updateDownload": "下载 {version}",
+  "@updateDownload": {
+    "description": "弹窗里的下载按钮，含版本号占位符",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateOpenRelease": "打开发布页",
+  "@updateOpenRelease": {
+    "description": "拿不到 APK 直链时改为打开发布页的按钮"
+  },
+  "updateCheckFailed": "检查更新失败",
+  "@updateCheckFailed": {
+    "description": "检查失败弹窗标题"
+  },
+  "updateCheckFailedNetwork": "连不上服务器，请检查网络后重试。",
+  "@updateCheckFailedNetwork": {
+    "description": "网络不可达时的错误说明"
+  },
+  "updateCheckFailedMalformed": "服务返回的内容看不懂，请稍后重试。",
+  "@updateCheckFailedMalformed": {
+    "description": "返回内容无法解析时的错误说明"
+  },
+  "updateNeverInstalled": "安装包不在本地：{version} 已发布，但没有找到可下载的 APK。",
+  "@updateNeverInstalled": {
+    "description": "Release 存在但找不到 APK 时的说明",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateReleasedOn": "发布于 {date}",
+  "@updateReleasedOn": {
+    "description": "弹窗里的发布时间，含日期占位符",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }

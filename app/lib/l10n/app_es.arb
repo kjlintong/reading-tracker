@@ -3423,5 +3423,102 @@
   "s_2f8a1c47": "Con textura",
   "@s_2f8a1c47": {
     "description": "Etiqueta de grupo en el selector de tema"
+  },
+  "checkUpdate": "Buscar actualizaciones",
+  "@checkUpdate": {
+    "description": "设置页「检查更新」按钮文案"
+  },
+  "checkUpdateDesc": "Comprueba si hay una versión más reciente. Si la hay, indicará qué cambió.",
+  "@checkUpdateDesc": {
+    "description": "「检查更新」区块副标题"
+  },
+  "checkingForUpdate": "Comprobando…",
+  "@checkingForUpdate": {
+    "description": "检查进行中的按钮态"
+  },
+  "updateUpToDate": "Ya tienes la última versión",
+  "@updateUpToDate": {
+    "description": "已是最新版的弹窗标题"
+  },
+  "updateUpToDateDesc": "Estás en la versión {version}. Aún no hay una versión más reciente.",
+  "@updateUpToDateDesc": {
+    "description": "已是最新版的弹窗正文，含当前版本号占位符",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailable": "La versión {version} está disponible",
+  "@updateAvailable": {
+    "description": "发现新版的弹窗标题，含新版本号占位符",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableDesc": "Estás en {current}. Actualiza a {latest} cuando quieras: no se descarga nada automáticamente.",
+  "@updateAvailableDesc": {
+    "description": "发现新版的弹窗正文，含当前版与新版本号占位符",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "latest": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNotesTitle": "Qué ha cambiado",
+  "@updateNotesTitle": {
+    "description": "更新说明列表的标题"
+  },
+  "updateNoNotes": "El publicador no escribió notas de esta versión.",
+  "@updateNoNotes": {
+    "description": "发布者未写更新说明时的占位说明"
+  },
+  "updateDownload": "Descargar {version}",
+  "@updateDownload": {
+    "description": "弹窗里的下载按钮，含版本号占位符",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateOpenRelease": "Abrir la página de la versión",
+  "@updateOpenRelease": {
+    "description": "拿不到 APK 直链时改为打开发布页的按钮"
+  },
+  "updateCheckFailed": "No se pudo buscar actualizaciones",
+  "@updateCheckFailed": {
+    "description": "检查失败弹窗标题"
+  },
+  "updateCheckFailedNetwork": "No se pudo contactar con el servidor. Revisa la conexión e inténtalo de nuevo.",
+  "@updateCheckFailedNetwork": {
+    "description": "网络不可达时的错误说明"
+  },
+  "updateCheckFailedMalformed": "El servidor devolvió algo ilegible. Inténtalo más tarde.",
+  "@updateCheckFailedMalformed": {
+    "description": "返回内容无法解析时的错误说明"
+  },
+  "updateNeverInstalled": "No se encontró instalador: {version} está publicado, pero no se encontró ningún APK.",
+  "@updateNeverInstalled": {
+    "description": "Release 存在但找不到 APK 时的说明",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateReleasedOn": "Publicado el {date}",
+  "@updateReleasedOn": {
+    "description": "弹窗里的发布时间，含日期占位符",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }

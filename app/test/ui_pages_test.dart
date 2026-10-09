@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,6 +26,7 @@ import 'package:reading_tracker/ui/notes_page.dart';
 import 'package:reading_tracker/ui/settings_page.dart';
 import 'package:reading_tracker/ui/shelf_page.dart';
 import 'package:reading_tracker/ui/stats_page.dart';
+import 'package:reading_tracker/services/update_checker.dart';
 
 import 'support/localized_app.dart';
 
@@ -1396,5 +1400,155 @@ void main() {
       // 进入编辑表单，分类带过来了
       expect(find.text('编辑图书'), findsOneWidget);
     });
+
+    /// 「检查更新」的三条路径都要有说法，且不自动下载。
+    ///
+    /// ## 为什么注入 mock adapter 而不是拦真实网络
+    ///
+    /// Dio 的超时定时器是 `Future.delayed`，在 FakeAsync 里会成为
+    /// pending timer，让 flutter_test 在用例收尾时判失败——
+    /// 即使断言全过。而真实 socket 读在假时钟里也永远等不到推进。
+    /// 所以只能注入（`SettingsPage.updateChecker` 这个口子就是为此存在的）。
+    ///
+    /// ## 核心承诺
+    ///
+    /// 有新版时必须**先展示更新说明、再给下载入口**，且**不自动下载**。
+    /// 「自动下载安装包」既费流量又越过用户选择——
+    /// 应用数据在本地，覆盖安装前用户有权先看一眼改了什么。
+    UpdateChecker _stubChecker(String tag, {String body = ''}) =>
+        UpdateChecker(dio: Dio()..httpClientAdapter = _StubAdapter(
+              jsonEncode({
+                'tag_name': tag,
+                'body': body,
+                'published_at': '2026-10-09T09:00:00Z',
+                'assets': [
+                  {
+                    'name': 'Readnest-$tag-release.apk',
+                    'browser_download_url': 'https://example.test/$tag.apk',
+                  },
+                ],
+              }),
+            ));
+
+    testWidgets('设置页有检查更新入口，且排在关于之前', (tester) async {
+      bigViewport(tester);
+      await render(tester, const SettingsPage());
+      await settleAsync(tester);
+
+      expect(find.byIcon(Icons.system_update_alt), findsOneWidget);
+      final check = find.ancestor(
+        of: find.byIcon(Icons.system_update_alt),
+        matching: find.byWidgetPredicate(
+            (w) => w is ButtonStyleButton && w.onPressed != null),
+      );
+      final about = find.text('关于');
+      expect(about, findsOneWidget);
+      expect(tester.getTopLeft(check).dy, lessThan(tester.getTopLeft(about).dy),
+          reason: '「检查更新」应在「关于」之上——更新比翻关于更常用');
+      expect(find.text('已经是最新版本了'), findsNothing,
+          reason: '没点按钮就不该出现任何检查结果');
+    });
+
+    testWidgets('有新版时展示更新说明与下载入口，且不自动下载', (tester) async {
+      bigViewport(tester);
+      await render(tester, SettingsPage(
+        updateChecker: _stubChecker('v1.1.0',
+            body: '## 新版\n\n- 加了检查更新\n- 修了筛选抽屉'),
+      ));
+      await settleAsync(tester);
+
+      // ⚠️ tap 必须整个放进 runAsync：Dio 走 dart:io HttpClient，
+      // 完成回调由**真实事件循环**投递，不会进 FakeAsync 队列。
+      // 只在 tap 之后才 runAsync 的话，请求永远停在半路，弹窗不打开。
+      await tester.runAsync(() async {
+        await tester.tap(find.byIcon(Icons.system_update_alt));
+        await tester.pump();
+      });
+      await settleAsync(tester);
+
+      // 标题带上新版本号
+      expect(find.text('有 1.1.0 了'), findsOneWidget);
+      // 更新说明逐条列出——这是用户决定要不要更新的唯一依据
+      expect(find.textContaining('加了检查更新'), findsOneWidget);
+      expect(find.textContaining('修了筛选抽屉'), findsOneWidget);
+      expect(find.text('这一版改了什么'), findsOneWidget);
+      // 下载入口在，且**由用户点**才走
+      expect(find.text('下载 1.1.0'), findsOneWidget);
+    });
+
+    testWidgets('已是最新时不显示下载入口', (tester) async {
+      bigViewport(tester);
+      await render(tester,
+          SettingsPage(updateChecker: _stubChecker('v1.0.0')));
+      await settleAsync(tester);
+
+      await tester.runAsync(() async {
+        await tester.tap(find.byIcon(Icons.system_update_alt));
+        await tester.pump();
+      });
+      await settleAsync(tester);
+
+      expect(find.text('已经是最新版本了'), findsOneWidget);
+      expect(find.textContaining('1.0.0'), findsWidgets);
+      expect(find.text('这一版改了什么'), findsNothing,
+          reason: '没有新版就不该展示更新说明');
+      expect(find.textContaining('下载'), findsNothing,
+          reason: '已是最新时给下载入口没有意义——下载的就是当前版本');
+    });
+
+    testWidgets('检查失败时给可读提示，绝不静默当作已是最新', (tester) async {
+      bigViewport(tester);
+      await render(tester, SettingsPage(
+        updateChecker: UpdateChecker(
+          dio: Dio()..httpClientAdapter = _FailingAdapter(),
+        ),
+      ));
+      await settleAsync(tester);
+
+      await tester.runAsync(() async {
+        await tester.tap(find.byIcon(Icons.system_update_alt));
+        await tester.pump();
+      });
+      await settleAsync(tester);
+
+      expect(find.text('检查更新失败'), findsOneWidget);
+      expect(find.text('已经是最新版本了'), findsNothing,
+          reason: '网络失败若假装检查通过，用户会以为已是最新版并永远停在旧版本');
+      expect(find.textContaining('网络'), findsWidgets,
+          reason: '要说清是哪一类失败，用户才知道该重试还是等网络');
+    });
   });
+}
+
+/// 回放固定 JSON 的 Dio adapter。见 update_checker_test.dart 的同名类。
+class _StubAdapter implements HttpClientAdapter {
+  _StubAdapter(this.json);
+
+  final String json;
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async =>
+      ResponseBody.fromString(json, 200,
+          headers: {Headers.contentTypeHeader: ['application/json']});
+}
+
+/// 一律失败的 adapter，用来验证网络错误路径。
+class _FailingAdapter implements HttpClientAdapter {
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async =>
+      throw DioException(requestOptions: options);
 }

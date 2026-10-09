@@ -3423,5 +3423,102 @@
   "s_2f8a1c47": "Texturé",
   "@s_2f8a1c47": {
     "description": "Libellé de groupe dans le sélecteur de thème"
+  },
+  "checkUpdate": "Vérifier les mises à jour",
+  "@checkUpdate": {
+    "description": "设置页「检查更新」按钮文案"
+  },
+  "checkUpdateDesc": "Voir si une version plus récente existe. Si oui, elle indiquera ce qui a changé.",
+  "@checkUpdateDesc": {
+    "description": "「检查更新」区块副标题"
+  },
+  "checkingForUpdate": "Vérification…",
+  "@checkingForUpdate": {
+    "description": "检查进行中的按钮态"
+  },
+  "updateUpToDate": "Vous utilisez déjà la dernière version",
+  "@updateUpToDate": {
+    "description": "已是最新版的弹窗标题"
+  },
+  "updateUpToDateDesc": "Vous utilisez la version {version}. Aucune version plus récente n’est disponible.",
+  "@updateUpToDateDesc": {
+    "description": "已是最新版的弹窗正文，含当前版本号占位符",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailable": "La version {version} est disponible",
+  "@updateAvailable": {
+    "description": "发现新版的弹窗标题，含新版本号占位符",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableDesc": "Vous utilisez {current}. Mettez à jour vers {latest} quand vous voulez — rien n’est téléchargé automatiquement.",
+  "@updateAvailableDesc": {
+    "description": "发现新版的弹窗正文，含当前版与新版本号占位符",
+    "placeholders": {
+      "current": {
+        "type": "String"
+      },
+      "latest": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNotesTitle": "Ce qui a changé",
+  "@updateNotesTitle": {
+    "description": "更新说明列表的标题"
+  },
+  "updateNoNotes": "L’éditeur n’a pas fourni de notes de version cette fois-ci.",
+  "@updateNoNotes": {
+    "description": "发布者未写更新说明时的占位说明"
+  },
+  "updateDownload": "Télécharger {version}",
+  "@updateDownload": {
+    "description": "弹窗里的下载按钮，含版本号占位符",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateOpenRelease": "Ouvrir la page de publication",
+  "@updateOpenRelease": {
+    "description": "拿不到 APK 直链时改为打开发布页的按钮"
+  },
+  "updateCheckFailed": "Échec de la vérification des mises à jour",
+  "@updateCheckFailed": {
+    "description": "检查失败弹窗标题"
+  },
+  "updateCheckFailedNetwork": "Serveur injoignable. Vérifiez la connexion et réessayez.",
+  "@updateCheckFailedNetwork": {
+    "description": "网络不可达时的错误说明"
+  },
+  "updateCheckFailedMalformed": "Le serveur a renvoyé une réponse illisible. Réessayez plus tard.",
+  "@updateCheckFailedMalformed": {
+    "description": "返回内容无法解析时的错误说明"
+  },
+  "updateNeverInstalled": "Aucun installateur trouvé : {version} est publié, mais aucun APK n’a été trouvé.",
+  "@updateNeverInstalled": {
+    "description": "Release 存在但找不到 APK 时的说明",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateReleasedOn": "Publié le {date}",
+  "@updateReleasedOn": {
+    "description": "弹窗里的发布时间，含日期占位符",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   }
 }

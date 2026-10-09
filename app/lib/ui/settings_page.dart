@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:reading_tracker/services/update_checker.dart';
 import '../ai/ai_client.dart';
 import '../ai/llm_protocol.dart';
 import '../data/category_prefs.dart';
@@ -20,7 +21,15 @@ import '../l10n/language_names.dart';
 ///
 /// 所有密钥由用户自填并只存本地数据库，App 不内置、不上传任何凭证。
 class SettingsPage extends ConsumerStatefulWidget {
-  const SettingsPage({super.key});
+  const SettingsPage({super.key, this.updateChecker});
+
+  /// 「检查更新」的执行器。留空则用默认实现（真实 GitHub API）。
+  ///
+  /// 之所以留这个口子：**Dio 的超时定时器是 `Future.delayed`**，
+  /// 在 widget 测试的 FakeAsync 里会成为 pending timer 并让用例必挂
+  /// ——即使断言全过。真实网络请求在 widget 测试里本就不成立，
+  /// 所以测试注入带 mock adapter 的实例（同 `update_checker_test.dart`）。
+  final UpdateChecker? updateChecker;
 
   @override
   ConsumerState<SettingsPage> createState() => _SettingsPageState();
@@ -100,6 +109,86 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         model: _llmModel.text.trim(),
         protocol: _protocol,
       );
+
+  /// 检查更新进行中。期间禁用按钮，避免并发点出多个请求。
+  bool _checkingUpdate = false;
+
+  /// 检查有没有新版本，并把结果弹给用户看。
+  ///
+  /// ## 为什么不静默失败
+  ///
+  /// 「检查更新」最坏的失败方式不是报错，而是**假装成功**：
+  /// 网络不通时若直接 return，用户会以为「检查过了，没有新版」，
+  /// 于是永远停在旧版本上却不知道为什么。所以每一条非「已是最新」
+  /// 的路径都必须给用户一个可见的说法（错误弹窗或新版弹窗）。
+  Future<void> _checkUpdate() async {
+    setState(() => _checkingUpdate = true);
+    UpdateInfo? info;
+    UpdateCheckError? failure;
+    try {
+      info = await (widget.updateChecker ?? UpdateChecker()).checkForUpdate();
+    } on UpdateCheckException catch (e) {
+      failure = e.kind;
+    } catch (e) {
+      // Dio 之外的异常（格式转换等）同样要有个说法，
+      // 归到 network 类：用户能采取的动作只有「检查网络重试」。
+      failure = UpdateCheckError.network;
+    } finally {
+      if (mounted) setState(() => _checkingUpdate = false);
+    }
+
+    if (!mounted) return;
+    if (failure != null) {
+      await _showUpdateDialog(_UpdateDialogData.failed(failure));
+      return;
+    }
+    if (info == null) return;
+    await _showUpdateDialog(
+      info.isUpdateAvailable
+          ? _UpdateDialogData.available(info)
+          : _UpdateDialogData.upToDate(info),
+    );
+  }
+
+  Future<void> _showUpdateDialog(_UpdateDialogData data) async {
+    final l10n = S.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(data.title(l10n)),
+        content: ConstrainedBox(
+          // 更新说明可能很长，不限高会把按钮顶出屏幕。
+          constraints: const BoxConstraints(maxHeight: 380, maxWidth: 440),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: data.body(l10n),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
+          ),
+          if (data.actionUrl != null)
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _openExternal(data.actionUrl!.toString());
+              },
+              child: Text(data.actionLabel(l10n)),
+            ),
+        ],
+      ),
+    );
+    if (data.showFailureSnackBar) {
+      messenger.showSnackBar(
+          SnackBar(content: Text(updateErrorText(data.failureKind!))));
+    }
+  }
 
   /// 打开应用外部的链接：打赏页、开发者主页、隐私政策。
   ///
@@ -725,6 +814,32 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ],
               ),
 
+              // ── 检查更新 ────────────────────────────────────────────
+              //
+              // 只**告诉**用户有新版本，不自动下载、不自动安装：
+              // 阅读类App 静默下载安装包既费流量又越过用户选择，
+              // 而且应用数据在本地，覆盖安装前用户可能想先看一眼
+              // 更新说明再决定。更新说明必须**先展示、后给下载入口**。
+              _Section(
+                title: l10n.checkUpdate,
+                subtitle: l10n.checkUpdateDesc,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _checkingUpdate ? null : _checkUpdate,
+                    icon: _checkingUpdate
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.system_update_alt, size: 18),
+                    label: Text(_checkingUpdate
+                        ? l10n.checkingForUpdate
+                        : l10n.checkUpdate),
+                  ),
+                ],
+              ),
+
               _Section(
                 title: l10n.about,
                 subtitle: l10n.aboutDesc,
@@ -818,6 +933,138 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 }
 
 /// 测试结果条。消息里常带换行（错误提示 + 处理建议），所以用多行文本。
+/// 「检查更新」弹窗的三种结果：失败 / 已是最新 / 有新版。
+///
+/// ## 为什么要抽成数据而不是三个独立方法
+///
+/// 三种结果的**弹窗外壳完全一样**（标题 + 可滚动正文 + 取消/主按钮），
+/// 差别只在标题、正文段落、主按钮指向哪个地址。写成三个方法就会有三份
+/// 几乎相同的 `showDialog`，以后要调内边距、加标题图标、
+/// 处理窄屏高度时得改三处—— 那种重复迟早会漏改一处。
+///
+/// 正文用**函数**而不是已渲染的 `Widget` 列表：因为文案要在
+/// `showDialog` 的 builder 里、拿到该 locale 的 [S] 之后才能取。
+/// 在数据类里就构建 Widget 会强迫它持有 context，
+/// 那正是这个类要避免的（S 是全局单例 [appLoc]，不需要 context）。
+class _UpdateDialogData {
+  const _UpdateDialogData._({
+    required this.title,
+    required this.body,
+    required this.actionUrl,
+    required this.actionLabel,
+    this.failureKind,
+  });
+
+  /// 检查失败。失败要说清是哪一类，用户才知道该重试还是等网络。
+  factory _UpdateDialogData.failed(UpdateCheckError kind) =>
+      _UpdateDialogData._(
+        title: (l10n) => l10n.updateCheckFailed,
+        body: (l10n) => [Text(updateErrorText(kind))],
+        actionUrl: null,
+        actionLabel: (l10n) => '',
+        failureKind: kind,
+      );
+
+  /// 已经是最新版。没有下载入口——给了也只会是当前版本。
+  factory _UpdateDialogData.upToDate(UpdateInfo info) => _UpdateDialogData._(
+        title: (l10n) => l10n.updateUpToDate,
+        body: (l10n) => [
+          Text(l10n.updateUpToDateDesc(version: info.currentVersion)),
+        ],
+        actionUrl: null,
+        actionLabel: (l10n) => '',
+      );
+
+  /// 有新版。主按钮指向 APK 直链；拿不到直链就退回发布页，
+  /// 不能变成「知道有新版却没有任何下一步」。
+  factory _UpdateDialogData.available(UpdateInfo info) {
+    final url = info.downloadUrl ?? _releasePageUrl;
+    return _UpdateDialogData._(
+      title: (l10n) => l10n.updateAvailable(version: info.latestVersion),
+      body: (l10n) => [
+        Text(l10n.updateAvailableDesc(
+            current: info.currentVersion, latest: info.latestVersion)),
+        if (info.publishedAt != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            l10n.updateReleasedOn(date: _formatDate(info.publishedAt!)),
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ],
+        const SizedBox(height: 14),
+        Text(l10n.updateNotesTitle,
+            style: const TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 6),
+        ..._releaseNoteWidgets(info.releaseNotes, l10n),
+        if (info.downloadUrl == null) ...[
+          const SizedBox(height: 10),
+          Text(l10n.updateNeverInstalled(version: info.latestVersion),
+              style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        ],
+      ],
+      actionUrl: url,
+      actionLabel: (l10n) => info.downloadUrl != null
+          ? l10n.updateDownload(version: info.latestVersion)
+          : l10n.updateOpenRelease,
+    );
+  }
+
+  /// Release 找不到 APK 时的兜底地址。用户至少能自己找到安装包。
+  static final Uri _releasePageUrl =
+      Uri.parse('${AppInfo.homepage}readnest/');
+
+  final String Function(S l10n) title;
+  final List<Widget> Function(S l10n) body;
+  final Uri? actionUrl;
+  final String Function(S l10n) actionLabel;
+  final UpdateCheckError? failureKind;
+
+  /// 失败时在弹窗关闭后补一条 SnackBar。
+  ///
+  /// 为什么不只靠弹窗：弹窗要用户点「好」才消失，
+  /// 而「检查失败」这种信息应该在用户关掉后仍然留一条痕迹。
+  bool get showFailureSnackBar => failureKind != null;
+}
+
+/// 把更新说明压成段落 Widget 列表。
+///
+/// 空说明给一句占位，而不是显示空白区——空白会让人以为界面坏了。
+List<Widget> _releaseNoteWidgets(String notes, S l10n) {
+  final lines = notes
+      .split('\n')
+      .map((e) => e.trim())
+      .where((e) => e.isNotEmpty)
+      .toList();
+  if (lines.isEmpty) {
+    return [
+      Text(l10n.updateNoNotes,
+          style: const TextStyle(fontSize: 12, color: Colors.grey)),
+    ];
+  }
+  return [
+    for (final line in lines)
+      Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Text('· ${_stripBullet(line)}', style: const TextStyle(height: 1.5)),
+      ),
+  ];
+}
+
+/// 去掉 [UpdateChecker] 加上的 `- ` 前缀，弹窗里用圆点排版。
+String _stripBullet(String line) =>
+    line.startsWith('- ') ? line.substring(2) : line;
+
+/// `2026-10-09 17:23` 形态的本地时间。
+///
+/// 刻意不引入 `intl`：这里的格式是固定的，
+/// 而 `intl` 的本地化日期格式需要 `initializeDateFormatting`，
+/// 为了一个日期串给整个应用加一条初始化依赖不划算。
+String _formatDate(DateTime dt) {
+  String two(int v) => v.toString().padLeft(2, '0');
+  return '${dt.year}-${two(dt.month)}-${two(dt.day)} '
+      '${two(dt.hour)}:${two(dt.minute)}';
+}
+
 class _ResultBanner extends StatelessWidget {
   final bool? ok;
   final String text;
