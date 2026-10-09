@@ -21,7 +21,7 @@ class AppInfo {
 
   /// 与 `pubspec.yaml` 的 `version: 1.0.0+15` 对应。
   static const String version = '1.0.0';
-  static const String buildNumber = '17';
+  static const String buildNumber = '18';
 
   /// 完整的版本展示串，例如 `0.5.0 (5)`。
   static String get versionLabel => '$version ($buildNumber)';
