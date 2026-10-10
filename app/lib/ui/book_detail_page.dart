@@ -305,10 +305,11 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
     // 标成「已读」顺手把进度补到 100%、完成时间补上，与表单口径一致：
     // 不补的话「今年读完」的统计会漏掉这本
     final iso = DateTime.now().toIso8601String();
-    // 把书拎回「在读」时必须顺手记一次阅读活动，否则会出现打地鼠：用户刚
-    // 从「搁置」恢复，系统一算最后一次活动还是三个月前，下次启动又把它挪
-    // 回去了——用户的判断被反复推翻，而且他看不出原因。
-    final touched = s == BookStatus.reading ? b.withReadNow() : b;
+    // 把书拎回「在读」时必须顺手记一次阅读活动与进度，否则会出现打地鼠：
+    // 用户刚从「搁置」恢复，系统一算最后一次活动还是三个月前，下次启动又
+    // 把它挪回去了——用户的判断被反复推翻，而且他看不出原因。
+    final touched =
+        s == BookStatus.reading ? b.withReadNow().withProgressNow() : b;
     _patch(touched.copyWith(
       status: s,
       progressPercent: s == BookStatus.finished ? 100 : b.progressPercent,
@@ -549,7 +550,7 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
               } else {
                 next = BookStatus.reading;
               }
-              await _patch(b.withReadNow().copyWith(
+              await _patch(b.withProgressNow().copyWith(
                 progressPercent: v,
                 status: next,
                 // 自动标已读时补完成时间，否则统计里「今年读完」会漏

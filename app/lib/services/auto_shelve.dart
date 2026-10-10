@@ -61,7 +61,44 @@ class AutoShelve {
     return d < 0 ? 0 : d;
   }
 
+  /// 这本书最后一次「进度变化」的时间。
+  ///
+  /// 与 [lastActivity]（阅读行为）同源但看另一件事：你在书里推进了多少。
+  /// 一本你每天翻几页但从没点过「今天读了」的书，阅读行为是空的，进度却是
+  /// 新鲜的——它显然还在读，不该被搁置。所以进度变化本身是一个独立的活跃
+  /// 信号，和「今天读了」互相不替代。
+  ///
+  /// 兜底顺序同样是 `startedAt` → `createdAt`：开了头就是有过进度，没开头
+  /// 就当入架那天。算不出来返回 null，调用方按「没闲置」处理。
+  @visibleForTesting
+  static DateTime? lastProgressActivity(Book b) {
+    for (final s in <String?>[b.lastProgressAt, b.startedAt, b.createdAt]) {
+      if (s == null || s.isEmpty) continue;
+      final t = DateTime.tryParse(s);
+      if (t != null) return t;
+    }
+    return null;
+  }
+
+  /// 进度闲置了多少天（基于 [lastProgressActivity]）。
+  @visibleForTesting
+  static int progressIdleDaysOf(Book b, DateTime now) {
+    final last = lastProgressActivity(b);
+    if (last == null) return 0;
+    final d = now.difference(last).inDays;
+    return d < 0 ? 0 : d;
+  }
+
   /// 这本书该不该被挪到搁置。
+  ///
+  /// **两个「活跃信号」必须同时失效才挪**：
+  ///  1) [idleDaysOf] ≥ [idleDays]——60 天没「读过」（没点过「今天读了」，
+  ///     也没标过在读）；
+  ///  2) [progressIdleDaysOf] ≥ [idleDays]——60 天进度没变（没推进过页码）。
+  ///
+  /// 只读不推进（比如重读已读完的书）和只推进不点「读过」都不算放下，
+  /// 两个信号互相独立，任一新鲜就留住这本书。这样就不会出现「我明明每天
+  /// 都在翻，却因为从没点过那个按钮而被挪到搁置」的误杀。
   ///
   /// [busyBookIds] 传「有未完成阅读计划的书」的 id 集合：这些书读者明确排了
   /// 期，哪怕很久没动，什么时候放弃也该由他自己说了算，系统不能替他决定。
@@ -81,7 +118,8 @@ class AutoShelve {
 
     if (busyBookIds.contains(b.id)) return false;
 
-    return idleDaysOf(b, now) >= idleDays;
+    return idleDaysOf(b, now) >= idleDays &&
+        progressIdleDaysOf(b, now) >= idleDays;
   }
 
   /// 日期键（yyyy-MM-dd），用于「一天只跑一次」的节流。

@@ -242,25 +242,12 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
                       ),
                     )
                   else
-                    DropdownButtonFormField<String>(
+                    _BookSearchField(
+                      books: _books,
                       value: _bookId,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: appLoc.planPickBook,
-                        isDense: true,
-                        border: const OutlineInputBorder(),
-                      ),
-                      items: [
-                        for (final b in _books)
-                          DropdownMenuItem(
-                            value: b.id,
-                            child: Text(b.title,
-                                maxLines: 1, overflow: TextOverflow.ellipsis),
-                          ),
-                      ],
-                      onChanged: _saving
-                          ? null
-                          : (v) => setState(() => _bookId = v),
+                      hint: appLoc.planPickBook,
+                      enabled: !_saving,
+                      onChanged: (v) => setState(() => _bookId = v),
                     ),
                   const SizedBox(height: 12),
                   InkWell(
@@ -348,6 +335,137 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 可搜索的书选择器，替代原来的下拉菜单。
+///
+/// 书架里书一多，下拉一个个找就很不现实。这里点一下弹出可搜索的抽屉：
+/// 按书名或作者实时过滤，选中即回填 [_bookId]。书很多时也够用。
+class _BookSearchField extends StatelessWidget {
+  final List<Book> books;
+  final String? value;
+  final String hint;
+  final bool enabled;
+  final ValueChanged<String?> onChanged;
+
+  const _BookSearchField({
+    required this.books,
+    required this.value,
+    required this.hint,
+    this.enabled = true,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Book? selected;
+    for (final b in books) {
+      if (b.id == value) {
+        selected = b;
+        break;
+      }
+    }
+    final cs = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: enabled ? () => _openPicker(context) : null,
+      borderRadius: BorderRadius.circular(8),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: hint,
+          isDense: true,
+          border: const OutlineInputBorder(),
+          suffixIcon: const Icon(Icons.search),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                selected?.title ?? hint,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: selected == null ? cs.onSurfaceVariant : null,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openPicker(BuildContext context) async {
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _BookSearchSheet(books: books),
+    );
+    if (picked != null) onChanged(picked);
+  }
+}
+
+class _BookSearchSheet extends StatefulWidget {
+  final List<Book> books;
+  const _BookSearchSheet({required this.books});
+
+  @override
+  State<_BookSearchSheet> createState() => _BookSearchSheetState();
+}
+
+class _BookSearchSheetState extends State<_BookSearchSheet> {
+  String _q = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _q.trim().toLowerCase();
+    final list = q.isEmpty
+        ? widget.books
+        : widget.books.where((b) {
+            final t = b.title.toLowerCase();
+            final a = b.authors.join(' ').toLowerCase();
+            return t.contains(q) || a.contains(q);
+          }).toList();
+    final height = MediaQuery.of(context).size.height * 0.7;
+    return SizedBox(
+      height: height,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: '搜索书名或作者',
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (v) => setState(() => _q = v),
+            ),
+          ),
+          Expanded(
+            child: list.isEmpty
+                ? const Center(child: Text('没有匹配的书'))
+                : ListView.builder(
+                    itemCount: list.length,
+                    itemBuilder: (_, i) {
+                      final b = list[i];
+                      return ListTile(
+                        title: Text(b.title,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: b.authors.isNotEmpty
+                            ? Text(b.authors.join(', '),
+                                maxLines: 1, overflow: TextOverflow.ellipsis)
+                            : null,
+                        onTap: () => Navigator.of(context).pop(b.id),
+                      );
+                    },
+                  ),
           ),
         ],
       ),

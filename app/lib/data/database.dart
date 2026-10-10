@@ -27,7 +27,7 @@ class AppDatabase {
   /// v4：新增 reading_plans 表（阅读计划 + 提醒）
   /// v5：reading_plans 增加 lastDoneOn（每日型计划的「今天已完成」打点）
   /// v6：reading_plans 增加 checkins（每日型计划的逐日打卡记录，用于连续天数）
-  static const _version = 7;
+  static const _version = 8;
 
   Database? _db;
   Database get db => _db!;
@@ -98,7 +98,8 @@ class AppDatabase {
         extra TEXT,
         createdAt TEXT,
         updatedAt TEXT,
-        lastReadAt TEXT
+        lastReadAt TEXT,
+        lastProgressAt TEXT
       )
     ''');
     await db.execute('CREATE INDEX idx_books_status ON books(status)');
@@ -271,6 +272,26 @@ class AppDatabase {
       final backfill = hasStarted ? 'COALESCE(startedAt, createdAt)' : 'createdAt';
       await db.execute(
           'UPDATE books SET lastReadAt = $backfill WHERE lastReadAt IS NULL');
+    }
+    if (oldV < 8) {
+      // 最后一次「进度变化」的时间戳：拖进度滑块、改页码/百分比都算。
+      //
+      // 和 lastReadAt 是两件独立的事：一本你每天翻几页却从不点「今天读了」
+      // 的书，阅读行为是空的，进度却是新鲜的——它显然还在读，不该被搁置。
+      // 所以「进度多久没变」是自动搁置的第二个、互相不替代的判断条件
+      // （见 [AutoShelve]）。
+      //
+      // 存量回填同样用 `COALESCE(startedAt, createdAt)`：开过头就用开读那天，
+      // 没开头就用入架那天。同样是有意往乐观方向估——估早了只会少搁置，
+      // 估晚则误杀还在读的书。极端缺列时退化为只靠 createdAt，绝不让整段
+      // 迁移因 `no such column` 回滚导致覆盖安装后打不开。
+      await _addColumn(db, 'books', 'lastProgressAt', 'TEXT');
+      final cols8 = await db.rawQuery('PRAGMA table_info(books)');
+      final hasStarted8 = cols8.any((c) => c['name'] == 'startedAt');
+      final backfill8 =
+          hasStarted8 ? 'COALESCE(startedAt, createdAt)' : 'createdAt';
+      await db.execute(
+          'UPDATE books SET lastProgressAt = $backfill8 WHERE lastProgressAt IS NULL');
     }
   }
 

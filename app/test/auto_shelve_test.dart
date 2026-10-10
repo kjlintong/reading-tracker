@@ -12,6 +12,7 @@ Book _book({
   String id = 'b1',
   BookStatus status = BookStatus.reading,
   String? lastReadAt,
+  String? lastProgressAt,
   String? startedAt,
   String? createdAt,
   bool isBorrowed = false,
@@ -25,6 +26,7 @@ Book _book({
       updatedAt: createdAt ?? '2026-01-01T00:00:00.000',
       startedAt: startedAt,
       lastReadAt: lastReadAt,
+      lastProgressAt: lastProgressAt,
       isBorrowed: isBorrowed,
       dueAt: dueAt,
     );
@@ -97,6 +99,36 @@ void main() {
     });
   });
 
+  group('进度变化的活动时间', () {
+    test('有 lastProgressAt 就以它为准', () {
+      final b = _book(
+        lastProgressAt: '2026-10-01T00:00:00.000',
+        startedAt: '2020-01-01T00:00:00.000',
+      );
+      expect(AutoShelve.lastProgressActivity(b), DateTime(2026, 10, 1));
+    });
+
+    test('没有 lastProgressAt 就回落到开读日期', () {
+      final b = _book(
+        startedAt: '2020-01-01T00:00:00.000',
+        createdAt: '2019-01-01T00:00:00.000',
+      );
+      expect(AutoShelve.lastProgressActivity(b), DateTime(2020, 1, 1));
+    });
+
+    test('进度刚好停了 60 天', () {
+      final b = _book(
+          lastProgressAt: _iso(now.subtract(const Duration(days: 60))));
+      expect(AutoShelve.progressIdleDaysOf(b, now), 60);
+    });
+
+    test('进度还新鲜着就不算闲置', () {
+      final b = _book(
+          lastProgressAt: _iso(now.subtract(const Duration(days: 10))));
+      expect(AutoShelve.progressIdleDaysOf(b, now), 10);
+    });
+  });
+
   group('该不该挪到搁置', () {
     test('闲置刚好满 60 天就挪', () {
       final b = _book(lastReadAt: _iso(now.subtract(const Duration(days: 60))));
@@ -154,6 +186,29 @@ void main() {
       expect(AutoShelve.shouldShelve(_book(createdAt: 'zzz'), now), isFalse);
     });
   });
+
+    test('很久没读但进度还新鲜 → 不挪（只推进不点读过也留住）', () {
+      // 模拟「每天翻几页却从没点过『今天读了』」：阅读行为停在 200 天前，
+      // 但进度三天前刚推进过。两个信号任一新鲜就留住，所以不该挪。
+      final b = _book(
+        lastReadAt: _iso(now.subtract(const Duration(days: 200))),
+        lastProgressAt: _iso(now.subtract(const Duration(days: 3))),
+      );
+      expect(AutoShelve.shouldShelve(b, now), isFalse);
+    });
+
+    test('进度也停在三年前 → 两个信号都失效 → 挪', () {
+      final b = _book(
+        lastReadAt: _iso(now.subtract(const Duration(days: 200))),
+        lastProgressAt: _iso(now.subtract(const Duration(days: 1100))),
+      );
+      expect(AutoShelve.shouldShelve(b, now), isTrue);
+    });
+
+    test('两个信号都无记录且入架已久 → 挪', () {
+      final b = _book(createdAt: '2020-01-01T00:00:00.000');
+      expect(AutoShelve.shouldShelve(b, now), isTrue);
+    });
 
   group('节流用的日期键', () {
     test('月和日都要补零', () {
