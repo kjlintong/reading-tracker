@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../l10n/app_loc.dart';
 import 'dart:io';
 import 'package:path/path.dart' as p;
@@ -211,11 +212,11 @@ class AppDatabase {
     // 「其他」——一次版本升级静默改掉几百本书的归类，且无从恢复。
     await _loadCategoryVocabulary(db);
     if (oldV < 2) {
-      await db.execute('ALTER TABLE books ADD COLUMN categoryRaw TEXT');
+      await _addColumn(db, 'books', 'categoryRaw', 'TEXT');
       await renormalizeCategories(db: db);
     }
     if (oldV < 3) {
-      await db.execute('ALTER TABLE books ADD COLUMN isBorrowed INTEGER DEFAULT 0');
+      await _addColumn(db, 'books', 'isBorrowed', 'INTEGER DEFAULT 0');
       await migrateBorrowedStatus(db);
     }
     if (oldV < 4) {
@@ -241,16 +242,50 @@ class AppDatabase {
       // 每日型计划从「一次性完成任务」改成「周期任务」，需要一个
       // 「今天已完成」的打点字段。存量行填 NULL：等于「今天还没打卡」，
       // 用户下次打开就能重新勾——这正是我们想要的行为，不需要回填数据。
-      await db.execute(
-          'ALTER TABLE reading_plans ADD COLUMN lastDoneOn TEXT');
+      await _addColumn(db, 'reading_plans', 'lastDoneOn', 'TEXT');
     }
     if (oldV < 6) {
       // 每日型计划的逐日打卡记录，用于「连续打卡 N 天」。
       // 存量行填 NULL：还没开始打卡，连续天数为 0，无需回填。
-      await db.execute(
-          'ALTER TABLE reading_plans ADD COLUMN checkins TEXT');
+      await _addColumn(db, 'reading_plans', 'checkins', 'TEXT');
     }
   }
+
+  /// 给表加一列；列已经在表里就什么都不做（幂等）。
+  ///
+  /// **为什么不能直接 ALTER**：SQLite 不支持 `ADD COLUMN IF NOT EXISTS`，
+  /// 给已有列名重复 ALTER 会抛 `duplicate column name`。这个异常发生在
+  /// `_onUpgrade` 事务里，会把整段迁移连同 `PRAGMA user_version` 的更新
+  /// 一起回滚——用户表现为**覆盖安装后再也打不开 App**，而且因为版本号
+  /// 没写上，重装之后照样崩，连重试的机会都没有。
+  ///
+  /// 这里确实是踩出来的：`oldV < 4` 那条 CREATE 里带了 `lastDoneOn`
+  /// （当初为 v5 加字段时顺手写进了建表语句），于是任何 `oldV < 4` 的库
+  /// 走到 `oldV < 5` 的 ALTER 就会重复加列——老版本覆盖安装到 v6 必崩。
+  ///
+  /// 先查 `PRAGMA table_info` 再加，把「加列」变成幂等操作。这比改 CREATE
+  /// 语句更稳：存量库的真实列集合可能有各种历史组合，靠列举是列不全的。
+  /// 列名与类型由调用方给出，只能是编译期常量，不接受外部输入。
+  Future<void> _addColumn(
+    Database db,
+    String table,
+    String column,
+    String definition,
+  ) async {
+    final cols = await db.rawQuery('PRAGMA table_info($table)');
+    if (cols.any((r) => r['name'] == column)) return;
+    await db.execute('ALTER TABLE $table ADD COLUMN $column $definition');
+  }
+
+  /// 测试专用：跑一遍**真实的**迁移流程。
+  ///
+  /// `_onUpgrade` 是私有的，而它偏偏是最该被回归测试盯住的一段：
+  /// 2026-10-10 这里发生过「重复 ADD COLUMN 炸掉整段迁移」的事故，
+  /// 用户表现为覆盖安装后再也打不开 App，而且版本号没写上，重装也没用。
+  /// 事故之所以能活到线上，就是因为这段编排当时没有任何测试。
+  @visibleForTesting
+  Future<void> upgradeForTest(Database db, int oldV, int newV) =>
+      _onUpgrade(db, oldV, newV);
 
   /// v2 → v3：把「借阅中」从一个状态拆成「在读 + 借阅标记」。
   ///

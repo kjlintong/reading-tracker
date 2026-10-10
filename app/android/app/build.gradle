@@ -53,14 +53,32 @@ android {
             signingConfig = signingConfigs.release
             // 保留 release 包的符号信息（崩溃栈可读；正式上架可关闭）
             ndk { debugSymbolLevel = "SYMBOL_TABLE" }
-            // Flutter 3.24 起 release 构建默认走 R8（脱糖 + 压缩）。
+            // ⚠️ minifyEnabled **必须显式写出**，不能依赖默认值。
             //
-            // google_mlkit_text_recognition 会懒加载引用中/日/韩/天城文识别器，
-            // 本项目只依赖拉丁 + 中文两套模型，R8 会因 "Missing class" 直接失败。
-            // 规则集中在 proguard-rules.pro（用 -dontwarn 放行按需加载的可选类）。
+            // 2026-10-10 真机事故：这个 release 包实际是**开着压缩**的，
+            // 尽管这里从未写过 `minifyEnabled true`（工具链默认值变了）。
+            // 后果是 R8 把 Gson 的 `com.google.gson.reflect.TypeToken`
+            // 改名成了 `v4.a`——连带把它的**泛型签名**一起吃掉，于是
+            // flutter_local_notifications 在解析已排期的通知时抛
+            //   IllegalStateException: TypeToken must be created with a type
+            //   argument ... make sure that generic signatures are preserved
+            // 而这个调用发生在 ScheduledNotificationBootReceiver.onReceive 里，
+            // 属于 Android 组件入口，异常直接变成 FATAL EXCEPTION。
             //
-            // 暂不开启 minifyEnabled：Flutter 已自带压缩，额外开启需在真机回归
-            // OCR 导入链路后再定。规则文件已接线，随时可切换。
+            // 用户侧的表现正是「首次打开必闪退、第二次才正常」：进程在
+            // Flutter 画出第一帧之前就被 SIG:9 杀掉（进程级崩溃，
+            // Dart 的 try/catch 完全接不到），而触发它的广播是一次性的，
+            // 第二次启动就不再投递，于是看起来"重开一次就好了"。
+            //
+            // 用之前的 dex 反查确认过那是全局压缩：`com.tekartik.sqflite`
+            // 这类没有任何 keep 保护的第三方类同样被改名了。
+            //
+            // 这里显式关闭，让构建行为回到本文件原先设想的那样。
+            // 将来若要开启压缩，**必须**先在 proguard-rules.pro 里保留
+            // Gson 的泛型签名（那条规则已经写好了），并在真机回归
+            // 通知 / OCR 导入 / 分享三条链路之后再打开。
+            minifyEnabled false
+            shrinkResources false
             debuggable false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }

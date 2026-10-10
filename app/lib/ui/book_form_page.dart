@@ -92,6 +92,11 @@ class _BookFormPageState extends State<BookFormPage> {
       maxHeight: 840,
       imageQuality: 85,
     );
+    // 相册是一个全屏 Activity，中途可能因为转屏、切后台被回收等原因
+    // 销毁本页面。await 回来时 setState 会抛
+    // 「setState() called after dispose()」——表现为选完图回���时闪退。
+    // 跨 await 回到 UI 前一律先问一句还在不在。
+    if (!mounted) return;
     if (picked == null) return;
     setState(() => _coverLocalPath = picked.path);
   }

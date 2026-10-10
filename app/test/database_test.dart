@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:reading_tracker/data/database.dart';
@@ -279,6 +281,112 @@ void main() {
       expect((await repo.statusCounts())[BookStatus.shelved], isNull);
     });
   });
+  group('版本迁移', () {
+    /// 造一个 v1 时代的库：books 没有 categoryRaw / isBorrowed，
+    /// 也不存在 reading_plans 表。
+    ///
+    /// 只建迁移真正会碰到的列，够用即可——照抄最新表结构的话，
+    /// 「这一代的库到底缺哪些列」就再也分不出来了。
+    /// 用**临时文件**而不是 inMemoryDatabasePath：sqflite 的内存库是按路径
+    /// 共享实例的（`:memory:` 永远指同一份），这里要的是一份全新的旧库，
+    /// 否则会直接复用 setUp 已经建好的最新版本 schema，测试等于没测。
+    Future<Database> openLegacy() async {
+      final dir = await Directory.systemTemp.createTemp('rn_migration_test');
+      final db = await databaseFactory.openDatabase('${dir.path}/legacy.db');
+      addTearDown(() async {
+        await db.close();
+        await dir.delete(recursive: true);
+      });
+      await db.execute('''
+        CREATE TABLE books (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          authors TEXT,
+          categoryPrimary TEXT,
+          status TEXT,
+          borrowedFrom TEXT,
+          dueAt TEXT,
+          createdAt TEXT,
+          updatedAt TEXT
+        )
+      ''');
+      await db.insert('books', {
+        'id': 'b1',
+        'title': '置身事内',
+        'authors': '兰小欢',
+        'categoryPrimary': '经济理财',
+        'status': 'finished',
+        'createdAt': now,
+        'updatedAt': now,
+      });
+      return db;
+    }
+
+    Future<List<String>> columns(Database db, String table) async {
+      final rows = await db.rawQuery('PRAGMA table_info($table)');
+      return [for (final r in rows) r['name'] as String];
+    }
+
+    test('v1 → v6 不会重复加列（历史致命缺陷）', () async {
+      final legacy = await openLegacy();
+
+      // 历史上这一句会抛 duplicate column name：
+      // oldV<4 的 CREATE 里带了 lastDoneOn，紧接着 oldV<5 又 ALTER 一次。
+      // 异常把整段迁移连同 PRAGMA user_version 一起回滚，
+      // 用户覆盖安装后再也打不开 App，而且版本号没写上、重装也没用。
+      await expectLater(appDb.upgradeForTest(legacy, 1, 6), completes);
+
+      final books = await columns(legacy, 'books');
+      expect(books, contains('categoryRaw'));
+      expect(books, contains('isBorrowed'));
+
+      final plans = await columns(legacy, 'reading_plans');
+      expect(plans, contains('lastDoneOn'));
+      expect(plans, contains('checkins'));
+      // 同名列必须只有一份——重复加列当年就是因为这里裂开而炸的
+      expect(plans.where((c) => c == 'lastDoneOn'), hasLength(1));
+      expect(plans.where((c) => c == 'checkins'), hasLength(1));
+    });
+
+    test('任一旧版本升级到 v6 都能跑完，且列不重不漏', () async {
+      final legacy = await openLegacy();
+
+      // 反复在同一个库上跑：真实设备只会走一条路径，但一列对这些路径
+      // 全都成立，才说明加列是真的幂等，而不是碰巧这次没撞上。
+      for (final from in const [1, 2, 3, 4, 5]) {
+        await expectLater(
+          appDb.upgradeForTest(legacy, from, 6),
+          completes,
+          reason: '从 v$from 升级应当顺利完成',
+        );
+      }
+
+      final plans = await columns(legacy, 'reading_plans');
+      expect(plans.where((c) => c == 'lastDoneOn'), hasLength(1),
+          reason: 'lastDoneOn 跑了五轮迁移也只应存在一份');
+      expect(plans.where((c) => c == 'checkins'), hasLength(1));
+    });
+
+    test('迁移后仍可向 reading_plans 写入打卡字段', () async {
+      final legacy = await openLegacy();
+      await appDb.upgradeForTest(legacy, 1, 6);
+
+      await legacy.insert('reading_plans', {
+        'id': 'p1',
+        'kind': 'dailyMinutes',
+        'title': '每天 20 分钟',
+        'dailyMinutes': 20,
+        'createdAt': now,
+        'lastDoneOn': '2026-10-10',
+        'checkins': '2026-10-08,2026-10-09,2026-10-10',
+      });
+
+      final rows = await legacy.query('reading_plans');
+      expect(rows, hasLength(1));
+      expect(rows.first['checkins'], '2026-10-08,2026-10-09,2026-10-10');
+    });
+  });
+
   group('阅读计划', () {
     /// 造一条时长型计划。createdAt 由调用方给，好控制「从哪天开始算」。
     ReadingPlan daily({

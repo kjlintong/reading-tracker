@@ -87,6 +87,12 @@ class _AddBookSheetState extends ConsumerState<AddBookSheet> {
   }
 
   Future<void> _run(Future<void> Function() task) async {
+    // 入口先问一句还在不在。这里是六条导入路径（截图 / 拍照 / CSV /
+    // Notion / 备份 JSON / 批量导入）的公共入口，而每条路径进来之前都有
+    // 一个 await（选图、选文件、跳子页面）——那些 await 期间页面可能
+    // 已经被销毁（转屏、切后台被回收、用户直接滑掉抽屉）。
+    // 在这里统一挡一道，比在六个调用点各补一次可靠。
+    if (!mounted) return;
     setState(() {
       _busy = true;
       _message = null;
@@ -135,6 +141,11 @@ class _AddBookSheetState extends ConsumerState<AddBookSheet> {
       imageQuality: 100,
       maxWidth: 2400,
     );
+    // 系统相册/相机是全屏 Activity，且这条路径第一次调用时会触发
+    // 权限申请——Android 在权限变更时可能重建甚至回收本 Activity。
+    // await 回来若页面已销毁，下面的 file.path 与 setState 都会抛
+    // 「setState() called after dispose()」。
+    if (!mounted) return;
     if (file == null) return;
 
     await _run(() async {

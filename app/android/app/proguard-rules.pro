@@ -31,6 +31,39 @@
 # 而不是继续 -dontwarn。
 -dontwarn com.google.android.play.core.**
 
+# --- Gson：泛型签名必须保留 ---
+#
+# 背景：flutter_local_notifications 用 Gson 的 `TypeToken` 反序列化已排期的
+# 通知。TypeToken 靠 **匿名子类的泛型签名** 拿到目标类型，一旦压缩时把
+# Signature 属性丢掉，构造 TypeToken 就抛
+#   IllegalStateException: TypeToken must be created with a type argument
+#
+# 这一点在 release 包上是致命的：调用发生在 Android 组件的入口
+# （ScheduledNotificationBootReceiver.onReceive），异常会升级成
+# FATAL EXCEPTION 并把整个进程 SIG:9 杀掉——用户看到的就是「打开即闪退」，
+# 且 Dart 层的 try/catch 完全接不住（进程级崩溃，不是 Dart 异常）。
+#
+# 即使当前把 minifyEnabled 显式关掉了（见 build.gradle 的说明），
+# 这组规则也必须留着：**将来任何人打开压缩都会重新踩同一个坑**。
+-keepattributes Signature
+-keepattributes *Annotation*
+-keepattributes EnclosingMethod
+-keepattributes InnerClasses
+-keep class com.google.gson.** { *; }
+-keepclassmembers class com.google.gson.** { *; }
+# TypeToken 的匿名子类：这批内部类承载泛型信息，不能被删
+-keepclassmembers class * extends com.google.gson.reflect.TypeToken { *; }
+# SerializedName 标注的字段按名反射查找，改了名就取不到值
+-keepclassmembers,allowobfuscation class * {
+  @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# --- flutter_local_notifications ---
+# 插件的类与内部类由系统与插件双向反射引用，$a 这种匿名内部类
+# （承载 TypeToken 子类）尤其不能被删。
+-keep class com.dexterous.flutterlocalnotifications.** { *; }
+-keepclassmembers class com.dexterous.flutterlocalnotifications.** { *; }
+
 # --- 保留插件与 Flutter 引擎的入口（避免被误删） ---
 -keep class io.flutter.plugins.** { *; }
 -keep class io.flutter.embedding.** { *; }
