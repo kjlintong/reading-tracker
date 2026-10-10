@@ -27,7 +27,7 @@ class AppDatabase {
   /// v4：新增 reading_plans 表（阅读计划 + 提醒）
   /// v5：reading_plans 增加 lastDoneOn（每日型计划的「今天已完成」打点）
   /// v6：reading_plans 增加 checkins（每日型计划的逐日打卡记录，用于连续天数）
-  static const _version = 8;
+  static const _version = 9;
 
   Database? _db;
   Database get db => _db!;
@@ -172,6 +172,8 @@ class AppDatabase {
         doneAt TEXT,
         lastDoneOn TEXT,
         checkins TEXT,
+        bookIds TEXT,
+        readToday TEXT,
         createdAt TEXT
       )
     ''');
@@ -292,6 +294,14 @@ class AppDatabase {
           hasStarted8 ? 'COALESCE(startedAt, createdAt)' : 'createdAt';
       await db.execute(
           'UPDATE books SET lastProgressAt = $backfill8 WHERE lastProgressAt IS NULL');
+    }
+    if (oldV < 9) {
+      // 每日计划支持「目标书清单」与「每本书今天读了」的勾选。
+      // 这两个是每日型计划里「今天读了哪些书」这个入口的载体，只靠
+      // 内存态会丢，必须落库。存量行填 NULL（还没配书 / 还没勾选），
+      // 用户下次打开计划就能重新选，无需回填数据。
+      await _addColumn(db, 'reading_plans', 'bookIds', 'TEXT');
+      await _addColumn(db, 'reading_plans', 'readToday', 'TEXT');
     }
   }
 

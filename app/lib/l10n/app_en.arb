@@ -3577,5 +3577,22 @@
   "undo": "Undo",
   "@undo": {
     "description": "Generic: undo the just-performed automatic action"
+  },
+  "planTargetBooks": "Target books",
+  "planTargetBooksEmpty": "No books selected yet — tap Add to pick from your shelf",
+  "planAddBook": "Add",
+  "planBookSearch": "Search title or author",
+  "planConfirm": "Confirm",
+  "planReadTodayHeading": "Read today",
+  "planReadTodayCount": "{done}/{total} today",
+  "@planReadTodayCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

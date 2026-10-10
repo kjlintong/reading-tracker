@@ -5050,6 +5050,48 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Undo'**
   String get undo;
+
+  /// No description provided for @planTargetBooks.
+  ///
+  /// In en, this message translates to:
+  /// **'Target books'**
+  String get planTargetBooks;
+
+  /// No description provided for @planTargetBooksEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No books selected yet — tap Add to pick from your shelf'**
+  String get planTargetBooksEmpty;
+
+  /// No description provided for @planAddBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get planAddBook;
+
+  /// No description provided for @planBookSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search title or author'**
+  String get planBookSearch;
+
+  /// No description provided for @planConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get planConfirm;
+
+  /// No description provided for @planReadTodayHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Read today'**
+  String get planReadTodayHeading;
+
+  /// No description provided for @planReadTodayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{done}/{total} today'**
+  String planReadTodayCount({required int done, required int total});
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

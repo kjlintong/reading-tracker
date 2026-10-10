@@ -2848,4 +2848,27 @@ class SZh extends S {
 
   @override
   String get undo => '撤销';
+
+  @override
+  String get planTargetBooks => '目标书';
+
+  @override
+  String get planTargetBooksEmpty => '还没选要读的书，点「添加」从书架里挑';
+
+  @override
+  String get planAddBook => '添加';
+
+  @override
+  String get planBookSearch => '搜索书名或作者';
+
+  @override
+  String get planConfirm => '确定';
+
+  @override
+  String get planReadTodayHeading => '今天读了';
+
+  @override
+  String planReadTodayCount({required int done, required int total}) {
+    return '今天 $done/$total 本';
+  }
 }

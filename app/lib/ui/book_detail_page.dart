@@ -562,38 +562,17 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
           ),
           const SizedBox(height: 16),
 
-          // 「今天读了」：记录一次真实的阅读行为。它把 lastReadAt 刷到此刻，
-          // 并写一条阅读日志——这是「在读」状态唯一的真实活动信号。没有它，
-          // 自动搁置只能靠入架时间去猜，猜错就会误杀还在读的书。
-          // 只在「在读 / 搁置」状态出现：「想读」尚未开始、「已读」已经结束。
-          if (b.status == BookStatus.reading || b.status == BookStatus.shelved)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FilledButton.icon(
-                  onPressed: () async {
-                    final repo = ref.read(repoProvider);
-                    await repo.addLog(ReadingLog(
-                      id: 'log_${DateTime.now().microsecondsSinceEpoch}',
-                      bookId: b.id,
-                      date: AutoShelve.dayKey(DateTime.now()),
-                      source: BookSource.manual,
-                    ));
-                    if (!mounted) return;
-                    await _patch(b.withReadNow());
-                  },
-                  icon: const Icon(Icons.menu_book_outlined, size: 16),
-                  label: Text(appLoc.readToday),
-                ),
-                if (b.lastReadAt != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    appLoc.lastReadAt(
-                        date: AutoShelve.dayKey(DateTime.parse(b.lastReadAt!))),
-                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
-                  ),
-                ],
-              ],
+          // 「今天读了」的入口已挪到阅读计划的每日勾选（见 plan_section）。
+          // 这里只保留只读的「上次阅读」展示，让人知道这本书最后一次
+          // 被记成「读过」是什么时候。
+          if (b.lastReadAt != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                appLoc.lastReadAt(
+                    date: AutoShelve.dayKey(DateTime.parse(b.lastReadAt!))),
+                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+              ),
             ),
           const SizedBox(height: 16),
 

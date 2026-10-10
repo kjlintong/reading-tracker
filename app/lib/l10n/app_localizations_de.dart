@@ -2848,4 +2848,27 @@ class SDe extends S {
 
   @override
   String get undo => 'Rückgängig';
+
+  @override
+  String get planTargetBooks => 'Zielbücher';
+
+  @override
+  String get planTargetBooksEmpty => 'Noch keine Bücher ausgewählt — tippe Hinzufügen';
+
+  @override
+  String get planAddBook => 'Hinzufügen';
+
+  @override
+  String get planBookSearch => 'Titel oder Autor suchen';
+
+  @override
+  String get planConfirm => 'OK';
+
+  @override
+  String get planReadTodayHeading => 'Heute gelesen';
+
+  @override
+  String planReadTodayCount({required int done, required int total}) {
+    return 'Heute $done/$total';
+  }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../l10n/app_loc.dart';
 import '../models/book.dart';
+import '../models/enums.dart';
 import '../models/reading_plan.dart';
 import '../providers.dart';
 import 'plan_editor_sheet.dart';
@@ -174,6 +176,121 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
       HapticFeedback.mediumImpact();
       _toast(p.id, appLoc.planFinishedToast);
     }
+  }
+
+  /// 在计划卡片里勾「今天读了某本书」。
+  ///
+  /// 勾上：把这个书 id 写进计划的 [ReadingPlan.readToday]（值=今天），
+  /// 并刷新那本书的 [Book.lastReadAt]、写一条阅读日志——这才是真正喂给
+  /// 自动搁置的活跃信号。取消勾选：只从计划里清掉今天的记录，不回退书的
+  /// lastReadAt（你确实读过，只是今天不在计划里勾了）。
+  Future<void> _toggleReadToday(ReadingPlan p, String bookId, bool mark) async {
+    final repo = ref.read(repoProvider);
+    final today = ReadingPlan.todayIso();
+    final map = <String, String>{};
+    try {
+      final parsed = jsonDecode(p.readToday ?? '{}');
+      if (parsed is Map) {
+        for (final k in parsed.keys) {
+          map[k.toString()] = parsed[k].toString();
+        }
+      }
+    } catch (_) {
+      // 损坏的 JSON 就当空处理，重新写一份干净的
+    }
+    if (mark) {
+      map[bookId] = today;
+    } else {
+      map.remove(bookId);
+    }
+    await repo.upsertPlan(p.copyWith(readToday: jsonEncode(map)));
+    if (mark) {
+      final book = _books[bookId];
+      if (book != null) {
+        await repo.update(book.withReadNow());
+        await repo.addLog(ReadingLog(
+          id: 'log_${DateTime.now().microsecondsSinceEpoch}',
+          bookId: bookId,
+          date: today,
+          source: BookSource.manual,
+        ));
+      }
+    }
+    await _load();
+    if (!mounted) return;
+    _pulse(p.id);
+    HapticFeedback.mediumImpact();
+  }
+
+  /// 计划卡片里的「今天读了哪些书」区块。
+  ///
+  /// 每日型用计划配的 [ReadingPlan.targetBookIds]；书本型就是它那一本。
+  /// 没配书就返回空，不占地方。
+  Widget _readTodayBlock(ReadingPlan p) {
+    final cs = Theme.of(context).colorScheme;
+    final targetIds = p.kind == PlanKind.dailyMinutes
+        ? p.targetBookIds
+        : (p.bookId != null ? [p.bookId!] : const <String>[]);
+    if (targetIds.isEmpty) return const SizedBox.shrink();
+    final readIds = p.readTodayIds;
+    final done = targetIds.where((id) => readIds.contains(id)).length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Icon(Icons.menu_book_outlined,
+                size: 13, color: cs.onSurfaceVariant),
+            const SizedBox(width: 4),
+            Text(appLoc.planReadTodayHeading,
+                style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant)),
+            const Spacer(),
+            Text(
+              appLoc.planReadTodayCount(done: done, total: targetIds.length),
+              style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        for (final id in targetIds) _readTodayTile(p, id, readIds.contains(id)),
+      ],
+    );
+  }
+
+  Widget _readTodayTile(ReadingPlan p, String id, bool read) {
+    final cs = Theme.of(context).colorScheme;
+    final b = _books[id];
+    if (b == null) return const SizedBox.shrink();
+    return InkWell(
+      onTap: () => _toggleReadToday(p, id, !read),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Icon(
+              read ? Icons.check_circle : Icons.radio_button_unchecked,
+              size: 18,
+              color: read ? cs.primary : cs.onSurfaceVariant,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                b.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: read ? cs.primary : null,
+                  decoration: read ? TextDecoration.lineThrough : null,
+                  decorationColor: cs.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   /// 弹一条确认提示。
@@ -482,6 +599,10 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
                     ],
                   ],
                 ),
+                // 「今天读了哪些书」：给每日计划配置的书单（或书本型的那一本）
+                // 逐本勾选。勾选即记一次阅读（刷 lastReadAt + 写阅读日志），
+                // 是「今天读了」的主入口。任一新鲜都让自动搁置留住这本书。
+                _readTodayBlock(p),
                 // 每日型的「周期」语义得说清楚，否则用户又会以为
                 // 「勾完这次就没了」。规则推导的可解释性一直不够，
                 // 所以这句只在每日型下出现。

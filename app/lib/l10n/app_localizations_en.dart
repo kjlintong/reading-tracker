@@ -2848,4 +2848,27 @@ class SEn extends S {
 
   @override
   String get undo => 'Undo';
+
+  @override
+  String get planTargetBooks => 'Target books';
+
+  @override
+  String get planTargetBooksEmpty => 'No books selected yet — tap Add to pick from your shelf';
+
+  @override
+  String get planAddBook => 'Add';
+
+  @override
+  String get planBookSearch => 'Search title or author';
+
+  @override
+  String get planConfirm => 'Confirm';
+
+  @override
+  String get planReadTodayHeading => 'Read today';
+
+  @override
+  String planReadTodayCount({required int done, required int total}) {
+    return '$done/$total today';
+  }
 }

@@ -3577,5 +3577,22 @@
   "undo": "Deshacer",
   "@undo": {
     "description": "General: deshacer la acción automática reciente"
+  },
+  "planTargetBooks": "Libros objetivo",
+  "planTargetBooksEmpty": "Aún no has elegido libros — pulsa Añadir",
+  "planAddBook": "Añadir",
+  "planBookSearch": "Buscar título o autor",
+  "planConfirm": "Confirmar",
+  "planReadTodayHeading": "Leído hoy",
+  "planReadTodayCount": "Hoy {done}/{total}",
+  "@planReadTodayCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

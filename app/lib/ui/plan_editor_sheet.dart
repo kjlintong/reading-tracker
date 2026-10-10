@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -33,6 +35,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
   late final TextEditingController _title;
   late int _minutes;
   String? _bookId;
+  List<String> _bookIds = [];
   String? _dueDate;
   late bool _remind;
 
@@ -48,6 +51,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
     _title = TextEditingController(text: p?.title ?? '');
     _minutes = p?.dailyMinutes ?? 20;
     _bookId = p?.bookId;
+    _bookIds = p?.targetBookIds ?? [];
     _dueDate = p?.dueDate;
     _remind = p?.reminderEnabled ?? false;
     _loadBooks();
@@ -64,7 +68,10 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
     // 编辑既有计划时，把当前选中的那本也带上，否则下拉框会选不中。
     final all = await ref.read(repoProvider).all();
     final usable = all
-        .where((b) => b.status != BookStatus.finished || b.id == _bookId)
+        .where((b) =>
+            b.status != BookStatus.finished ||
+            b.id == _bookId ||
+            _bookIds.contains(b.id))
         .toList();
     if (mounted) {
       setState(() {
@@ -112,6 +119,7 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
       title: _title.text.trim().isEmpty ? null : _title.text.trim(),
       dailyMinutes: _kind == PlanKind.dailyMinutes ? _minutes : null,
       bookId: _kind == PlanKind.finishBook ? _bookId : null,
+      bookIds: _kind == PlanKind.dailyMinutes ? jsonEncode(_bookIds) : null,
       dueDate: _kind == PlanKind.finishBook ? _dueDate : null,
       reminderEnabled: _remind,
       done: base?.done ?? false,
@@ -231,6 +239,14 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
                         color: cs.primary,
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 16),
+                  _BookMultiSelectField(
+                    books: _books,
+                    value: _bookIds,
+                    hint: appLoc.planTargetBooks,
+                    enabled: !_saving,
+                    onChanged: (v) => setState(() => _bookIds = v),
                   ),
                 ] else ...[
                   if (_booksLoading)
@@ -466,6 +482,168 @@ class _BookSearchSheetState extends State<_BookSearchSheet> {
                       );
                     },
                   ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 可多选的书选择器，给「每天读 X 分钟」计划配目标书清单。
+///
+/// 已选的书显示成可删除的 chip，点「添加」弹出可搜索的抽屉（书名/作者
+/// 实时过滤），勾选多个后确认。书多时不必一个个翻。
+class _BookMultiSelectField extends StatelessWidget {
+  final List<Book> books;
+  final List<String> value;
+  final String hint;
+  final bool enabled;
+  final ValueChanged<List<String>> onChanged;
+
+  const _BookMultiSelectField({
+    required this.books,
+    required this.value,
+    required this.hint,
+    this.enabled = true,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final selected = <Book>[
+      for (final id in value)
+        for (final b in books)
+          if (b.id == id) b,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(hint, style: const TextStyle(fontSize: 13)),
+        const SizedBox(height: 6),
+        if (selected.isNotEmpty)
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final b in selected)
+                Chip(
+                  label: Text(b.title,
+                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                  deleteIcon: const Icon(Icons.close, size: 16),
+                  onDeleted: enabled
+                      ? () => onChanged(value.where((id) => id != b.id).toList())
+                      : null,
+                ),
+            ],
+          ),
+        const SizedBox(height: 6),
+        OutlinedButton.icon(
+          onPressed: enabled ? () => _openPicker(context) : null,
+          icon: const Icon(Icons.add, size: 16),
+          label: Text(appLoc.planAddBook),
+          style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+        ),
+        if (selected.isEmpty) ...[
+          const SizedBox(height: 4),
+          Text(appLoc.planTargetBooksEmpty,
+              style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant)),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _openPicker(BuildContext context) async {
+    final picked = await showModalBottomSheet<Set<String>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) =>
+          _BookMultiSearchSheet(books: books, initial: Set.from(value)),
+    );
+    if (picked != null) onChanged(picked.toList());
+  }
+}
+
+class _BookMultiSearchSheet extends StatefulWidget {
+  final List<Book> books;
+  final Set<String> initial;
+  const _BookMultiSearchSheet(
+      {required this.books, this.initial = const {}});
+
+  @override
+  State<_BookMultiSearchSheet> createState() => _BookMultiSearchSheetState();
+}
+
+class _BookMultiSearchSheetState extends State<_BookMultiSearchSheet> {
+  late final Set<String> _picked = Set.from(widget.initial);
+  String _q = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _q.trim().toLowerCase();
+    final list = q.isEmpty
+        ? widget.books
+        : widget.books.where((b) {
+            final t = b.title.toLowerCase();
+            final a = b.authors.join(' ').toLowerCase();
+            return t.contains(q) || a.contains(q);
+          }).toList();
+    final height = MediaQuery.of(context).size.height * 0.7;
+    return SizedBox(
+      height: height,
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: TextField(
+              autofocus: true,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: appLoc.planBookSearch,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (v) => setState(() => _q = v),
+            ),
+          ),
+          Expanded(
+            child: list.isEmpty
+                ? const Center(child: Text('没有匹配的书'))
+                : ListView.builder(
+                    itemCount: list.length,
+                    itemBuilder: (_, i) {
+                      final b = list[i];
+                      final on = _picked.contains(b.id);
+                      return ListTile(
+                        title: Text(b.title,
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: b.authors.isNotEmpty
+                            ? Text(b.authors.join(', '),
+                                maxLines: 1, overflow: TextOverflow.ellipsis)
+                            : null,
+                        trailing: on
+                            ? const Icon(Icons.check, color: Colors.green)
+                            : null,
+                        onTap: () => setState(() {
+                          if (on) {
+                            _picked.remove(b.id);
+                          } else {
+                            _picked.add(b.id);
+                          }
+                        }),
+                      );
+                    },
+                  ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: () => Navigator.of(context).pop(_picked),
+                child: Text(appLoc.planConfirm),
+              ),
+            ),
           ),
         ],
       ),

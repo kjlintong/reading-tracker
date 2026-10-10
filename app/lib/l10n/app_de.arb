@@ -3577,5 +3577,22 @@
   "undo": "Rückgängig",
   "@undo": {
     "description": "Allgemein: die automatische Aktion rückgängig machen"
+  },
+  "planTargetBooks": "Zielbücher",
+  "planTargetBooksEmpty": "Noch keine Bücher ausgewählt — tippe Hinzufügen",
+  "planAddBook": "Hinzufügen",
+  "planBookSearch": "Titel oder Autor suchen",
+  "planConfirm": "OK",
+  "planReadTodayHeading": "Heute gelesen",
+  "planReadTodayCount": "Heute {done}/{total}",
+  "@planReadTodayCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

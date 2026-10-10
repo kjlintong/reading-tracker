@@ -2848,4 +2848,27 @@ class SFr extends S {
 
   @override
   String get undo => 'Annuler';
+
+  @override
+  String get planTargetBooks => 'Livres visés';
+
+  @override
+  String get planTargetBooksEmpty => 'Aucun livre choisi — appuie sur Ajouter';
+
+  @override
+  String get planAddBook => 'Ajouter';
+
+  @override
+  String get planBookSearch => 'Rechercher titre ou auteur';
+
+  @override
+  String get planConfirm => 'Confirmer';
+
+  @override
+  String get planReadTodayHeading => 'Lu aujourd\'hui';
+
+  @override
+  String planReadTodayCount({required int done, required int total}) {
+    return 'Aujourd\'hui $done/$total';
+  }
 }

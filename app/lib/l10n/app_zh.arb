@@ -3577,5 +3577,22 @@
   "undo": "撤销",
   "@undo": {
     "description": "通用：撤销刚才的自动操作"
+  },
+  "planTargetBooks": "目标书",
+  "planTargetBooksEmpty": "还没选要读的书，点「添加」从书架里挑",
+  "planAddBook": "添加",
+  "planBookSearch": "搜索书名或作者",
+  "planConfirm": "确定",
+  "planReadTodayHeading": "今天读了",
+  "planReadTodayCount": "今天 {done}/{total} 本",
+  "@planReadTodayCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -2848,4 +2848,27 @@ class SEs extends S {
 
   @override
   String get undo => 'Deshacer';
+
+  @override
+  String get planTargetBooks => 'Libros objetivo';
+
+  @override
+  String get planTargetBooksEmpty => 'Aún no has elegido libros — pulsa Añadir';
+
+  @override
+  String get planAddBook => 'Añadir';
+
+  @override
+  String get planBookSearch => 'Buscar título o autor';
+
+  @override
+  String get planConfirm => 'Confirmar';
+
+  @override
+  String get planReadTodayHeading => 'Leído hoy';
+
+  @override
+  String planReadTodayCount({required int done, required int total}) {
+    return 'Hoy $done/$total';
+  }
 }

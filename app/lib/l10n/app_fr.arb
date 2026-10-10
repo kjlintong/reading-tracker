@@ -3577,5 +3577,22 @@
   "undo": "Annuler",
   "@undo": {
     "description": "Général : annuler l'action automatique récente"
+  },
+  "planTargetBooks": "Livres visés",
+  "planTargetBooksEmpty": "Aucun livre choisi — appuie sur Ajouter",
+  "planAddBook": "Ajouter",
+  "planBookSearch": "Rechercher titre ou auteur",
+  "planConfirm": "Confirmer",
+  "planReadTodayHeading": "Lu aujourd'hui",
+  "planReadTodayCount": "Aujourd'hui {done}/{total}",
+  "@planReadTodayCount": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
   }
 }

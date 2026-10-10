@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 /// 阅读计划的目标类型。
@@ -73,6 +75,21 @@ class ReadingPlan {
   /// 也保证「当天完成 → 次日自动回到待完成」这个周期语义有据可查。
   final String? checkins;
 
+  /// [PlanKind.dailyMinutes] 用：计划涵盖的「目标书」清单（JSON 数组，book id）。
+  ///
+  /// 「每天读 X 分钟」本身不绑定某本书，但用户常在每日计划里列出
+  /// 「今天打算读哪几本」，并逐本勾选「今天读了」。这份清单就是那个载体。
+  /// 它和 [bookId]（[PlanKind.finishBook] 用）是两套互不相干的字段。
+  final String? bookIds;
+
+  /// [PlanKind.dailyMinutes] 用：每本书「今天读了」的勾选记录。
+  ///
+  /// 存成 `bookId -> yyyy-MM-dd` 的 JSON 对象：值等于今天代表今天读过，
+  /// 不等于今天（或没有这把钥匙）代表今天还没读。是计划内自包含的「每日
+  /// 勾选」状态，和书的 [Book.lastReadAt] 各管各的——这里只表达「在计划里
+  /// 今天勾了」，[Book.lastReadAt] 才是真正喂给自动搁置的活跃信号。
+  final String? readToday;
+
   /// 计划创建时间，用于排序与「这个计划立了多久」的统计。
   final String createdAt;
 
@@ -89,6 +106,8 @@ class ReadingPlan {
     this.doneAt,
     this.lastDoneOn,
     this.checkins,
+    this.bookIds,
+    this.readToday,
   });
 
   /// 今天是否已经打过卡（仅每日型有意义）。
@@ -138,6 +157,37 @@ class ReadingPlan {
       '${d.month.toString().padLeft(2, '0')}-'
       '${d.day.toString().padLeft(2, '0')}';
 
+  /// 计划涵盖的目标书 id 列表（解析 [bookIds] 的 JSON 数组）。
+  ///
+  /// 解析失败或为空都返回空列表，调用方据此判断「这个每日计划没配书」。
+  List<String> get targetBookIds {
+    if (bookIds == null || bookIds!.isEmpty) return const <String>[];
+    try {
+      final list = jsonDecode(bookIds!) as List;
+      return list.map((e) => e as String).toList();
+    } catch (_) {
+      return const <String>[];
+    }
+  }
+
+  /// 今天已勾选「读了」的书 id 集合（解析 [readToday]）。
+  ///
+  /// 只取值等于今天的那几把钥匙——值不是今天的（昨天勾的）按「今天还没读」
+  /// 处理，符合「每天重新勾」的周期语义。
+  Set<String> get readTodayIds {
+    if (readToday == null || readToday!.isEmpty) return const <String>{};
+    try {
+      final map = (jsonDecode(readToday!) as Map).cast<String, String>();
+      final today = ReadingPlan.todayIso();
+      return map.entries
+          .where((e) => e.value == today)
+          .map((e) => e.key)
+          .toSet();
+    } catch (_) {
+      return const <String>{};
+    }
+  }
+
   /// 今天的 yyyy-MM-dd。写字面量给 UI 层用，避免各调用点自己拼日期
   /// 格式（拼错一个补零就会让 [doneToday] 永远判 false）。
   static String todayIso([DateTime? now]) => _isoDate(now ?? DateTime.now());
@@ -154,6 +204,8 @@ class ReadingPlan {
         'doneAt': doneAt,
         'lastDoneOn': lastDoneOn,
         'checkins': checkins,
+        'bookIds': bookIds,
+        'readToday': readToday,
         'createdAt': createdAt,
       };
 
@@ -169,6 +221,8 @@ class ReadingPlan {
         doneAt: m['doneAt'] as String?,
         lastDoneOn: m['lastDoneOn'] as String?,
         checkins: m['checkins'] as String?,
+        bookIds: m['bookIds'] as String?,
+        readToday: m['readToday'] as String?,
         createdAt: m['createdAt'] as String? ?? '',
       );
 
@@ -191,6 +245,10 @@ class ReadingPlan {
     bool clearLastDoneOn = false,
     String? checkins,
     bool clearCheckins = false,
+    String? bookIds,
+    bool clearBookIds = false,
+    String? readToday,
+    bool clearReadToday = false,
   }) =>
       ReadingPlan(
         id: id,
@@ -206,6 +264,8 @@ class ReadingPlan {
         doneAt: clearDoneAt ? null : (doneAt ?? this.doneAt),
         lastDoneOn: clearLastDoneOn ? null : (lastDoneOn ?? this.lastDoneOn),
         checkins: clearCheckins ? null : (checkins ?? this.checkins),
+        bookIds: clearBookIds ? null : (bookIds ?? this.bookIds),
+        readToday: clearReadToday ? null : (readToday ?? this.readToday),
       );
 
   /// 倒计时天数（仅 [PlanKind.finishBook] 有意义）。负数表示已逾期。
