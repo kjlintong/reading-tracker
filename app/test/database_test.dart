@@ -306,6 +306,7 @@ void main() {
           status TEXT,
           borrowedFrom TEXT,
           dueAt TEXT,
+          startedAt TEXT,
           createdAt TEXT,
           updatedAt TEXT
         )

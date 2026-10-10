@@ -3543,5 +3543,39 @@
         "type": "String"
       }
     }
+  },
+  "readToday": "今天读了",
+  "@readToday": {
+    "description": "书籍详情：记录今天读了这本书的按钮"
+  },
+  "lastReadAt": "上次阅读：{date}",
+  "@lastReadAt": {
+    "description": "书籍详情：最近一次阅读行为的日期",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "autoShelveTitle": "闲置自动搁置",
+  "@autoShelveTitle": {
+    "description": "设置：闲置在读自动搁置的总开关标题"
+  },
+  "autoShelveSubtitle": "把长期没碰的「在读」书挪到「搁置」",
+  "@autoShelveSubtitle": {
+    "description": "设置：闲置自动搁置的说明"
+  },
+  "autoShelveDone": "{count} 本书已自动挪到「搁置」",
+  "@autoShelveDone": {
+    "description": "自动搁置后书架页提示条正文",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undo": "撤销",
+  "@undo": {
+    "description": "通用：撤销刚才的自动操作"
   }
 }

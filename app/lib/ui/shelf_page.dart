@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../l10n/app_loc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import '../providers.dart';
 import 'book_detail_page.dart';
 import 'add_book_sheet.dart';
 import 'book_cover.dart';
+import 'auto_shelve_notice.dart';
 
 /// 排序方式 → SQL orderBy
 ///
@@ -110,6 +112,7 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
 
   @override
   Widget build(BuildContext context) {
+    final autoShelveNotice = ref.watch(autoShelveNoticeProvider);
     return Scaffold(
       appBar: AppBar(
         title:  Text(appLoc.s_296fc9b4),
@@ -167,6 +170,19 @@ class _ShelfPageState extends ConsumerState<ShelfPage> {
       ),
       body: Column(
         children: [
+          // 自动搁置提示条：本轮挪走了几本，提供撤销。
+          // 放在书架页顶部——被挪走的书就出现在这里，用户最该看到。
+          if (autoShelveNotice != null)
+            AutoShelveNoticeBanner(
+              message: autoShelveNotice.message,
+              onUndo: () {
+                final ids = autoShelveNotice.movedIds;
+                unawaited(undoAutoShelve(ref, ids));
+                _reload();
+              },
+              onDismiss: () =>
+                  ref.read(autoShelveNoticeProvider.notifier).state = null,
+            ),
           _buildFilters(),
           const Divider(height: 1),
           Expanded(

@@ -13,6 +13,7 @@ import '../data/category_prefs.dart';
 import '../l10n/app_localizations.dart';
 import '../models/enums.dart';
 import '../providers.dart';
+import '../services/auto_shelve.dart';
 import 'backup_page.dart';
 import 'theme.dart';
 import '../l10n/language_names.dart';
@@ -60,6 +61,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   void initState() {
     super.initState();
+    // 自动搁置开关：把存储里的值同步进 provider，避免「上次关了但重开又显示开」。
+    ref.read(repoProvider).getSetting(AutoShelve.enabledKey).then((v) {
+      ref.read(autoShelveEnabledProvider.notifier).state = (v ?? 'true') == 'true';
+    });
     _wereadKey = TextEditingController(text: ref.read(wereadKeyProvider) ?? '');
     _llmKey = TextEditingController(text: ref.read(llmKeyProvider) ?? '');
     _llmBase = TextEditingController(text: ref.read(llmBaseUrlProvider));
@@ -412,6 +417,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final l10n = S.of(context);
     final presets = llmPresets;
     final ocrEnhance = ref.watch(ocrEnhanceProvider);
+    final autoShelveEnabled = ref.watch(autoShelveEnabledProvider);
     final ocrUseLlm = ref.watch(ocrUseLlmProvider);
     final visionMode = ref.watch(ocrVisionModeProvider);
     final themeId = ref.watch(appThemeProvider);
@@ -777,6 +783,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                     icon: const Icon(Icons.ios_share_outlined),
                     label:  Text(appLoc.s_39239742),
+                  ),
+                  const SizedBox(height: 12),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: autoShelveEnabled,
+                    onChanged: (v) async {
+                      await saveSetting(ref, AutoShelve.enabledKey, '$v');
+                    },
+                    title: Text(appLoc.autoShelveTitle,
+                        style: const TextStyle(fontSize: 14)),
+                    subtitle: Text(
+                      appLoc.autoShelveSubtitle,
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ),
                 ],
               ),

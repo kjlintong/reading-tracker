@@ -3543,5 +3543,39 @@
         "type": "String"
       }
     }
+  },
+  "readToday": "Heute gelesen",
+  "@readToday": {
+    "description": "Buchdetail: Button, um heute gelesen zu vermerken"
+  },
+  "lastReadAt": "Zuletzt gelesen: {date}",
+  "@lastReadAt": {
+    "description": "Buchdetail: Datum der letzten Leseaktion",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "autoShelveTitle": "Inaktive Bücher automatisch ablegen",
+  "@autoShelveTitle": {
+    "description": "Einstellungen: Hauptschalter für automatisches Ablegen"
+  },
+  "autoShelveSubtitle": "Lange ignorierte „lesend“-Bücher nach „abgelegt“ verschieben",
+  "@autoShelveSubtitle": {
+    "description": "Einstellungen: Erklärung des automatischen Ablegens"
+  },
+  "autoShelveDone": "{count} Buch/Bücher automatisch nach „abgelegt“ verschoben",
+  "@autoShelveDone": {
+    "description": "Hinweis im Regal nach dem automatischen Ablegen",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undo": "Rückgängig",
+  "@undo": {
+    "description": "Allgemein: die automatische Aktion rückgängig machen"
   }
 }

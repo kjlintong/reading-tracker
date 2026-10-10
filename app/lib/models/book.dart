@@ -49,6 +49,20 @@ class Book {
   final String? startedAt;
   final String? finishedAt;
 
+  /// 最后一次**阅读行为**发生的时间（ISO 字符串）。
+  ///
+  /// 与 [updatedAt] 是两件事，别混：[updatedAt] 记的是「这条数据什么时候被
+  /// 改过」，批量整理分类会把上千本书刷成同一天，所以它不能充当「读过」的
+  /// 证据。这个字段只在真实的阅读动作发生时推进——改进度、补一条阅读记录、
+  /// 或者把书从「搁置」拎回「在读」。
+  ///
+  /// 它要解决的是个具体的毛病：「在读」是**状态**而不是**动作**。一本三年前
+  /// 翻开就再没碰过的书，状态栏至今写着「在读」，于是它年年出现在年报里。
+  /// 有了这个时间戳，才分得清「在读」和「很久没读了」。
+  ///
+  /// 判定闲置时本字段为空按「未知」处理，不稳妥地猜。回填见数据库迁移。
+  final String? lastReadAt;
+
   /// 这本书是借来的。
   ///
   /// 刻意做成**独立布尔字段**，而不是 [BookStatus] 的一个取值：
@@ -98,6 +112,7 @@ class Book {
     this.highlights,
     this.startedAt,
     this.finishedAt,
+    this.lastReadAt,
     this.isBorrowed = false,
     this.borrowedFrom,
     this.dueAt,
@@ -193,6 +208,7 @@ class Book {
     String? highlights,
     String? startedAt,
     String? finishedAt,
+    String? lastReadAt,
     /// ⚠️ 这里用 `bool?` 三态：`null` = 不改，`true`/`false` = 显式设置。
     /// 若写成 `bool isBorrowed = false`，任何一次 `copyWith(status: ...)`
     /// 都会把借阅标记抹成 false——「改个进度就把借阅状态弄丢了」。
@@ -234,6 +250,7 @@ class Book {
       highlights: highlights ?? this.highlights,
       startedAt: startedAt ?? this.startedAt,
       finishedAt: finishedAt ?? this.finishedAt,
+      lastReadAt: lastReadAt ?? this.lastReadAt,
       isBorrowed: isBorrowed ?? this.isBorrowed,
       borrowedFrom: borrowedFrom ?? this.borrowedFrom,
       dueAt: dueAt ?? this.dueAt,
@@ -243,6 +260,18 @@ class Book {
       updatedAt: DateTime.now().toIso8601String(),
     );
   }
+
+  /// 记下一次真实的阅读行为：把 [lastReadAt] 推到 [at]（默认此刻）。
+  ///
+  /// 刻意做成单独的方法，而不是让调用方到处写 `copyWith(lastReadAt: ...)`：
+  /// 这个字段是判定「这本书还算不算在读」的唯一依据，入口必须只有一个，
+  /// 否则迟早有人在改分类或补封面时顺手把它刷了，整套机制立刻失灵。
+  ///
+  /// 它**不改状态**：不会因为一次阅读记录就把书标成「在读」，那是用户自己的
+  /// 判断——系统不能替用户决定他开始读了。
+  Book withReadNow([DateTime? at]) => copyWith(
+        lastReadAt: (at ?? DateTime.now()).toIso8601String(),
+      );
 
   Map<String, dynamic> toMap() => {
         'id': id,
@@ -276,6 +305,7 @@ class Book {
         'highlights': highlights,
         'startedAt': startedAt,
         'finishedAt': finishedAt,
+        'lastReadAt': lastReadAt,
         'isBorrowed': isBorrowed ? 1 : 0,
         'borrowedFrom': borrowedFrom,
         'dueAt': dueAt,
@@ -317,6 +347,7 @@ class Book {
         highlights: m['highlights'] as String?,
         startedAt: m['startedAt'] as String?,
         finishedAt: m['finishedAt'] as String?,
+        lastReadAt: m['lastReadAt'] as String?,
         // SQLite 没有布尔类型，存 0/1。老库没有这一列 → null → false。
         isBorrowed: (m['isBorrowed'] as int? ?? 0) != 0,
         borrowedFrom: m['borrowedFrom'] as String?,

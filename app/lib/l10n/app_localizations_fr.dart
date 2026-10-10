@@ -2826,4 +2826,26 @@ class SFr extends S {
   String updateReleasedOn({required String date}) {
     return 'Publié le $date';
   }
+
+  @override
+  String get readToday => 'Lu aujourd\'hui';
+
+  @override
+  String lastReadAt({required String date}) {
+    return 'Dernière lecture : $date';
+  }
+
+  @override
+  String get autoShelveTitle => 'Ranger automatiquement les livres inactifs';
+
+  @override
+  String get autoShelveSubtitle => 'Déplacer les livres « en lecture » ignorés depuis longtemps vers « archivé »';
+
+  @override
+  String autoShelveDone({required int count}) {
+    return '$count livre(s) déplacé(s) vers « archivé » automatiquement';
+  }
+
+  @override
+  String get undo => 'Annuler';
 }

@@ -2826,4 +2826,26 @@ class SEs extends S {
   String updateReleasedOn({required String date}) {
     return 'Publicado el $date';
   }
+
+  @override
+  String get readToday => 'Leído hoy';
+
+  @override
+  String lastReadAt({required String date}) {
+    return 'Última lectura: $date';
+  }
+
+  @override
+  String get autoShelveTitle => 'Archivar libros inactivos automáticamente';
+
+  @override
+  String get autoShelveSubtitle => 'Mover los libros «leyendo» sin tocar hace tiempo a «archivado»';
+
+  @override
+  String autoShelveDone({required int count}) {
+    return '$count libro(s) movido(s) a «archivado» automáticamente';
+  }
+
+  @override
+  String get undo => 'Deshacer';
 }

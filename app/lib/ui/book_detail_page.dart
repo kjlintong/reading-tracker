@@ -7,6 +7,7 @@ import '../data/database.dart';
 import '../models/book.dart';
 import '../models/enums.dart';
 import '../models/reading_plan.dart';
+import '../services/auto_shelve.dart';
 import '../providers.dart';
 import 'book_form_page.dart';
 import 'book_cover.dart';
@@ -304,7 +305,11 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
     // 标成「已读」顺手把进度补到 100%、完成时间补上，与表单口径一致：
     // 不补的话「今年读完」的统计会漏掉这本
     final iso = DateTime.now().toIso8601String();
-    _patch(b.copyWith(
+    // 把书拎回「在读」时必须顺手记一次阅读活动，否则会出现打地鼠：用户刚
+    // 从「搁置」恢复，系统一算最后一次活动还是三个月前，下次启动又把它挪
+    // 回去了——用户的判断被反复推翻，而且他看不出原因。
+    final touched = s == BookStatus.reading ? b.withReadNow() : b;
+    _patch(touched.copyWith(
       status: s,
       progressPercent: s == BookStatus.finished ? 100 : b.progressPercent,
       finishedAt: s == BookStatus.finished ? (b.finishedAt ?? iso) : b.finishedAt,
@@ -544,7 +549,7 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
               } else {
                 next = BookStatus.reading;
               }
-              await _patch(b.copyWith(
+              await _patch(b.withReadNow().copyWith(
                 progressPercent: v,
                 status: next,
                 // 自动标已读时补完成时间，否则统计里「今年读完」会漏
@@ -554,6 +559,41 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
               ));
             },
           ),
+          const SizedBox(height: 16),
+
+          // 「今天读了」：记录一次真实的阅读行为。它把 lastReadAt 刷到此刻，
+          // 并写一条阅读日志——这是「在读」状态唯一的真实活动信号。没有它，
+          // 自动搁置只能靠入架时间去猜，猜错就会误杀还在读的书。
+          // 只在「在读 / 搁置」状态出现：「想读」尚未开始、「已读」已经结束。
+          if (b.status == BookStatus.reading || b.status == BookStatus.shelved)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FilledButton.icon(
+                  onPressed: () async {
+                    final repo = ref.read(repoProvider);
+                    await repo.addLog(ReadingLog(
+                      id: 'log_${DateTime.now().microsecondsSinceEpoch}',
+                      bookId: b.id,
+                      date: AutoShelve.dayKey(DateTime.now()),
+                      source: BookSource.manual,
+                    ));
+                    if (!mounted) return;
+                    await _patch(b.withReadNow());
+                  },
+                  icon: const Icon(Icons.menu_book_outlined, size: 16),
+                  label: Text(appLoc.readToday),
+                ),
+                if (b.lastReadAt != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    appLoc.lastReadAt(
+                        date: AutoShelve.dayKey(DateTime.parse(b.lastReadAt!))),
+                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  ),
+                ],
+              ],
+            ),
           const SizedBox(height: 16),
 
           _section(appLoc.s_8331377a),

@@ -2826,4 +2826,26 @@ class SDe extends S {
   String updateReleasedOn({required String date}) {
     return 'Veröffentlicht $date';
   }
+
+  @override
+  String get readToday => 'Heute gelesen';
+
+  @override
+  String lastReadAt({required String date}) {
+    return 'Zuletzt gelesen: $date';
+  }
+
+  @override
+  String get autoShelveTitle => 'Inaktive Bücher automatisch ablegen';
+
+  @override
+  String get autoShelveSubtitle => 'Lange ignorierte „lesend“-Bücher nach „abgelegt“ verschieben';
+
+  @override
+  String autoShelveDone({required int count}) {
+    return '$count Buch/Bücher automatisch nach „abgelegt“ verschoben';
+  }
+
+  @override
+  String get undo => 'Rückgängig';
 }

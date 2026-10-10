@@ -3543,5 +3543,39 @@
         "type": "String"
       }
     }
+  },
+  "readToday": "Read today",
+  "@readToday": {
+    "description": "Book detail: button to log reading this book today"
+  },
+  "lastReadAt": "Last read: {date}",
+  "@lastReadAt": {
+    "description": "Book detail: date of the most recent reading action",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "autoShelveTitle": "Auto-shelve idle books",
+  "@autoShelveTitle": {
+    "description": "Settings: master toggle for auto-shelving idle reading books"
+  },
+  "autoShelveSubtitle": "Move 'reading' books you haven't touched in a while to 'shelved'",
+  "@autoShelveSubtitle": {
+    "description": "Settings: explanation of auto-shelving idle books"
+  },
+  "autoShelveDone": "{count} book(s) moved to 'shelved' automatically",
+  "@autoShelveDone": {
+    "description": "Shelf notice after auto-shelving",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undo": "Undo",
+  "@undo": {
+    "description": "Generic: undo the just-performed automatic action"
   }
 }

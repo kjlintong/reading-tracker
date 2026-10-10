@@ -2826,4 +2826,26 @@ class SEn extends S {
   String updateReleasedOn({required String date}) {
     return 'Published $date';
   }
+
+  @override
+  String get readToday => 'Read today';
+
+  @override
+  String lastReadAt({required String date}) {
+    return 'Last read: $date';
+  }
+
+  @override
+  String get autoShelveTitle => 'Auto-shelve idle books';
+
+  @override
+  String get autoShelveSubtitle => 'Move \'reading\' books you haven\'t touched in a while to \'shelved\'';
+
+  @override
+  String autoShelveDone({required int count}) {
+    return '$count book(s) moved to \'shelved\' automatically';
+  }
+
+  @override
+  String get undo => 'Undo';
 }

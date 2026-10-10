@@ -3543,5 +3543,39 @@
         "type": "String"
       }
     }
+  },
+  "readToday": "Lu aujourd'hui",
+  "@readToday": {
+    "description": "Détail du livre : bouton pour signaler une lecture aujourd'hui"
+  },
+  "lastReadAt": "Dernière lecture : {date}",
+  "@lastReadAt": {
+    "description": "Détail du livre : date de la dernière lecture",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "autoShelveTitle": "Ranger automatiquement les livres inactifs",
+  "@autoShelveTitle": {
+    "description": "Réglages : interrupteur principal du rangement automatique"
+  },
+  "autoShelveSubtitle": "Déplacer les livres « en lecture » ignorés depuis longtemps vers « archivé »",
+  "@autoShelveSubtitle": {
+    "description": "Réglages : explication du rangement automatique"
+  },
+  "autoShelveDone": "{count} livre(s) déplacé(s) vers « archivé » automatiquement",
+  "@autoShelveDone": {
+    "description": "Avis sur la bibliothèque après le rangement automatique",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "undo": "Annuler",
+  "@undo": {
+    "description": "Général : annuler l'action automatique récente"
   }
 }

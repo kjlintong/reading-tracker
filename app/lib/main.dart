@@ -120,6 +120,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       // 生成走大模型请求，通常几秒起步；挂在 await 后面会拖住整个界面。
       // 失败一律自己吞掉——报告没生成出来绝不该影响 App 可用。
       unawaited(runAutoReportsIfDue(ref).catchError((_) {}));
+
+      // 闲置「在读」书自动挪到「搁置」：同样放 loadSettings 之后、不 await。
+      // 它读「是否启用 / 上次跑到哪」两项设置，也必须在首帧之后才跑。
+      // 失败自己吞掉——挪书不该拖住启动，更不该让 App 打不开。
+      unawaited(runAutoShelveIfDue(ref).catchError((_) {}));
     });
   }
 

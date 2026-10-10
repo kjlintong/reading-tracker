@@ -27,7 +27,7 @@ class AppDatabase {
   /// v4：新增 reading_plans 表（阅读计划 + 提醒）
   /// v5：reading_plans 增加 lastDoneOn（每日型计划的「今天已完成」打点）
   /// v6：reading_plans 增加 checkins（每日型计划的逐日打卡记录，用于连续天数）
-  static const _version = 6;
+  static const _version = 7;
 
   Database? _db;
   Database get db => _db!;
@@ -97,7 +97,8 @@ class AppDatabase {
         rereadCount INTEGER DEFAULT 0,
         extra TEXT,
         createdAt TEXT,
-        updatedAt TEXT
+        updatedAt TEXT,
+        lastReadAt TEXT
       )
     ''');
     await db.execute('CREATE INDEX idx_books_status ON books(status)');
@@ -248,6 +249,28 @@ class AppDatabase {
       // 每日型计划的逐日打卡记录，用于「连续打卡 N 天」。
       // 存量行填 NULL：还没开始打卡，连续天数为 0，无需回填。
       await _addColumn(db, 'reading_plans', 'checkins', 'TEXT');
+    }
+    if (oldV < 7) {
+      // 「最后一次阅读行为」的时间戳，用来把「在读」从永久状态里解出来——
+      // 在此之前「在读」是个不会过期的状态，三年前翻开的书至今还在里面。
+      //
+      // 存量回填 `COALESCE(startedAt, createdAt)`：开过头就用开读那天，从没
+      // 开始过就用入架那天。**这是有意往乐观的方向估**——真实情况只会更早
+      // 不会更晚，估早一点的结果是「看起来最近还动过」，于是少搁置；反过来
+      // 估晚则会误杀用户还在读的书。宁可漏也不能错杀，这是不可逆的操作。
+      //
+      // 千万别改用 `updatedAt`：批量整理分类会把整座书架刷成同一天，那之后
+      // 每一本书都会在同一天「刚刚读过」，接着又在同一天集体过期。
+      await _addColumn(db, 'books', 'lastReadAt', 'TEXT');
+      // 回填：用「开读日」兜底「最后一次阅读」，没有开读日就用「入架日」。
+      // 真实 v1 起 books 就有 startedAt 列；但极端情况下（库被外部改过、
+      // 或早期构建缺列）没有这列时，直接退化为只靠 createdAt，绝不让整段
+      // 迁移因 `no such column` 回滚——那会让覆盖安装后 App 永远打不开。
+      final cols = await db.rawQuery('PRAGMA table_info(books)');
+      final hasStarted = cols.any((c) => c['name'] == 'startedAt');
+      final backfill = hasStarted ? 'COALESCE(startedAt, createdAt)' : 'createdAt';
+      await db.execute(
+          'UPDATE books SET lastReadAt = $backfill WHERE lastReadAt IS NULL');
     }
   }
 

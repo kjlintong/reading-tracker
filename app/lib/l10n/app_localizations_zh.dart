@@ -2826,4 +2826,26 @@ class SZh extends S {
   String updateReleasedOn({required String date}) {
     return '发布于 $date';
   }
+
+  @override
+  String get readToday => '今天读了';
+
+  @override
+  String lastReadAt({required String date}) {
+    return '上次阅读：$date';
+  }
+
+  @override
+  String get autoShelveTitle => '闲置自动搁置';
+
+  @override
+  String get autoShelveSubtitle => '把长期没碰的「在读」书挪到「搁置」';
+
+  @override
+  String autoShelveDone({required int count}) {
+    return '$count 本书已自动挪到「搁置」';
+  }
+
+  @override
+  String get undo => '撤销';
 }

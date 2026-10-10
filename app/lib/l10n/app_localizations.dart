@@ -5014,6 +5014,42 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Published {date}'**
   String updateReleasedOn({required String date});
+
+  /// Book detail: button to log reading this book today
+  ///
+  /// In en, this message translates to:
+  /// **'Read today'**
+  String get readToday;
+
+  /// Book detail: date of the most recent reading action
+  ///
+  /// In en, this message translates to:
+  /// **'Last read: {date}'**
+  String lastReadAt({required String date});
+
+  /// Settings: master toggle for auto-shelving idle reading books
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-shelve idle books'**
+  String get autoShelveTitle;
+
+  /// Settings: explanation of auto-shelving idle books
+  ///
+  /// In en, this message translates to:
+  /// **'Move \'reading\' books you haven\'t touched in a while to \'shelved\''**
+  String get autoShelveSubtitle;
+
+  /// Shelf notice after auto-shelving
+  ///
+  /// In en, this message translates to:
+  /// **'{count} book(s) moved to \'shelved\' automatically'**
+  String autoShelveDone({required int count});
+
+  /// Generic: undo the just-performed automatic action
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

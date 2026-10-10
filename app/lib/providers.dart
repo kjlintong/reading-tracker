@@ -12,6 +12,8 @@ import 'l10n/app_loc.dart';
 import 'services/auto_report_service.dart';
 import 'services/plan_reminder.dart';
 import 'services/secret_store.dart';
+import 'services/auto_shelve.dart';
+import 'models/enums.dart';
 import 'ui/theme.dart';
 
 /// 本地数据库仓库
@@ -49,6 +51,9 @@ final llmProtocolProvider =
 
 /// 截图识别前是否做图像增强（灰度 + 提对比 + 放大）
 final ocrEnhanceProvider = StateProvider<bool>((ref) => true);
+
+/// 闲置「在读」书是否自动挪到「搁置」。默认开启。
+final autoShelveEnabledProvider = StateProvider<bool>((ref) => true);
 
 /// 截图识别是否允许调用大模型整理 OCR 文本
 final ocrUseLlmProvider = StateProvider<bool>((ref) => true);
@@ -222,6 +227,66 @@ final importManagerProvider = Provider<ImportManager>((ref) {
   );
 });
 
+/// 自动搁置这一轮挪走了哪些书，以及提示文案。
+///
+/// 存进 provider 后，书架页据此显示一条可撤销的提示条；撤销后清空。
+class AutoShelveNotice {
+  final List<String> movedIds;
+  final String message;
+  AutoShelveNotice(this.movedIds, this.message);
+}
+
+/// 自动搁置执行结果，供书架页显示「撤销」提示条。
+final autoShelveNoticeProvider = StateProvider<AutoShelveNotice?>((ref) => null);
+
+/// 闲置「在读」书自动挪到「搁置」，每天最多跑一次。
+///
+/// 与 [runAutoReportsIfDue] 同样的节奏：放在 loadSettings 之后、**不 await**，
+/// 首帧出来之后再后台慢慢算。失败一律自己吞掉——挪书绝不该拖住启动，
+/// 更不该因为一次异常让 App 打不开。
+Future<void> runAutoShelveIfDue(WidgetRef ref) async {
+  final repo = ref.read(repoProvider);
+
+  // 默认开启，写 '0' 才关。和自动报告一致：没写过这个键的用户不该被静默跳过。
+  final enabled = await repo.getSetting(AutoShelve.enabledKey);
+  if (enabled == '0') return;
+
+  // 一天最多跑一次，免得每次冷启动都对着整座书架算一遍。
+  final today = AutoShelve.dayKey(DateTime.now());
+  if (await repo.getSetting(AutoShelve.lastRunKey) == today) return;
+
+  final now = DateTime.now();
+  final shelf = await repo.all();
+  final busy =
+      (await repo.activePlans()).map((p) => p.bookId).whereType<String>().toSet();
+  final toShelve = AutoShelve.pendingShelve(shelf, now, busyBookIds: busy);
+
+  // 无论有没有真挪走都记节流标记：否则每次冷启动都重算整座书架只为
+  // 得出「没事干」，纯属浪费 I/O。
+  await repo.setSetting(AutoShelve.lastRunKey, today);
+  if (toShelve.isEmpty) return;
+
+  for (final b in toShelve) {
+    await repo.update(b.copyWith(status: BookStatus.shelved));
+  }
+
+  final ids = toShelve.map((b) => b.id).toList();
+  ref.read(autoShelveNoticeProvider.notifier).state =
+      AutoShelveNotice(ids, appLoc.autoShelveDone(count: ids.length));
+}
+
+/// 撤销这一轮自动搁置：把被挪走的书恢复到「在读」，并顺手记一次阅读活动，
+/// 这样它们不会在明天的同一轮里又被挪走。
+Future<void> undoAutoShelve(WidgetRef ref, List<String> ids) async {
+  final repo = ref.read(repoProvider);
+  for (final id in ids) {
+    final b = await repo.byId(id);
+    if (b == null) continue;
+    await repo.update(b.withReadNow().copyWith(status: BookStatus.reading));
+  }
+  ref.read(autoShelveNoticeProvider.notifier).state = null;
+}
+
 /// 设置项 ↔ provider 的映射。集中一处，避免两个地方各写一遍字符串。
 const _settingKeys = <String>[
   'weread_key',
@@ -316,6 +381,8 @@ void _apply(WidgetRef ref, String key, String value) {
       ref.read(ocrEnhanceProvider.notifier).state = value == 'true';
     case 'ocr_use_llm':
       ref.read(ocrUseLlmProvider.notifier).state = value == 'true';
+    case AutoShelve.enabledKey:
+      ref.read(autoShelveEnabledProvider.notifier).state = value == 'true';
     case 'ocr_vision_mode':
       ref.read(ocrVisionModeProvider.notifier).state = value;
     case 'image_llm_consent':
