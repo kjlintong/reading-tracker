@@ -43,7 +43,12 @@ Book _bookAt(
   String? finishedAt,
   String? startedAt,
   String? createdAt,
+  // 单独可控是为了复现「数据被整理过」：updatedAt 会被批量改分类这类操作
+  // 刷新，它不等于「读过了」。Book.copyWith 故意不收这两个时间戳
+  // （它们是记录时间戳，不该随意改），所以只能在构造时给。
+  String? updatedAt,
   String? category,
+  List<String> authors = const [],
 }) =>
     Book(
       id: title,
@@ -54,8 +59,9 @@ Book _bookAt(
       finishedAt: finishedAt,
       startedAt: startedAt,
       createdAt: createdAt ?? '2026-01-01T00:00:00.000',
-      updatedAt: createdAt ?? '2026-01-01T00:00:00.000',
+      updatedAt: updatedAt ?? createdAt ?? '2026-01-01T00:00:00.000',
       categoryPrimary: category,
+      authors: authors,
     );
 
 String _isoDaysAgo(int d) =>
@@ -129,10 +135,12 @@ void main() {
       final slice = ReportSlice(
         finished: [_book('读完的')],
         reading: [],
+        activeReading: [],
         stalled: [],
         // 想读排在前面也没用：排序不看输入顺序
         wishAdded: [_book('想读一'), _book('想读二')],
         rated: [],
+        activeRated: [],
         shelf: const [],
       );
       final list = buildBookList(slice);
@@ -145,6 +153,7 @@ void main() {
       final slice = ReportSlice(
         finished: [for (var i = 0; i < 5; i++) _book('已读$i')],
         reading: [_book('在读的书', progress: 40)],
+        activeReading: [_book('在读的书', progress: 40)],
         stalled: const [],
         wishAdded: [for (var i = 0; i < 60; i++) _book('导入$i')],
         rated: const [],
@@ -683,6 +692,157 @@ void main() {
       final p = prompt('xx');
       expect(p.contains('XX'), isTrue);
       expect(p.contains('LANGUAGE'), isTrue);
+    });
+  });
+
+  // 这一组锁的是一条对外承诺：报告对外发送的书，**必须**限制在所选择的
+  // 周期之内。书架画像是另一回事——它只有计数，没有书名。
+  //
+  // 难点在于「在读」是一个**状态**而不是一次动作：一本三年前翻开就再没动过
+  // 的书，状态栏至今写着「在读」。所以判定只能看行为时间（开始读 / 读完 /
+  // 加入书架 / 手工阅读记录），不能看「在读」这两个字。
+  group('边界：只有周期内的书会被发出去', () {
+    final year = StatsRange(
+      label: '2026',
+      from: DateTime(2026, 1, 1),
+      to: DateTime(2027, 1, 1),
+    );
+
+    List<String> titles(List<Map<String, dynamic>> entries) =>
+        entries.map((e) => '${e['title']}').toList();
+
+    test('很久没动过、但状态仍是在读的书不进清单', () {
+      final books = [
+        _bookAt('搁了三年',
+            status: BookStatus.reading,
+            // 开了个头就再没动过：它同时也是「stalled」，但那是三年前的事
+            progress: 5,
+            startedAt: '2023-03-01T00:00:00.000',
+            createdAt: '2023-03-01T00:00:00.000'),
+        _bookAt('本月在读',
+            status: BookStatus.reading,
+            progress: 40,
+            startedAt: '2026-06-01T00:00:00.000',
+            createdAt: '2026-06-01T00:00:00.000'),
+      ];
+      final slice = sliceBooks(books: books, range: year);
+
+      // 书架口径照实统计：在读两本、其中一本开了头没填
+      expect(slice.reading.length, 2);
+      expect(slice.stalled.length, 1);
+      // 能发出去的只有本期动过的那本；本期没有「开了坑没填」这回事，
+      // 三年前那个坑不该由这份报告来提醒。
+      expect(slice.activeReading.map((b) => b.title), ['本月在读']);
+      expect(slice.activeStalled, isEmpty);
+      expect(titles(buildBookList(slice)), isNot(contains('搁了三年')));
+      // 本期计数也不再把它算进去，否则模型会写出「本期在读 2 本」
+      // 而清单里只有 1 本这种自相矛盾的话
+      final f = buildReportFacts(slice, readingMinutes: 0, streakDays: 0);
+      expect(f['reading'], 1);
+    });
+
+    test('往年打的分不给模型点名，但仍计入本地口味', () {
+      final books = [
+        _bookAt('五年前的高分书',
+            status: BookStatus.finished,
+            rating: 5,
+            finishedAt: '2021-05-01',
+            createdAt: '2021-01-01T00:00:00.000'),
+        _bookAt('今年的高分书',
+            status: BookStatus.finished,
+            rating: 4,
+            finishedAt: '2026-05-01',
+            createdAt: '2026-01-01T00:00:00.000'),
+      ];
+      final slice = sliceBooks(books: books, range: year);
+
+      // 口味是全时段的事，照旧统计
+      expect(slice.rated.length, 2);
+      // 而书单只认本期
+      expect(slice.activeRated.map((b) => b.title), ['今年的高分书']);
+      expect(titles(buildBookList(slice)), isNot(contains('五年前的高分书')));
+      expect(titles(buildBookList(slice)), contains('今年的高分书'));
+    });
+
+    test('推荐不向周期外的书架借书', () {
+      final books = [
+        _bookAt('本期读完的',
+            status: BookStatus.finished,
+            finishedAt: '2026-03-01',
+            category: '文学',
+            authors: const ['甲'],
+            createdAt: '2026-01-05T00:00:00.000'),
+        // 同分类同作者，十年前收的：推荐钩子全都对得上，但跟本期无关
+        _bookAt('十年前收的同作者书',
+            category: '文学',
+            authors: const ['甲'],
+            createdAt: '2016-01-01T00:00:00.000'),
+        _bookAt('本期新加的想读',
+            category: '文学',
+            createdAt: '2026-08-01T00:00:00.000'),
+      ];
+      final slice = sliceBooks(books: books, range: year);
+      final cands = titles(buildNextCandidates(slice));
+
+      expect(slice.activePool.map((b) => b.title),
+          isNot(contains('十年前收的同作者书')));
+      expect(cands, isNot(contains('十年前收的同作者书')));
+      expect(cands, contains('本期新加的想读'));
+    });
+
+    test('纸质书靠手工阅读记录进入本期', () {
+      // 这类书往往既没有 startedAt（很早以前开的头），也没读到 finishedAt，
+      // 唯一的痕迹是用户手工补的日志。
+      const paperBook = '在读的纸质书';
+      final books = [
+        _bookAt(paperBook,
+            status: BookStatus.reading,
+            progress: 70,
+            startedAt: '2024-01-01T00:00:00.000',
+            createdAt: '2024-01-01T00:00:00.000'),
+      ];
+      expect(
+        sliceBooks(books: books, range: year).activeReading,
+        isEmpty,
+        reason: '没有日志也不在周期内时，不该出现在本月报告里',
+      );
+      expect(
+        sliceBooks(books: books, range: year, loggedIds: const {paperBook})
+            .activeReading
+            .map((b) => b.title),
+        [paperBook],
+      );
+    });
+
+    test('刷新 updatedAt 不会把旧书带进本期', () {
+      // 批量整理分类会把全库的 updatedAt 刷成同一天。若拿它当「活动」证据，
+      // 整座书架都会被算成本期读过——这正是早期版本会做的。
+      final touchedAfterReindex = _bookAt('很久以前的书',
+          status: BookStatus.reading,
+          startedAt: '2019-01-01T00:00:00.000',
+          createdAt: '2019-01-01T00:00:00.000',
+          updatedAt: '2026-09-30T00:00:00.000');
+
+      final slice = sliceBooks(books: [touchedAfterReindex], range: year);
+      expect(slice.activeReading, isEmpty);
+      expect(slice.activePool, isEmpty);
+      // 但它确实还在书架上
+      expect(slice.shelf.length, 1);
+    });
+
+    test('全部时间口径不做任何收窄', () {
+      // 那个口径的语义就是不过滤：是一本就把一本算进来。
+      final books = [
+        _bookAt('很久以前在读的',
+            status: BookStatus.reading,
+            createdAt: '2015-01-01T00:00:00.000'),
+        _bookAt('很早以前评过分的', status: BookStatus.finished, rating: 5,
+            finishedAt: '2015-05-01', createdAt: '2015-01-01T00:00:00.000'),
+      ];
+      final slice = sliceBooks(books: books, range: StatsRange.all);
+      expect(slice.activeReading.length, 1);
+      expect(slice.activeRated.length, 1);
+      expect(slice.activePool.length, 2);
     });
   });
 }

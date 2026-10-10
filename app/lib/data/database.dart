@@ -980,6 +980,26 @@ class BookRepository {
     return rows.map(ReadingLog.fromMap).toList();
   }
 
+  /// 区间内有过手工阅读记录的书 id。
+  ///
+  /// 手工补记是纸质书唯一的阅读痕迹：这类书往往既没有 `startedAt`（很早以前
+  /// 就开了头），也还没读到 `finishedAt`。少了这一项，判定「本期有没有读过」
+  /// 只看得上三个日期字段，纸质书的月报会整本缺失。
+  ///
+  /// 只返回 id 而不是整条日志：调用方（报告流水线）需要的只是「哪些书算读过」，
+  /// 不需要时长和页码，返回越少越不容易被顺手用到别处。
+  Future<Set<String>> loggedBookIds(StatsRange range) async {
+    if (range.isAll) return <String>{}; // 全口径不过滤，这一项没有额外信息
+    final rows = await _db.query('reading_logs', columns: ['bookId', 'date']);
+    final out = <String>{};
+    for (final r in rows) {
+      final id = r['bookId']?.toString();
+      if (id == null || id.isEmpty) continue;
+      if (range.containsIso(r['date']?.toString())) out.add(id);
+    }
+    return out;
+  }
+
   /* ------------------------- 笔记 ------------------------- */
 
   Future<void> addNote(Note note) async {

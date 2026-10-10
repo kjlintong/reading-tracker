@@ -166,6 +166,12 @@ class AutoReportRunner {
       books: books,
       range: p.range,
     );
+    // slice 把可以被写进报告的书收窄到了周期内；若一本都没有，说明这段
+    // 时间确实没发生过任何阅读——那就没必要对着一堆空名单发请求，模型只能写
+    // 一段套话，还要烧一次 token 并弹一次「报告已生成」。
+    // 「没读完任何书」不等于「没有报告」：只要周期内加入过想读、动过在读，
+    // 清单就不是空的，仍然照常生成。
+    if (bundle.slice.activePool.isEmpty) return;
     final text = await llm.generateReportInsights(
       facts: bundle.facts,
       bookList: bundle.bookList,

@@ -71,6 +71,28 @@ class ReportSlice {
   /// 周期内全部书（书架口径）。
   final List<Book> shelf;
 
+  // --- 下面三组是「可以发给模型」的范围，上面的是本地统计口径 ---
+  //
+  // 分开的原因：书架画像数的是整座书架，而这份报告说的是这段时间。
+  // 「架上 452 本、文学占三成」不需要书名也说得通；「本月读完《…》」必须有
+  // 书名才有意义。既然对外的承诺是「发送本周期的书名清单」，能离开设备的
+  // 就只有下面这三组。
+
+  /// 周期内**真的读过**的在读书（[reading] 的子集）。
+  final List<Book> activeReading;
+
+  /// 同上：开了坑还没填的那部分（[stalled] 的子集）。
+  final List<Book> activeStalled;
+
+  /// 周期内读过或评过分的有评分书（[rated] 的子集）。
+  final List<Book> activeRated;
+
+  /// 周期内动过的全部书（去重）：模型可以点名的最大范围。
+  final List<Book> activePool;
+
+  /// 注意：这三个字段只有 [sliceBooks] 会算出真实值，别处一律留空。
+  /// 空集合的语义是「本周期内没有可读的书」——宁可报告写得短，也不要让
+  /// 随手拼出来的切片把没经过周期判定的书带出去。
   const ReportSlice({
     required this.finished,
     required this.reading,
@@ -78,8 +100,27 @@ class ReportSlice {
     required this.wishAdded,
     required this.rated,
     required this.shelf,
+    this.activeReading = const [],
+    this.activeStalled = const [],
+    this.activeRated = const [],
+    this.activePool = const [],
   });
 }
+
+/// 一本书在周期内有没有真的被读过。
+///
+/// 只认**行为时间**：开始读、读完、加入书架，外加落在区间内的手工阅读记录。
+///
+/// 刻意不认 `updatedAt`：那记录的是「这条数据什么时候被改过」——换一张封面、
+/// 批量整理分类、跑一次数据库迁移都会刷新它。把它当活动证据，等于把整座
+/// 书架都圈进本期，于是五年前读过的书也会出现在今年的年报里。
+///
+/// [range] 是「全部时间」时恒为真：那个口径的语义就是不过滤。
+bool _touchedInPeriod(Book b, StatsRange range, Set<String> loggedIds) =>
+    loggedIds.contains(b.id) ||
+    range.containsIso(b.startedAt) ||
+    range.containsIso(b.finishedAt) ||
+    range.containsIso(b.createdAt);
 
 /// 导入残条：这类条目进了书单只会让模型瞎点名（「近期加入的《Jiao Yi Xi
 /// Tong Yu Fang Fa (Yua》」——那是被截断的文件名，不是一本书）。
@@ -121,6 +162,12 @@ bool _since(DateTime? t, DateTime since) => t != null && !t.isBefore(since);
 ReportSlice sliceBooks({
   required List<Book> books,
   required StatsRange range,
+
+  /// 周期内有过手工阅读记录的书 id。
+  ///
+  /// 纸质书的阅读多半只有这种痕迹（没有 startedAt、也可能还没读完），
+  /// 缺了它会把一批真正在读的书误判成「本期没动过」。
+  Set<String> loggedIds = const {},
 }) {
   final finished = <Book>[];
   final reading = <Book>[];
@@ -128,6 +175,15 @@ ReportSlice sliceBooks({
   final wishAdded = <Book>[];
   final rated = <Book>[];
   final shelf = <Book>[];
+  final activeReading = <Book>[];
+  final activeStalled = <Book>[];
+  final activeRated = <Book>[];
+  final activePool = <Book>[];
+  final pooled = <String>{};
+
+  void pool(Book b) {
+    if (pooled.add(b.id)) activePool.add(b);
+  }
 
   for (final b in books) {
     // 书架口径先收全量：规模数字要和 App 书架页一致，不能因为标题脏就少算
@@ -138,14 +194,32 @@ ReportSlice sliceBooks({
       // 归属到某个周期，硬塞进去会让「本月读了 N 本」这个数字失真。
       if (b.finishedAt != null && range.containsIso(b.finishedAt!)) {
         finished.add(b);
+        pool(b);
       }
     } else if (b.status == BookStatus.reading) {
       reading.add(b);
       if (b.progressPercent < 15) stalled.add(b);
+      // 「在读」是一个状态，不是一次动作：一本三年前翻开就再没动过的书，
+      // 状态栏至今写着「在读」。所以它必须再过一遍 [_touchedInPeriod]，
+      // 才能走进会发出去的清单。
+      if (_touchedInPeriod(b, range, loggedIds)) {
+        activeReading.add(b);
+        pool(b);
+        if (b.progressPercent < 15) activeStalled.add(b);
+      }
     } else if (b.status == BookStatus.wish) {
-      if (range.containsIso(b.createdAt)) wishAdded.add(b);
+      if (range.containsIso(b.createdAt)) {
+        wishAdded.add(b);
+        pool(b);
+      }
     }
-    if (b.rating > 0) rated.add(b);
+    if (b.rating > 0) {
+      rated.add(b);
+      if (_touchedInPeriod(b, range, loggedIds)) {
+        activeRated.add(b);
+        pool(b);
+      }
+    }
   }
   return ReportSlice(
     finished: finished,
@@ -154,6 +228,10 @@ ReportSlice sliceBooks({
     wishAdded: wishAdded,
     rated: rated,
     shelf: shelf,
+    activeReading: activeReading,
+    activeStalled: activeStalled,
+    activeRated: activeRated,
+    activePool: activePool,
   );
 }
 
@@ -207,8 +285,10 @@ Map<String, dynamic> buildReportFacts(
     'total': s.shelf.length,
     'wish': s.shelf.where((b) => b.status == BookStatus.wish).length,
     'finished': s.finished.length,
-    'reading': s.reading.length,
-    'stalled': s.stalled.length,
+    // 在读/停滞用期内口径：它们紧挨着「本期读完」，混口径会让模型写出
+    // 「本期在读 8 本」而清单里只有 2 本这种自相矛盾的话。
+    'reading': s.activeReading.length,
+    'stalled': s.activeStalled.length,
     'wishAdded': s.wishAdded.length,
     'shelfTotal': s.shelf.length,
     'ratedCount': s.rated.length,
@@ -407,14 +487,18 @@ List<Map<String, dynamic>> buildBookList(
     }
   }
 
+  // 在读与已评分必须取 [activeReading] / [activeRated]：那才是周期内的书。
+  // 取宽口径的 [s.reading] 会把「三年前翻开就没再动、状态栏至今写着在读」的
+  // 老书一起发出去——那正是这里要堵的口子。
   add([...s.finished]
     ..sort((a, b) => (b.finishedAt ?? '').compareTo(a.finishedAt ?? '')),
       finishedCap);
   // 先拷贝再排序：切片可能来自 const 列表（测试里常见），就地 sort 会抛
   // "Cannot modify an unmodifiable list"。
-  add([...s.reading]..sort((a, b) => b.progressPercent.compareTo(a.progressPercent)),
+  add([...s.activeReading]
+    ..sort((a, b) => b.progressPercent.compareTo(a.progressPercent)),
       readingCap);
-  add([...s.rated]..sort((a, b) => b.rating.compareTo(a.rating)), ratedCap);
+  add([...s.activeRated]..sort((a, b) => b.rating.compareTo(a.rating)), ratedCap);
   add([...s.wishAdded]..sort((a, b) => b.createdAt.compareTo(a.createdAt)),
       wishCap);
   return out;
@@ -439,22 +523,29 @@ List<Map<String, dynamic>> buildNextCandidates(
     }
   }
 
+  // 候选池整段只用 [activePool] ——周期内动过的书。
+  //
+  // 这里原先从 [s.shelf] 全库取：挑出来的是「书架上真实存在」的书没错，
+  // 但它们跟这段时间毫无关系。一次批量整理分类会把上千本旧书的 updatedAt
+  // 刷成同一天，于是它们全部通过了外层的时间过滤，然后在这儿被当成「可以
+  // 提一句的书」递交出去。推荐不向全库借书，这是这条流水线的底线。
+
   // 1) 在读优先：先填坑再开新的
-  add(s.reading, 6);
+  add(s.activeReading, 6);
 
   // 2) 最近加入的想读
   final recentWish = s.wishAdded.toList()
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   add(recentWish, 12);
 
-  // 3) 与高分已读书同分类的未读——让推荐接得上已验证的口味
-  final likedCats = s.rated
+  // 3) 与本期高分书同分类的未读——让推荐接得上刚刚验证过的口味
+  final likedCats = s.activeRated
       .where((b) => b.rating >= 4 && b.categoryPrimary != null)
       .map((b) => b.categoryPrimary!)
       .toSet();
   if (likedCats.isNotEmpty) {
     add(
-      s.shelf.where((b) =>
+      s.activePool.where((b) =>
           b.status == BookStatus.wish &&
           b.categoryPrimary != null &&
           likedCats.contains(b.categoryPrimary)),
@@ -462,14 +553,14 @@ List<Map<String, dynamic>> buildNextCandidates(
     );
   }
 
-  // 4) 已读作者的其他在架书
+  // 4) 本期读过的作者的其他书
   final readAuthors = {
-    for (final b in [...s.finished, ...s.rated])
+    for (final b in [...s.finished, ...s.activeRated])
       for (final a in b.authors) a,
   };
   if (readAuthors.isNotEmpty) {
     add(
-      s.shelf.where((b) =>
+      s.activePool.where((b) =>
           b.status == BookStatus.wish &&
           b.authors.any(readAuthors.contains)),
       8,
@@ -511,7 +602,10 @@ Future<ReportBundle> buildReportBundle({
   required List<Book> books,
   required StatsRange range,
 }) async {
-  final slice = sliceBooks(books: books, range: range);
+  // 先取本周期的手工阅读记录：纸质书常常只有这一种痕迹，没有它就只能靠
+  // startedAt / finishedAt / createdAt 推断「本期有没有读过」。
+  final loggedIds = await repo.loggedBookIds(range);
+  final slice = sliceBooks(books: books, range: range, loggedIds: loggedIds);
 
   // 没有阅读记录就不谈时长：minutes 为 0 的情况既有「真没记录」也有
   // 「记了但为 0」，统一按「没有这个维度」处理最安全。
