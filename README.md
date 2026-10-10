@@ -36,7 +36,7 @@ Your books, notes, and reading plans stay on your phone in a SQLite database. Th
 - **Keep daily reading sustainable** — daily plans repeat until the whole plan is finished. Reminders are local notifications.
 - **Look back honestly** — charts cover reading status, categories, monthly trends, ratings, progress, and source platforms. Readnest does not invent reading time or streak data it cannot measure.
 - **Make reading your own** — create a reading profile with preference bubbles and personality tags, then export or share it as an image.
-- **Optional AI reports** — when enabled, Readnest sends aggregate local statistics to a model you configure. It does not send book titles or note text.
+- **Optional AI reports** — when enabled, Readnest sends aggregated local statistics to a model you configure, together with the titles, authors, categories, reading status, and ratings of books relevant to the reporting period. Note text and highlights are never sent.
 - **Work offline** — core reading features do not require an account or network. OCR runs on-device through ML Kit.
 - **Multiple languages and themes** — Chinese, English, German, French, and Spanish are supported, with light/dark mode following the system setting.
 
@@ -126,7 +126,7 @@ Readnest is local-first:
 
 - Reading data lives only on the user’s device.
 - OCR is performed on-device.
-- Optional AI reports send aggregate statistics, not book titles or note text.
+- Optional AI reports send aggregated statistics plus book metadata — titles, authors, categories, reading status, and ratings of books in the reporting period. Note text and highlights are not sent.
 - LLM keys are supplied by the user and used against the endpoint the user chooses.
 
 See the [English privacy policy](docs/07-Privacy-Policy%28EN%29.md) for the full statement.
