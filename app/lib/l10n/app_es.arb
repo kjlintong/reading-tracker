@@ -3613,33 +3613,6 @@
       }
     }
   },
-  "recommendTitle": "Buscar libros",
-  "recommendSourceShelf": "En tu estantería",
-  "recommendSourceLlm": "Sugerencias de IA",
-  "recommendSourceWeread": "Tienda WeRead",
-  "recommendSourceSearch": "Búsqueda web",
-  "recommendKeywordHint": "Palabra clave (opcional)",
-  "recommendRefresh": "Actualizar",
-  "recommendEmpty": "Aquí no hay nada todavía. Prueba otra fuente o añade una palabra clave.",
-  "recommendAdded": "Se añadieron {n} libro(s) a tu estantería",
-  "@recommendAdded": {
-    "description": "推荐书单：数量相关文案",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "recommendAddSelected": "Añadir {n} a la estantería",
-  "@recommendAddSelected": {
-    "description": "推荐书单：数量相关文案",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "recommendEntry": "Buscar libros",
   "settingsSearchService": "Servicio de búsqueda",
   "settingsSearchKeyLabel": "Clave API de búsqueda",
   "settingsSearchEndpointLabel": "Punto de conexión",
@@ -3652,5 +3625,36 @@
         "type": "int"
       }
     }
-  }
+  },
+  "discoverTitle": "Descubrir",
+  "discoverIntro": "Cuéntanos qué te interesa y prepararemos una lista de lectura.",
+  "discoverEntry": "Descubrir",
+  "discoverSourceShelf": "Mi estantería",
+  "discoverSourceOnline": "En línea",
+  "discoverKeywordHint": "¿Qué quieres leer? p. ej. «mecánica cuántica», «Roma antigua»",
+  "discoverNeedConfig": "Las recomendaciones en línea requieren primero una clave de modelo o WeRead",
+  "discoverGoSettings": "Ajustes",
+  "discoverOrderHint": "Orden de lectura sugerido",
+  "discoverFromShelf": "De tu estantería",
+  "discoverLoading": "Buscando libros…",
+  "discoverEmpty": "No encontramos nada adecuado — prueba otra formulation",
+  "discoverAdded": "{n} añadido(s) a la estantería",
+  "@discoverAdded": {
+    "description": "数量占位符",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverAddSelected": "Añadir {n} a la estantería",
+  "@discoverAddSelected": {
+    "description": "数量占位符",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverRefresh": "Buscar de nuevo"
 }

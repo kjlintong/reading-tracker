@@ -2908,43 +2908,6 @@ class SDe extends S {
   }
 
   @override
-  String get recommendTitle => 'Bücher finden';
-
-  @override
-  String get recommendSourceShelf => 'Auf deinem Regal';
-
-  @override
-  String get recommendSourceLlm => 'KI-Tipps';
-
-  @override
-  String get recommendSourceWeread => 'WeRead-Shop';
-
-  @override
-  String get recommendSourceSearch => 'Websuche';
-
-  @override
-  String get recommendKeywordHint => 'Stichwort (optional)';
-
-  @override
-  String get recommendRefresh => 'Neu laden';
-
-  @override
-  String get recommendEmpty => 'Hier gibt es noch nichts. Probier eine andere Quelle oder ein Stichwort.';
-
-  @override
-  String recommendAdded({required int n}) {
-    return '$n Buch/Bücher zur Shelf hinzugefügt';
-  }
-
-  @override
-  String recommendAddSelected({required int n}) {
-    return '$n zur Shelf hinzufügen';
-  }
-
-  @override
-  String get recommendEntry => 'Bücher finden';
-
-  @override
   String get settingsSearchService => 'Suchdienst';
 
   @override
@@ -2960,4 +2923,53 @@ class SDe extends S {
   String searchTestOk({required int n}) {
     return 'Suche funktioniert — $n Treffer';
   }
+
+  @override
+  String get discoverTitle => 'Entdecken';
+
+  @override
+  String get discoverIntro => 'Sag uns, was dich interessiert — wir stellen dir eine Leseliste zusammen.';
+
+  @override
+  String get discoverEntry => 'Entdecken';
+
+  @override
+  String get discoverSourceShelf => 'Mein Regal';
+
+  @override
+  String get discoverSourceOnline => 'Online';
+
+  @override
+  String get discoverKeywordHint => 'Was möchtest du lesen? z. B. „Quantenphysik“, „Römisches Reich“';
+
+  @override
+  String get discoverNeedConfig => 'Für Online-Empfehlungen brauchst du zuerst einen Modell- oder WeRead-Schlüssel';
+
+  @override
+  String get discoverGoSettings => 'Einstellungen';
+
+  @override
+  String get discoverOrderHint => 'Empfohlene Lesereihenfolge';
+
+  @override
+  String get discoverFromShelf => 'Aus deinem Regal';
+
+  @override
+  String get discoverLoading => 'Suche nach Büchern…';
+
+  @override
+  String get discoverEmpty => 'Nichts Passendes gefunden — versuch eine andere Formulierung';
+
+  @override
+  String discoverAdded({required int n}) {
+    return '$n zum Regal hinzugefügt';
+  }
+
+  @override
+  String discoverAddSelected({required int n}) {
+    return '$n zum Regal hinzufügen';
+  }
+
+  @override
+  String get discoverRefresh => 'Erneut suchen';
 }

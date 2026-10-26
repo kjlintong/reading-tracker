@@ -289,6 +289,36 @@ class MetadataClient {
   final Dio _dio;
   final WereadGateway weread;
 
+  /// Google Books 最近一次**连接失败**的时间。
+  ///
+  /// Google Books 在部分网络环境（国内直连）完全不可达，
+  /// 每次查书都得等满超时才失败——推荐一页 8 本就是 8 次白等，
+  /// 页面上表现为一直转圈。熔断器让「不可达」只试一次，
+  /// 之后一段时间直接跳过它，靠别的源兜底。
+  DateTime? _googleDownAt;
+
+  /// 熔断时长。十分钟——网络环境不会一分钟一变，
+  /// 但也不能太长：用户换个 Wi-Fi 可能就通了。
+  static const Duration _googleBreakDuration = Duration(minutes: 10);
+
+  /// 单个数据源的等待上限。
+  ///
+  /// 比 Dio 的 connectTimeout 短：查一本书等太久不值得，
+  /// 拿不到就降级到下一个源。用户看到的是「简介没补上」，
+  /// 而不是转圈半分钟。
+  static const Duration _sourceTimeout = Duration(seconds: 6);
+
+  /// Google Books 当前是否处于熔断期。
+  bool get _googleBroken {
+    final at = _googleDownAt;
+    if (at == null) return false;
+    if (DateTime.now().difference(at) >= _googleBreakDuration) {
+      _googleDownAt = null;
+      return false;
+    }
+    return true;
+  }
+
   MetadataClient({Dio? dio, required this.weread})
       : _dio = dio ??
             Dio(BaseOptions(
@@ -307,15 +337,27 @@ class MetadataClient {
         // 降级到下一个数据源
       }
     }
-    try {
-      final r = await _googleBooks(query);
-      if (r != null) return r;
-    } catch (_) {}
+    final byGoogle = await _tryGoogle(() => _googleBooks(query));
+    if (byGoogle != null) return byGoogle;
     try {
       final r = await _openLibrary(query);
       if (r != null) return r;
     } catch (_) {}
     return null;
+  }
+
+  /// 走 Google Books，失败则熔断。
+  ///
+  /// 「查无结果」不算失败——那说明 Google 通的，只是这本书没收录。
+  /// 只有**连不上**才置位熔断，否则一次正常的空结果会把源关掉十分钟。
+  Future<T?> _tryGoogle<T>(Future<T?> Function() fetch) async {
+    if (_googleBroken) return null;
+    try {
+      return await fetch().timeout(_sourceTimeout);
+    } catch (_) {
+      _googleDownAt = DateTime.now();
+      return null;
+    }
   }
 
   /// 只用权威源（微信读书书城）核对书名。
@@ -338,9 +380,12 @@ class MetadataClient {
       } catch (_) {}
     }
     try {
-      final r = await _googleBooks(q);
-      final t = r?.title?.trim();
-      if (t != null && _titleMatches(q, t)) return t;
+      final t = await _tryGoogle(() async {
+        final r = await _googleBooks(q);
+        final title = r?.title?.trim();
+        return (title != null && _titleMatches(q, title)) ? title : null;
+      });
+      if (t != null) return t;
     } catch (_) {}
     try {
       final r = await _openLibrary(q);
@@ -383,11 +428,8 @@ class MetadataClient {
     final q = query.trim();
     if (q.isEmpty) return const [];
     final out = <MetadataResult>[];
-    try {
-      out.addAll(await _googleBooksList(q, limit));
-    } catch (_) {
-      // 单个数据源不可达不应让整次搜索失败，继续试下一个
-    }
+    final byGoogle = await _tryGoogle(() => _googleBooksList(q, limit));
+    if (byGoogle != null) out.addAll(byGoogle);
     if (out.length < limit) {
       try {
         out.addAll(await _openLibraryList(q, limit - out.length));

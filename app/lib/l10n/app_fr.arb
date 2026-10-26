@@ -3613,33 +3613,6 @@
       }
     }
   },
-  "recommendTitle": "Trouver des livres",
-  "recommendSourceShelf": "Dans ta bibliothèque",
-  "recommendSourceLlm": "Choix de l’IA",
-  "recommendSourceWeread": "Librairie WeRead",
-  "recommendSourceSearch": "Recherche web",
-  "recommendKeywordHint": "Mot-clé (facultatif)",
-  "recommendRefresh": "Actualiser",
-  "recommendEmpty": "Rien pour l’instant. Essaie une autre source ou ajoute un mot-clé.",
-  "recommendAdded": "{n} livre(s) ajouté(s) à ta bibliothèque",
-  "@recommendAdded": {
-    "description": "推荐书单：数量相关文案",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "recommendAddSelected": "Ajouter {n} à la bibliothèque",
-  "@recommendAddSelected": {
-    "description": "推荐书单：数量相关文案",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "recommendEntry": "Trouver des livres",
   "settingsSearchService": "Service de recherche",
   "settingsSearchKeyLabel": "Clé API de recherche",
   "settingsSearchEndpointLabel": "Point de terminaison",
@@ -3652,5 +3625,36 @@
         "type": "int"
       }
     }
-  }
+  },
+  "discoverTitle": "Découvrir",
+  "discoverIntro": "Dites-nous ce qui vous intéresse — nous composerons une liste de lecture.",
+  "discoverEntry": "Découvrir",
+  "discoverSourceShelf": "Ma bibliothèque",
+  "discoverSourceOnline": "En ligne",
+  "discoverKeywordHint": "Que voulez-vous lire ? p. ex. « mécanique quantique », « Rome antique »",
+  "discoverNeedConfig": "Les recommandations en ligne exigent d’abord une clé de modèle ou WeRead",
+  "discoverGoSettings": "Réglages",
+  "discoverOrderHint": "Ordre de lecture suggéré",
+  "discoverFromShelf": "De votre bibliothèque",
+  "discoverLoading": "Recherche de livres…",
+  "discoverEmpty": "Rien d’approprié trouvé — essayez une autre formulation",
+  "discoverAdded": "{n} ajouté(s) à la bibliothèque",
+  "@discoverAdded": {
+    "description": "数量占位符",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverAddSelected": "Ajouter {n} à la bibliothèque",
+  "@discoverAddSelected": {
+    "description": "数量占位符",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverRefresh": "Relancer la recherche"
 }

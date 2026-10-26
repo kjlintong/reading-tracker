@@ -111,25 +111,45 @@ class AppBackground extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // ⚠️ 最底这层**不透明纸色**是整个组件的地基，删了会出两种事故：
+        // ⚠️ 背景三层包在 RepaintBoundary 里，是为了**路由切换时不再重画**。
         //
-        // 1. 截图导出成半透明 PNG。真机上Scaffold 透明后透到窗口底色，
-        //    勉强能看；但截图是像素级拷贝，底下那层「什么都没有」
-        //    被如实记录成 alpha=0—— 上传到官网/商店就是一片透明，
-        //    直接露出网页自己的底色（2026-10-09 用户实机发现）。
-        // 2. 贴图没铺满的地方会漏出黑底（滚动超界、圆角裁切处）。
+        // 这三层里有两样东西很贵：
+        //   - [ImageFiltered] 的全屏高斯模糊（猫屿 sigma 0.2，1260×2800）
+        //   - [Opacity] 的 saveLayer
+        // AppBackground 挂在 MaterialApp.builder 上、盖住整个 Navigator，
+        // 所以**每次 push 新路由它都会重建**。不缓存的话，
+        // 用户点一下按钮、转场动画还没开始，GPU 就得先把整屏重新模糊一遍——
+        // 真机上实测是「点进新页面卡一秒」。
         //
-        // 它也正是文档里那条合成公式里的「纸」：
-        //   结果 = 纸×scrim + (图×opacity + 纸×(1-opacity))×(1-scrim)
-        // 公式里的纸以前只是注释，谁都没真的画过。
-        ColoredBox(color: scrimColor),
+        // RepaintBoundary 让这三层有自己的 compositing layer：
+        // 内容与尺寸没变时，路由切换直接**贴回旧 layer**，一次像素都不用重画。
+        // 换肤（换 seed / 换贴图）时内容变了，边界会正常重画。
+        RepaintBoundary(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // ⚠️ 最底这层**不透明纸色**是整个组件的地基，删了会出两种事故：
+              //
+              // 1. 截图导出成半透明 PNG。真机上Scaffold 透明后透到窗口底色，
+              //    勉强能看；但截图是像素级拷贝，底下那层「什么都没有」
+              //    被如实记录成 alpha=0—— 上传到官网/商店就是一片透明，
+              //    直接露出网页自己的底色（2026-10-09 用户实机发现）。
+              // 2. 贴图没铺满的地方会漏出黑底（滚动超界、圆角裁切处）。
+              //
+              // 它也正是文档里那条合成公式里的「纸」：
+              //   结果 = 纸×scrim + (图×opacity + 纸×(1-opacity))×(1-scrim)
+              // 公式里的纸以前只是注释，谁都没真的画过。
+              ColoredBox(color: scrimColor),
 
-        // 遮罩先铺，还是图先铺？
-        // 图在下、遮罩在上：遮罩要盖住图，才能把图"压"进纸里。
-        Opacity(opacity: theme.backgroundOpacity, child: image),
-        // ⚠️ 用withOpacity 而不是 withValues(alpha:)：
-        // 后者是 Flutter 3.27+ 的 API，本项目锁在 3.24.5，调用直接编译失败。
-        ColoredBox(color: scrimColor.withOpacity(_scrim(isLight))),
+              // 遮罩先铺，还是图先铺？
+              // 图在下、遮罩在上：遮罩要盖住图，才能把图"压"进纸里。
+              Opacity(opacity: theme.backgroundOpacity, child: image),
+              // ⚠️ 用withOpacity 而不是 withValues(alpha:)：
+              // 后者是 Flutter 3.27+ 的 API，本项目锁在 3.24.5，调用直接编译失败。
+              ColoredBox(color: scrimColor.withOpacity(_scrim(isLight))),
+            ],
+          ),
+        ),
         child,
       ],
     );

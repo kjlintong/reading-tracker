@@ -2908,43 +2908,6 @@ class SFr extends S {
   }
 
   @override
-  String get recommendTitle => 'Trouver des livres';
-
-  @override
-  String get recommendSourceShelf => 'Dans ta bibliothèque';
-
-  @override
-  String get recommendSourceLlm => 'Choix de l’IA';
-
-  @override
-  String get recommendSourceWeread => 'Librairie WeRead';
-
-  @override
-  String get recommendSourceSearch => 'Recherche web';
-
-  @override
-  String get recommendKeywordHint => 'Mot-clé (facultatif)';
-
-  @override
-  String get recommendRefresh => 'Actualiser';
-
-  @override
-  String get recommendEmpty => 'Rien pour l’instant. Essaie une autre source ou ajoute un mot-clé.';
-
-  @override
-  String recommendAdded({required int n}) {
-    return '$n livre(s) ajouté(s) à ta bibliothèque';
-  }
-
-  @override
-  String recommendAddSelected({required int n}) {
-    return 'Ajouter $n à la bibliothèque';
-  }
-
-  @override
-  String get recommendEntry => 'Trouver des livres';
-
-  @override
   String get settingsSearchService => 'Service de recherche';
 
   @override
@@ -2960,4 +2923,53 @@ class SFr extends S {
   String searchTestOk({required int n}) {
     return 'La recherche fonctionne — $n résultat(s)';
   }
+
+  @override
+  String get discoverTitle => 'Découvrir';
+
+  @override
+  String get discoverIntro => 'Dites-nous ce qui vous intéresse — nous composerons une liste de lecture.';
+
+  @override
+  String get discoverEntry => 'Découvrir';
+
+  @override
+  String get discoverSourceShelf => 'Ma bibliothèque';
+
+  @override
+  String get discoverSourceOnline => 'En ligne';
+
+  @override
+  String get discoverKeywordHint => 'Que voulez-vous lire ? p. ex. « mécanique quantique », « Rome antique »';
+
+  @override
+  String get discoverNeedConfig => 'Les recommandations en ligne exigent d’abord une clé de modèle ou WeRead';
+
+  @override
+  String get discoverGoSettings => 'Réglages';
+
+  @override
+  String get discoverOrderHint => 'Ordre de lecture suggéré';
+
+  @override
+  String get discoverFromShelf => 'De votre bibliothèque';
+
+  @override
+  String get discoverLoading => 'Recherche de livres…';
+
+  @override
+  String get discoverEmpty => 'Rien d’approprié trouvé — essayez une autre formulation';
+
+  @override
+  String discoverAdded({required int n}) {
+    return '$n ajouté(s) à la bibliothèque';
+  }
+
+  @override
+  String discoverAddSelected({required int n}) {
+    return 'Ajouter $n à la bibliothèque';
+  }
+
+  @override
+  String get discoverRefresh => 'Relancer la recherche';
 }

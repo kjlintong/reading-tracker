@@ -11,7 +11,7 @@ import '../models/enums.dart';
 import '../models/reading_plan.dart';
 import '../providers.dart';
 import 'plan_editor_sheet.dart';
-import 'recommend_page.dart';
+import 'discover_page.dart';
 import 'theme.dart';
 
 /// 阅读计划板块。嵌在「记录」页（笔记 + 计划）里，不是独立导航栏。
@@ -85,7 +85,7 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
   /// 放在计划区旁边才说得通。
   Future<void> _openRecommend() async {
     await Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const RecommendPage()),
+      MaterialPageRoute<void>(builder: (_) => const DiscoverPage()),
     );
     // 推荐页可能往书架里加了书，回来要刷新计划区的书名映射。
     if (mounted) _load();
@@ -388,7 +388,7 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
             TextButton.icon(
               onPressed: _openRecommend,
               icon: const Icon(Icons.travel_explore, size: 18),
-              label: Text(appLoc.recommendEntry),
+              label: Text(appLoc.discoverEntry),
             ),
             TextButton.icon(
               onPressed: () => _edit(),

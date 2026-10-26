@@ -5159,72 +5159,6 @@ abstract class S {
   /// **'{done}/{total} today'**
   String planReadTodayCount({required int done, required int total});
 
-  /// No description provided for @recommendTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Find books'**
-  String get recommendTitle;
-
-  /// No description provided for @recommendSourceShelf.
-  ///
-  /// In en, this message translates to:
-  /// **'On your shelf'**
-  String get recommendSourceShelf;
-
-  /// No description provided for @recommendSourceLlm.
-  ///
-  /// In en, this message translates to:
-  /// **'AI picks'**
-  String get recommendSourceLlm;
-
-  /// No description provided for @recommendSourceWeread.
-  ///
-  /// In en, this message translates to:
-  /// **'WeRead store'**
-  String get recommendSourceWeread;
-
-  /// No description provided for @recommendSourceSearch.
-  ///
-  /// In en, this message translates to:
-  /// **'Web search'**
-  String get recommendSourceSearch;
-
-  /// No description provided for @recommendKeywordHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Keyword (optional)'**
-  String get recommendKeywordHint;
-
-  /// No description provided for @recommendRefresh.
-  ///
-  /// In en, this message translates to:
-  /// **'Refresh'**
-  String get recommendRefresh;
-
-  /// No description provided for @recommendEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'Nothing found here yet. Try another source, or add a keyword.'**
-  String get recommendEmpty;
-
-  /// 推荐书单：数量相关文案
-  ///
-  /// In en, this message translates to:
-  /// **'Added {n} book(s) to your shelf'**
-  String recommendAdded({required int n});
-
-  /// 推荐书单：数量相关文案
-  ///
-  /// In en, this message translates to:
-  /// **'Add {n} to shelf'**
-  String recommendAddSelected({required int n});
-
-  /// No description provided for @recommendEntry.
-  ///
-  /// In en, this message translates to:
-  /// **'Find books'**
-  String get recommendEntry;
-
   /// No description provided for @settingsSearchService.
   ///
   /// In en, this message translates to:
@@ -5254,6 +5188,96 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Search works — {n} result(s)'**
   String searchTestOk({required int n});
+
+  /// No description provided for @discoverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get discoverTitle;
+
+  /// No description provided for @discoverIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what you\'re into — we\'ll put together a reading list.'**
+  String get discoverIntro;
+
+  /// No description provided for @discoverEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover'**
+  String get discoverEntry;
+
+  /// No description provided for @discoverSourceShelf.
+  ///
+  /// In en, this message translates to:
+  /// **'My shelf'**
+  String get discoverSourceShelf;
+
+  /// No description provided for @discoverSourceOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get discoverSourceOnline;
+
+  /// No description provided for @discoverKeywordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What do you want to read? e.g. \"quantum physics\", \"ancient Rome\"'**
+  String get discoverKeywordHint;
+
+  /// No description provided for @discoverNeedConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Online recommendations need a model or WeRead key first'**
+  String get discoverNeedConfig;
+
+  /// No description provided for @discoverGoSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get discoverGoSettings;
+
+  /// No description provided for @discoverOrderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested reading order'**
+  String get discoverOrderHint;
+
+  /// No description provided for @discoverFromShelf.
+  ///
+  /// In en, this message translates to:
+  /// **'From your shelf'**
+  String get discoverFromShelf;
+
+  /// No description provided for @discoverLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for books…'**
+  String get discoverLoading;
+
+  /// No description provided for @discoverEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing suitable found — try a different wording'**
+  String get discoverEmpty;
+
+  /// 数量占位符
+  ///
+  /// In en, this message translates to:
+  /// **'Added {n} to your shelf'**
+  String discoverAdded({required int n});
+
+  /// 数量占位符
+  ///
+  /// In en, this message translates to:
+  /// **'Add {n} to shelf'**
+  String discoverAddSelected({required int n});
+
+  /// No description provided for @discoverRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Search again'**
+  String get discoverRefresh;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

@@ -2908,43 +2908,6 @@ class SEn extends S {
   }
 
   @override
-  String get recommendTitle => 'Find books';
-
-  @override
-  String get recommendSourceShelf => 'On your shelf';
-
-  @override
-  String get recommendSourceLlm => 'AI picks';
-
-  @override
-  String get recommendSourceWeread => 'WeRead store';
-
-  @override
-  String get recommendSourceSearch => 'Web search';
-
-  @override
-  String get recommendKeywordHint => 'Keyword (optional)';
-
-  @override
-  String get recommendRefresh => 'Refresh';
-
-  @override
-  String get recommendEmpty => 'Nothing found here yet. Try another source, or add a keyword.';
-
-  @override
-  String recommendAdded({required int n}) {
-    return 'Added $n book(s) to your shelf';
-  }
-
-  @override
-  String recommendAddSelected({required int n}) {
-    return 'Add $n to shelf';
-  }
-
-  @override
-  String get recommendEntry => 'Find books';
-
-  @override
   String get settingsSearchService => 'Search service';
 
   @override
@@ -2960,4 +2923,53 @@ class SEn extends S {
   String searchTestOk({required int n}) {
     return 'Search works — $n result(s)';
   }
+
+  @override
+  String get discoverTitle => 'Discover';
+
+  @override
+  String get discoverIntro => 'Tell us what you\'re into — we\'ll put together a reading list.';
+
+  @override
+  String get discoverEntry => 'Discover';
+
+  @override
+  String get discoverSourceShelf => 'My shelf';
+
+  @override
+  String get discoverSourceOnline => 'Online';
+
+  @override
+  String get discoverKeywordHint => 'What do you want to read? e.g. \"quantum physics\", \"ancient Rome\"';
+
+  @override
+  String get discoverNeedConfig => 'Online recommendations need a model or WeRead key first';
+
+  @override
+  String get discoverGoSettings => 'Settings';
+
+  @override
+  String get discoverOrderHint => 'Suggested reading order';
+
+  @override
+  String get discoverFromShelf => 'From your shelf';
+
+  @override
+  String get discoverLoading => 'Looking for books…';
+
+  @override
+  String get discoverEmpty => 'Nothing suitable found — try a different wording';
+
+  @override
+  String discoverAdded({required int n}) {
+    return 'Added $n to your shelf';
+  }
+
+  @override
+  String discoverAddSelected({required int n}) {
+    return 'Add $n to shelf';
+  }
+
+  @override
+  String get discoverRefresh => 'Search again';
 }

@@ -103,7 +103,6 @@ class HomeShell extends ConsumerStatefulWidget {
 }
 
 class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserver {
-  int _index = 0;
   bool _loaded = false;
 
   @override
@@ -177,6 +176,10 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     }
     final l10n = S.of(context);
 
+    // 选中栏位放在 provider 里，别的页面（比如「发现」页的「去设置」按钮）
+    // 才能把用户直接切到设置栏。
+    final index = ref.watch(homeTabProvider);
+
     // ⚠️ 贴图背景**不在这里**包，而是挂在 MaterialApp.builder 上。
     //
     // 在HomeShell 里包只能盖住这一个 Scaffold，而 push 出来的页面
@@ -188,10 +191,11 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     // 各路由自己的 Scaffold 会在贴图模式下自动透明
     // （theme.dart 的 scaffoldBackgroundColor，已覆盖所有页面）。
     return Scaffold(
-      body: _pages[_index],
+      body: _pages[index],
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (i) => setState(() => _index = i),
+        selectedIndex: index,
+        onDestinationSelected: (i) =>
+            ref.read(homeTabProvider.notifier).state = i,
         destinations: [
           NavigationDestination(
               icon: const Icon(Icons.menu_book_outlined), label: l10n.navShelf),

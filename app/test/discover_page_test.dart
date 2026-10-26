@@ -7,24 +7,28 @@ import 'package:reading_tracker/data/recommendation_service.dart';
 import 'package:reading_tracker/models/book.dart';
 import 'package:reading_tracker/models/enums.dart';
 import 'package:reading_tracker/providers.dart';
-import 'package:reading_tracker/ui/recommend_page.dart';
+import 'package:reading_tracker/ui/discover_page.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'support/fake_recommend_service.dart';
 import 'support/localized_app.dart';
 
-/// 推荐书单页的交互行为。
+/// 「发现」页的交互行为。
 ///
 /// ## 这一组测试要钉住什么
 ///
-/// 服务层已经测过「每档出什么」，这里钉的是**页面这一层的产品承诺**：
+/// 服务层已经测过「出什么」，这里钉的是**页面这一层的产品承诺**：
 ///
-/// 1. 四个档位**都显示**——不可用的置灰但不隐藏。
-///    隐藏的话用户根本不知道 App 还有这个功能，只会觉得「怎么只有三种推荐」。
-/// 2. 「先看列表，勾选后再入库」——勾选前不写库，勾选后才写。
-/// 3. 入库后条目**从列表消失**——否则用户能再勾一次、插一条重复记录。
-/// 4. 入库反馈写在**页面里**，不是 SnackBar（SnackBar 跨页留存、2 秒就消失）。
-/// 5. 已在书架的书（档①的推荐）**不可勾选**——再入库就是重复记录。
+/// 1. 只有两个来源——**我的书架** 与 **联网**。
+///    早先是四档（书架/大模型/微信读书/搜索），等于让用户替 App 选技术方案。
+/// 2. 两个都显示，联网缺凭据时**置灰但不隐藏**，并说清楚缺什么 + 给「去设置」。
+/// 3. 顶部有**一句说明**——页面叫「发现」，光看名字不知道能干什么。
+/// 4. 「先看列表，勾选后再入库」——勾选前不写库，勾选后才写。
+/// 5. 入库后条目**从列表消失**——否则用户能再勾一次、插一条重复记录。
+/// 6. 入库反馈写在**页面里**，不是 SnackBar（SnackBar 跨页留存、2 秒就消失）。
+/// 7. 已在书架的书**不可勾选**——再入库就是重复记录。
+/// 8. 联网档给出**阅读顺序**（序号徽章 + 「按这个顺序读」提示）；
+///    书架档不给——那只是「最近加入的」，说成阅读顺序是误导。
 void main() {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfiNoIsolate;
@@ -46,8 +50,9 @@ void main() {
   Recommendation rec(
     String title, {
     String? reason,
+    int order = 0,
     bool inShelf = false,
-    RecommendSource source = RecommendSource.llm,
+    RecommendSource source = RecommendSource.online,
   }) =>
       Recommendation(
         book: Book(
@@ -59,6 +64,7 @@ void main() {
           updatedAt: now,
         ),
         reason: reason ?? '',
+        order: order,
         source: source,
         alreadyInShelf: inShelf,
       );
@@ -76,7 +82,7 @@ void main() {
         ],
         child: localizedApp(
           locale: const Locale('zh'),
-          home: const RecommendPage(),
+          home: const DiscoverPage(),
         ),
       );
 
@@ -90,23 +96,37 @@ void main() {
     }
   }
 
-  group('档位分段', () {
-    testWidgets('四个档位都显示，缺凭据的置灰但不隐藏', (tester) async {
+  group('来源分段', () {
+    testWidgets('只有两个来源：我的书架 与 联网', (tester) async {
       final s = FakeRecommendService(
         repo: repo,
-        available: const {RecommendSource.shelfUnread},
+        available: const {RecommendSource.shelf, RecommendSource.online},
         result: (_) => const [],
       );
       await tester.pumpWidget(harness(s));
       await settleAsync(tester);
 
-      // 四个都在
-      expect(find.text('书架里的'), findsOneWidget);
-      expect(find.text('大模型推荐'), findsOneWidget);
-      expect(find.text('微信读书书城'), findsOneWidget);
-      expect(find.text('联网搜索'), findsOneWidget);
+      expect(find.text('我的书架'), findsOneWidget);
+      expect(find.text('联网'), findsOneWidget);
 
-      // 缺凭据的那三个置灰（半透明 0.45），第一档不透明
+      // 早先的四档不许再出现——用户不该替 App 选技术方案。
+      expect(find.text('大模型推荐'), findsNothing);
+      expect(find.text('微信读书书城'), findsNothing);
+      expect(find.text('联网搜索'), findsNothing);
+      expect(find.byType(ChoiceChip), findsNWidgets(2));
+    });
+
+    testWidgets('联网缺凭据时置灰但不隐藏', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf},
+        result: (_) => const [],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+
+      expect(find.text('联网'), findsOneWidget);
+
       double opacityOf(String label) {
         final chip = find.widgetWithText(ChoiceChip, label);
         final op = tester.widget<Opacity>(
@@ -115,40 +135,65 @@ void main() {
         return op.opacity;
       }
 
-      expect(opacityOf('书架里的'), 1.0);
-      expect(opacityOf('大模型推荐'), lessThan(1.0));
-      expect(opacityOf('微信读书书城'), lessThan(1.0));
-      expect(opacityOf('联网搜索'), lessThan(1.0));
+      expect(opacityOf('我的书架'), 1.0);
+      expect(opacityOf('联网'), lessThan(1.0));
     });
 
-    testWidgets('缺凭据的档位点不动', (tester) async {
+    testWidgets('联网不可用时说清楚缺什么，并给「去设置」', (tester) async {
       final s = FakeRecommendService(
         repo: repo,
-        available: const {RecommendSource.shelfUnread},
+        available: const {RecommendSource.shelf},
         result: (_) => const [],
       );
       await tester.pumpWidget(harness(s));
       await settleAsync(tester);
 
-      await tester.tap(find.widgetWithText(ChoiceChip, '大模型推荐'));
+      expect(find.textContaining('联网推荐需要先配置'), findsOneWidget);
+      expect(find.text('去设置'), findsOneWidget);
+    });
+
+    testWidgets('点「去设置」把底部导航切到设置栏', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf},
+        result: (_) => const [],
+      );
+      await tester.pumpWidget(harness(s));
       await settleAsync(tester);
 
-      // 切不过去——大模型那一档的 chip 仍是未选中
+      await tester.tap(find.text('去设置'));
+      await settleAsync(tester);
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiscoverPage)),
+      );
+      expect(container.read(homeTabProvider), HomeTabs.settings);
+    });
+
+    testWidgets('缺凭据的联网点不动', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf},
+        result: (_) => const [],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, '联网'));
+      await settleAsync(tester);
+
       final chip = tester.widget<ChoiceChip>(
-        find.widgetWithText(ChoiceChip, '大模型推荐'),
+        find.widgetWithText(ChoiceChip, '联网'),
       );
       expect(chip.selected, isFalse);
     });
 
-    testWidgets('可用的档位能切过去，并按新档位重新出结果', (tester) async {
+    testWidgets('可用的联网能切过去，并按新来源重新出结果', (tester) async {
       final s = FakeRecommendService(
         repo: repo,
-        available: const {
-          RecommendSource.shelfUnread,
-          RecommendSource.llm,
-        },
-        result: (src) => src == RecommendSource.llm
-            ? [rec('大模型给的书')]
+        available: const {RecommendSource.shelf, RecommendSource.online},
+        result: (src) => src == RecommendSource.online
+            ? [rec('联网给的书')]
             : [rec('书架给的书')],
       );
       await tester.pumpWidget(harness(s));
@@ -156,11 +201,89 @@ void main() {
 
       expect(titleOf('书架给的书'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(ChoiceChip, '大模型推荐'));
+      await tester.tap(find.widgetWithText(ChoiceChip, '联网'));
       await settleAsync(tester);
 
-      expect(titleOf('大模型给的书'), findsOneWidget);
+      expect(titleOf('联网给的书'), findsOneWidget);
       expect(titleOf('书架给的书'), findsNothing);
+    });
+  });
+
+  group('功能说明', () {
+    testWidgets('顶部有说明文字，讲清这个功能能干什么', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf},
+        result: (_) => const [],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+
+      expect(find.text('发现'), findsOneWidget);
+      expect(find.textContaining('感兴趣'), findsOneWidget);
+    });
+
+    testWidgets('输入框提示用户可以填主题', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf},
+        result: (_) => const [],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+
+      expect(find.byType(TextField), findsOneWidget);
+      expect(find.textContaining('想读点什么'), findsOneWidget);
+    });
+  });
+
+  group('阅读顺序', () {
+    testWidgets('联网档显示序号徽章与「按这个顺序读」提示', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf, RecommendSource.online},
+        result: (_) => [
+          rec('第一本', reason: '入门', order: 1),
+          rec('第二本', reason: '进阶', order: 2),
+        ],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, '联网'));
+      await settleAsync(tester);
+
+      expect(find.text('建议按这个顺序读'), findsOneWidget);
+      // 序号徽章
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+    });
+
+    testWidgets('书架档不给「阅读顺序」提示——那是最近加入，不是阅读顺序',
+        (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf},
+        result: (_) => [rec('想读的书', source: RecommendSource.shelf)],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+
+      expect(find.text('建议按这个顺序读'), findsNothing);
+    });
+
+    testWidgets('书架那档的条目标注「来自你的书架」', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf},
+        result: (_) => [
+          rec('想读的书', inShelf: true, source: RecommendSource.shelf),
+        ],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+
+      expect(find.text('来自你的书架'), findsOneWidget);
     });
   });
 
@@ -168,7 +291,7 @@ void main() {
     testWidgets('结果渲染出来', (tester) async {
       final s = FakeRecommendService(
         repo: repo,
-        available: const {RecommendSource.shelfUnread},
+        available: const {RecommendSource.shelf},
         result: (_) => [rec('三体', reason: '硬科幻经典')],
       );
       await tester.pumpWidget(harness(s));
@@ -182,27 +305,27 @@ void main() {
     testWidgets('空结果显示空态提示，不是白屏', (tester) async {
       final s = FakeRecommendService(
         repo: repo,
-        available: const {RecommendSource.shelfUnread},
+        available: const {RecommendSource.shelf},
         result: (_) => const [],
       );
       await tester.pumpWidget(harness(s));
       await settleAsync(tester);
 
-      expect(find.textContaining('这里暂时没有结果'), findsOneWidget);
+      expect(find.textContaining('没找到合适的书'), findsOneWidget);
     });
 
     testWidgets('已在书架的条目不可勾选', (tester) async {
       final s = FakeRecommendService(
         repo: repo,
-        available: const {RecommendSource.shelfUnread},
+        available: const {RecommendSource.shelf},
         result: (_) => [
-          rec('想读的书', inShelf: true, source: RecommendSource.shelfUnread),
+          rec('想读的书', inShelf: true, source: RecommendSource.shelf),
         ],
       );
       await tester.pumpWidget(harness(s));
       await settleAsync(tester);
 
-      // 档①的条目显示的是静态对勾，不是可勾的加号
+      // 书架那档的条目显示的是静态对勾，不是可勾的加号
       expect(find.byIcon(Icons.add_circle_outline), findsNothing);
       expect(find.byIcon(Icons.check), findsOneWidget);
 
@@ -215,7 +338,7 @@ void main() {
     testWidgets('勾选前不写库，勾选并入库后才写', (tester) async {
       final s = FakeRecommendService(
         repo: repo,
-        available: const {RecommendSource.shelfUnread},
+        available: const {RecommendSource.shelf},
         result: (_) => [rec('三体')],
       );
       await tester.pumpWidget(harness(s));
@@ -241,14 +364,14 @@ void main() {
       // 条目从列表消失，不会被再勾一次
       expect(titleOf('三体'), findsNothing);
       // 反馈写在页面里，不是 SnackBar
-      expect(find.text('已把 1 本书加入书架'), findsOneWidget);
+      expect(find.text('已加入 1 本'), findsOneWidget);
       expect(find.byType(SnackBar), findsNothing);
     });
 
     testWidgets('入库的书状态是「想读」', (tester) async {
       final s = FakeRecommendService(
         repo: repo,
-        available: const {RecommendSource.shelfUnread},
+        available: const {RecommendSource.shelf},
         result: (_) => [rec('三体')],
       );
       await tester.pumpWidget(harness(s));
@@ -266,7 +389,7 @@ void main() {
     testWidgets('入库后剩的条目仍能继续勾选', (tester) async {
       final s = FakeRecommendService(
         repo: repo,
-        available: const {RecommendSource.shelfUnread},
+        available: const {RecommendSource.shelf},
         result: (_) => [rec('第一本'), rec('第二本')],
       );
       await tester.pumpWidget(harness(s));

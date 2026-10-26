@@ -4,24 +4,28 @@ import 'package:flutter/foundation.dart';
 
 import '../models/book.dart';
 
-/// 推荐书单的四个来源。
+/// 推荐书单的两种来源。
 ///
-/// 四档的差别只在「候选从哪来」，后面的「怎么展示、怎么入库」完全一致，
-/// 所以它们共用 [RecommendationService] 这一条管线。
+/// ## 为什么只给两个
+///
+/// 早先是四档（本地书架 / 大模型 / 微信读书 / 搜索+大模型），
+/// 每一档单独一个分段按钮。结果是**用户要替 App 决定技术方案**：
+/// 「我该用微信读书还是让大模型推荐？」——这不是用户该操心的事，
+/// 他只知道自己想要「联网找书」。
+///
+/// 所以对外只有两档：
+///   - [shelf]：从自己的书架里挑（已经买了、还没读的）
+///   - [online]：联网找新书
+///
+/// [online] 内部具体走哪条路子（搜索+大模型 / 大模型 / 微信读书）
+/// 由 [RecommendationService.onlinePlan] 自己决定并自动降级，
+/// **不暴露给用户**。用户配了哪个 Key 就走哪条，一条都没配才置灰。
 enum RecommendSource {
-  /// 本地书架里还没读的书。
-  ///
-  /// 唯一**完全离线**的一档：不需要任何 Key，也不出设备。
-  shelfUnread,
+  /// 从自己的书架里挑还没读的书。零凭据，永远可用。
+  shelf,
 
-  /// 大模型凭训练时的知识推荐。
-  llm,
-
-  /// 微信读书书城。
-  weread,
-
-  /// 通用搜索 API 拿到候选，再让大模型整理成书单。
-  search,
+  /// 联网找新书。
+  online,
 
   ;
 
@@ -29,24 +33,49 @@ enum RecommendSource {
   String get id => name;
 }
 
+/// 联网档内部实际走的路子。
+///
+/// 这是**实现细节**，不出现在界面上。优先级从高到低：
+/// 1. [searchAndModel]——搜索给当下真实的候选，大模型负责挑与写介绍；
+/// 2. [modelOnly]——大模型凭训练知识推荐；
+/// 3. [wereadOnly]——微信读书书城搜索。
+enum OnlinePlan {
+  /// 搜索 API 拿候选 + 大模型整理成书单。
+  searchAndModel,
+
+  /// 大模型凭训练时的知识推荐。
+  modelOnly,
+
+  /// 微信读书书城搜索。
+  wereadOnly,
+}
+
 /// 一条推荐结果。
 ///
-/// [Book] 是「补全过元数据的书」，[reason] 是大模型或本地规则给的
-/// 一句推荐理由。理由不是装饰——没有理由的书单用户无从判断该不该买。
+/// [Book] 是「补全过元数据的书」，[reason] 是一句话介绍，
+/// [order] 是**建议的阅读顺序**。
 @immutable
 class Recommendation {
   /// 补全过元数据的书。点「加入书架」时直接用它。
   final Book book;
 
-  /// 推荐理由，一句话。
+  /// 一句话介绍：这本书好在哪、为什么推给你。
+  ///
+  /// 不是装饰——没有介绍的书单用户无从判断该不该买。
   final String reason;
+
+  /// 建议的阅读顺序，从 1 开始。
+  ///
+  /// 0 表示**没有排序信息**（比如只配了微信读书、没配大模型时，
+  /// 书城搜索的结果只能按相关度排，说不上是「入门还是深入」）。
+  final int order;
 
   /// 这条推荐来自哪一档。混排展示时要标出来。
   final RecommendSource source;
 
   /// 这本书**已经在书架里**了。
   ///
-  /// 档①（书架里的未读书）天然为 true——那些书本来就在库里，
+  /// 书架那档天然为 true——那些书本来就在库里，
   /// 用户看到它们是为了「提醒自己还有哪些没读」，不是要把它们加进来。
   /// 这类条目**不能**再走「加入书架」，否则会插一条重复记录。
   final bool alreadyInShelf;
@@ -55,6 +84,7 @@ class Recommendation {
     required this.book,
     required this.reason,
     required this.source,
+    this.order = 0,
     this.alreadyInShelf = false,
   });
 }
@@ -81,6 +111,12 @@ class RecommendationDraft {
   /// 封面图 URL。
   final String? coverUrl;
 
+  /// 建议的阅读顺序（1 起）。
+  ///
+  /// 大模型给的是数字，但经常写成字符串（`"1"`）或者用别的键名
+  /// （`rank` / `index` / `position`），所以解析放宽到能吃下这些。
+  final int? order;
+
   const RecommendationDraft({
     required this.title,
     this.author,
@@ -90,6 +126,7 @@ class RecommendationDraft {
     this.publisher,
     this.description,
     this.coverUrl,
+    this.order,
   });
 
   /// 从大模型返回的 JSON 对象里取一条。
@@ -101,12 +138,34 @@ class RecommendationDraft {
     return RecommendationDraft(
       title: title,
       author: _str(j['author']) ?? _str(j['authors']),
-      reason: _str(j['reason']) ?? _str(j['why']) ?? _str(j['description']),
+      reason: _str(j['reason']) ?? _str(j['why']) ?? _str(j['intro'])
+          ?? _str(j['description']),
       category: _str(j['category']) ?? _str(j['genre']),
       isbn: _str(j['isbn']),
       publisher: _str(j['publisher']),
       coverUrl: _str(j['coverUrl']) ?? _str(j['cover']),
+      order: _order(j),
     );
+  }
+
+  /// 取出阅读顺序。
+  ///
+  /// 模型的输出在这一项上极不统一：`order` / `rank` / `index` / `position`，
+  /// 值可能是数字也可能是字符串。认不出来的就当没有——
+  /// 顺序是锦上添花，缺了不该把整条推荐丢掉。
+  static int? _order(Map<String, dynamic> j) {
+    for (final key in const ['order', 'rank', 'index', 'position', 'seq']) {
+      final v = j[key];
+      if (v == null) continue;
+      if (v is int) return v > 0 ? v : null;
+      if (v is num) {
+        final i = v.toInt();
+        return i > 0 ? i : null;
+      }
+      final parsed = int.tryParse(v.toString().trim());
+      if (parsed != null && parsed > 0) return parsed;
+    }
+    return null;
   }
 
   /// 解析一段 JSON 文本，返回可用的条目列表。

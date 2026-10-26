@@ -3613,33 +3613,6 @@
       }
     }
   },
-  "recommendTitle": "找书",
-  "recommendSourceShelf": "书架里的",
-  "recommendSourceLlm": "大模型推荐",
-  "recommendSourceWeread": "微信读书书城",
-  "recommendSourceSearch": "联网搜索",
-  "recommendKeywordHint": "关键词（可留空）",
-  "recommendRefresh": "换一批",
-  "recommendEmpty": "这里暂时没有结果。换一档来源，或填个关键词试试。",
-  "recommendAdded": "已把 {n} 本书加入书架",
-  "@recommendAdded": {
-    "description": "推荐书单：数量相关文案",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "recommendAddSelected": "把 {n} 本加入书架",
-  "@recommendAddSelected": {
-    "description": "推荐书单：数量相关文案",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "recommendEntry": "找书",
   "settingsSearchService": "搜索服务",
   "settingsSearchKeyLabel": "搜索 API Key",
   "settingsSearchEndpointLabel": "搜索服务地址",
@@ -3652,5 +3625,36 @@
         "type": "int"
       }
     }
-  }
+  },
+  "discoverTitle": "发现",
+  "discoverIntro": "说出你感兴趣的东西，我们帮你排一份书单",
+  "discoverEntry": "发现",
+  "discoverSourceShelf": "我的书架",
+  "discoverSourceOnline": "联网",
+  "discoverKeywordHint": "想读点什么？比如「量子力学」「罗马帝国」「日本庭园」",
+  "discoverNeedConfig": "联网推荐需要先配置大模型或微信读书",
+  "discoverGoSettings": "去设置",
+  "discoverOrderHint": "建议按这个顺序读",
+  "discoverFromShelf": "来自你的书架",
+  "discoverLoading": "正在找书…",
+  "discoverEmpty": "没找到合适的书，换个说法试试",
+  "discoverAdded": "已加入 {n} 本",
+  "@discoverAdded": {
+    "description": "数量占位符",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverAddSelected": "把 {n} 本加入书架",
+  "@discoverAddSelected": {
+    "description": "数量占位符",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverRefresh": "重新找一次"
 }

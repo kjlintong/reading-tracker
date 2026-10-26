@@ -3613,33 +3613,6 @@
       }
     }
   },
-  "recommendTitle": "Find books",
-  "recommendSourceShelf": "On your shelf",
-  "recommendSourceLlm": "AI picks",
-  "recommendSourceWeread": "WeRead store",
-  "recommendSourceSearch": "Web search",
-  "recommendKeywordHint": "Keyword (optional)",
-  "recommendRefresh": "Refresh",
-  "recommendEmpty": "Nothing found here yet. Try another source, or add a keyword.",
-  "recommendAdded": "Added {n} book(s) to your shelf",
-  "@recommendAdded": {
-    "description": "推荐书单：数量相关文案",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "recommendAddSelected": "Add {n} to shelf",
-  "@recommendAddSelected": {
-    "description": "推荐书单：数量相关文案",
-    "placeholders": {
-      "n": {
-        "type": "int"
-      }
-    }
-  },
-  "recommendEntry": "Find books",
   "settingsSearchService": "Search service",
   "settingsSearchKeyLabel": "Search API Key",
   "settingsSearchEndpointLabel": "Search endpoint",
@@ -3652,5 +3625,36 @@
         "type": "int"
       }
     }
-  }
+  },
+  "discoverTitle": "Discover",
+  "discoverIntro": "Tell us what you're into — we'll put together a reading list.",
+  "discoverEntry": "Discover",
+  "discoverSourceShelf": "My shelf",
+  "discoverSourceOnline": "Online",
+  "discoverKeywordHint": "What do you want to read? e.g. \"quantum physics\", \"ancient Rome\"",
+  "discoverNeedConfig": "Online recommendations need a model or WeRead key first",
+  "discoverGoSettings": "Settings",
+  "discoverOrderHint": "Suggested reading order",
+  "discoverFromShelf": "From your shelf",
+  "discoverLoading": "Looking for books…",
+  "discoverEmpty": "Nothing suitable found — try a different wording",
+  "discoverAdded": "Added {n} to your shelf",
+  "@discoverAdded": {
+    "description": "数量占位符",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverAddSelected": "Add {n} to shelf",
+  "@discoverAddSelected": {
+    "description": "数量占位符",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "discoverRefresh": "Search again"
 }

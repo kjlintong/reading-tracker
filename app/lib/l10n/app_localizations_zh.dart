@@ -2908,43 +2908,6 @@ class SZh extends S {
   }
 
   @override
-  String get recommendTitle => '找书';
-
-  @override
-  String get recommendSourceShelf => '书架里的';
-
-  @override
-  String get recommendSourceLlm => '大模型推荐';
-
-  @override
-  String get recommendSourceWeread => '微信读书书城';
-
-  @override
-  String get recommendSourceSearch => '联网搜索';
-
-  @override
-  String get recommendKeywordHint => '关键词（可留空）';
-
-  @override
-  String get recommendRefresh => '换一批';
-
-  @override
-  String get recommendEmpty => '这里暂时没有结果。换一档来源，或填个关键词试试。';
-
-  @override
-  String recommendAdded({required int n}) {
-    return '已把 $n 本书加入书架';
-  }
-
-  @override
-  String recommendAddSelected({required int n}) {
-    return '把 $n 本加入书架';
-  }
-
-  @override
-  String get recommendEntry => '找书';
-
-  @override
   String get settingsSearchService => '搜索服务';
 
   @override
@@ -2960,4 +2923,53 @@ class SZh extends S {
   String searchTestOk({required int n}) {
     return '搜索可用，返回 $n 条';
   }
+
+  @override
+  String get discoverTitle => '发现';
+
+  @override
+  String get discoverIntro => '说出你感兴趣的东西，我们帮你排一份书单';
+
+  @override
+  String get discoverEntry => '发现';
+
+  @override
+  String get discoverSourceShelf => '我的书架';
+
+  @override
+  String get discoverSourceOnline => '联网';
+
+  @override
+  String get discoverKeywordHint => '想读点什么？比如「量子力学」「罗马帝国」「日本庭园」';
+
+  @override
+  String get discoverNeedConfig => '联网推荐需要先配置大模型或微信读书';
+
+  @override
+  String get discoverGoSettings => '去设置';
+
+  @override
+  String get discoverOrderHint => '建议按这个顺序读';
+
+  @override
+  String get discoverFromShelf => '来自你的书架';
+
+  @override
+  String get discoverLoading => '正在找书…';
+
+  @override
+  String get discoverEmpty => '没找到合适的书，换个说法试试';
+
+  @override
+  String discoverAdded({required int n}) {
+    return '已加入 $n 本';
+  }
+
+  @override
+  String discoverAddSelected({required int n}) {
+    return '把 $n 本加入书架';
+  }
+
+  @override
+  String get discoverRefresh => '重新找一次';
 }

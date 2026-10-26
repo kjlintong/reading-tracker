@@ -11,19 +11,20 @@ import 'package:reading_tracker/data/database.dart';
 import 'package:reading_tracker/data/recommendation.dart';
 import 'package:reading_tracker/data/recommendation_service.dart';
 import 'package:reading_tracker/providers.dart';
-import 'package:reading_tracker/ui/recommend_page.dart';
+import 'package:reading_tracker/ui/discover_page.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'support/fake_recommend_service.dart';
 import 'support/localized_app.dart';
 
-/// 「找书」推荐页的效果图生成器。
+/// 「发现」页的效果图生成器。
 ///
 /// ## 为什么要单独出图
 ///
-/// 这个页面是四档书源 + 勾选入库的新交互，纯 widget 测试断言得了
-/// 「有没有这个 chip」「点得动点不动」，但**看不出排版对不对**：
-/// 四个 chip 在 390 宽的屏上排不排得下、理由文字会不会把行挤爆、
+/// 这个页面是新交互（两档来源 + 阅读顺序 + 勾选入库），
+/// 纯 widget 测试断言得了「有没有这个 chip」「点得动点不动」，
+/// 但**看不出排版对不对**：
+/// 说明文字会不会把两行挤掉、序号徽章和封面挤不挤、
 /// 底部按钮压不压住列表——这些只能看图。
 ///
 /// ## 为什么用假服务
@@ -36,8 +37,8 @@ import 'support/localized_app.dart';
 /// ## 用法
 ///
 /// ```bash
-/// SHOTS=1 flutter test test/recommend_shots_test.dart
-/// 产物：store/shots/recommend-*.png
+/// SHOTS=1 flutter test test/discover_shots_test.dart
+/// 产物：store/shots/discover-*.png
 /// ```
 ///
 /// 默认（`flutter test`）完全跳过渲染。
@@ -126,52 +127,37 @@ void main() {
     }
   }
 
-  /// 四档各自的候选。
+  /// 两个来源各自的候选。
   List<Recommendation> resultsFor(RecommendSource src) => switch (src) {
-        RecommendSource.shelfUnread => [
+        RecommendSource.shelf => [
             fakeRecommendation('置身事外',
                 author: '格雷厄姆·格林',
                 reason: '书架里标记了想读，但一直没动',
+                order: 1,
                 inShelf: true,
                 source: src),
             fakeRecommendation('我与地坛',
                 author: '史铁生',
                 reason: '书架里标记了想读，但一直没动',
+                order: 2,
                 inShelf: true,
                 source: src),
           ],
-        RecommendSource.llm => [
+        RecommendSource.online => [
             fakeRecommendation('克拉拉与太阳',
                 author: '石黑一雄',
-                reason: '你偏爱文学与当代小说，诺奖作家群落里唯一还没读过的',
+                reason: '诺奖作家群落里唯一还没读过的一本，叙事视角很特别',
+                order: 1,
                 source: src),
             fakeRecommendation('海边的卡夫卡',
                 author: '村上春树',
-                reason: '今年的阅读目标里「读完的虚构类」还差两本，这本常被推荐',
+                reason: '你今年的虚构类目标还差两本，这本是同作者的另一条线',
+                order: 2,
                 source: src),
             fakeRecommendation('昨日的世界',
                 author: '茨威格',
                 reason: '最近读过两本回忆录，这本能接上同一条脉络',
-                source: src),
-          ],
-        RecommendSource.weread => [
-            fakeRecommendation('长安的荔枝',
-                author: '马伯庸',
-                reason: '书城榜单 · 历史小说热榜第 2',
-                source: src),
-            fakeRecommendation('夜晚的潜水艇',
-                author: '陈春成',
-                reason: '书城榜单 · 文学榜第 7',
-                source: src),
-          ],
-        RecommendSource.search => [
-            fakeRecommendation('置身事外',
-                author: '格雷厄姆·格林',
-                reason: '从 12 条搜索结果里挑出：与你的阅读口味最接近',
-                source: src),
-            fakeRecommendation('一个陌生女人的来信',
-                author: '斯蒂芬·茨威格',
-                reason: '从 12 条搜索结果里挑出：同作者的另一本',
+                order: 3,
                 source: src),
           ],
       };
@@ -186,7 +172,7 @@ void main() {
           theme: theme(),
           home: const RepaintBoundary(
             key: shotKey,
-            child: RecommendPage(),
+            child: DiscoverPage(),
           ),
         ),
       );
@@ -214,11 +200,12 @@ void main() {
     });
   }
 
-  /// 切到某个档位。
+  /// 切到某个来源。
   ///
-  /// 四个 chip 排在一条横向滚动条里，390 宽的屏只放得下前三个——
-  /// 后面的在屏幕外。`tester.tap` 对屏幕外的 widget 不报错但**点不到**
-  /// （截图会跟没切一样，悄无声息地骗人）。所以先滚过去再点。
+  /// 两个 chip 一屏放得下，但 `ensureVisible` 仍然要留——
+  /// 上一版四个 chip 排在横向滚动条里，后两个在屏幕外，
+  /// `tester.tap` 对屏幕外的 widget 不报错但**点不到**
+  /// （截图会跟没切一样，悄无声息地骗人）。
   Future<void> switchTo(WidgetTester tester, String label) async {
     final chip = find.widgetWithText(ChoiceChip, label);
     await tester.ensureVisible(chip);
@@ -227,58 +214,60 @@ void main() {
     await settleAsync(tester);
   }
 
-  /// 四档全可用：档位条 + 第一档列表。
-  shot('recommend-01-source-and-list');
+  /// 书架那档：说明文字 + 两个来源 + 书架列表。
+  shot('discover-01-shelf');
 
-  /// 档②大模型：列表里带推荐理由。
-  testWidgets('recommend-02-llm', (tester) async {
+  /// 联网那档：带序号徽章与「按这个顺序读」的提示。
+  testWidgets('discover-02-online', (tester) async {
     if (!enabled) return;
     prepare(tester);
     await tester.pumpWidget(harness(service()));
     await settleAsync(tester);
-    await switchTo(tester, '大模型推荐');
-    await capture(tester, 'recommend-02-llm');
+    await switchTo(tester, '联网');
+    await capture(tester, 'discover-02-online');
   });
 
-  /// 档④搜索：书名与作者来自搜索，理由是模型从候选里挑的。
-  testWidgets('recommend-03-search', (tester) async {
+  /// 填了关键词之后的样子。
+  testWidgets('discover-03-keyword', (tester) async {
     if (!enabled) return;
     prepare(tester);
     await tester.pumpWidget(harness(service()));
     await settleAsync(tester);
-    await switchTo(tester, '联网搜索');
-    await capture(tester, 'recommend-03-search');
+    await switchTo(tester, '联网');
+    await tester.enterText(find.byType(TextField), '记忆与遗忘');
+    await settleAsync(tester);
+    await capture(tester, 'discover-03-keyword');
   });
 
   /// 勾选后的状态：底部出现「把 N 本加入书架」。
-  testWidgets('recommend-04-selected', (tester) async {
+  testWidgets('discover-04-selected', (tester) async {
     if (!enabled) return;
     prepare(tester);
     await tester.pumpWidget(harness(service()));
     await settleAsync(tester);
-    await switchTo(tester, '大模型推荐');
+    await switchTo(tester, '联网');
     await tester.tap(find.byKey(const ValueKey('rec_title_克拉拉与太阳')));
     await settleAsync(tester);
-    await capture(tester, 'recommend-04-selected');
+    await capture(tester, 'discover-04-selected');
   });
 
-  /// 缺凭据时：其余三档置灰但**不隐藏**。
+  /// 联网缺凭据时：置灰 + 说清楚缺什么 + 「去设置」。
   shot(
-    'recommend-05-greyed',
-    available: const {RecommendSource.shelfUnread},
+    'discover-05-need-config',
+    available: const {RecommendSource.shelf},
   );
 
   /// 入库之后的反馈：写在页面里的小字，不是 SnackBar。
-  testWidgets('recommend-06-added', (tester) async {
+  testWidgets('discover-06-added', (tester) async {
     if (!enabled) return;
     prepare(tester);
     await tester.pumpWidget(harness(service()));
     await settleAsync(tester);
-    await switchTo(tester, '大模型推荐');
+    await switchTo(tester, '联网');
     await tester.tap(find.byKey(const ValueKey('rec_title_克拉拉与太阳')));
     await settleAsync(tester);
     await tester.tap(find.text('把 1 本加入书架'));
     await settleAsync(tester);
-    await capture(tester, 'recommend-06-added');
+    await capture(tester, 'discover-06-added');
   });
 }

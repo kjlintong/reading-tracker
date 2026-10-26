@@ -9,27 +9,32 @@ import '../models/enums.dart';
 import '../providers.dart';
 import 'book_cover.dart';
 
-/// 推荐书单页。
+/// 「发现」页：给一个兴趣，排一份书单。
 ///
-/// ## 四档书源
+/// ## 两种来源
 ///
-/// 顶部四个分段按钮切换来源。档位不同，**需要的东西也不同**：
-/// 本地书架那一档零凭据永远可用，其余三档分别要微信读书 Key、
-/// 大模型 Key、搜索 Key + 大模型 Key。
+/// 顶部两个分段切换：**我的书架** 与 **联网**。
 ///
-/// 不可用的档位**显示出来但置灰**并说明缺什么，而不是直接隐藏——
-/// 隐藏的话用户根本不知道 App 还有这个功能，只会觉得「怎么只有三种推荐」。
-class RecommendPage extends ConsumerStatefulWidget {
-  const RecommendPage({super.key});
+/// 联网内部具体走哪条路（大模型 / 微信读书 / 搜索）由 App 自己决定，
+/// 用户不需要知道也不用管——他配了哪个 Key 就走哪条。
+/// 一个凭据都没有时联网置灰，并给一个「去设置」的入口，
+/// 而不是让用户对着一个点不动的按钮猜。
+///
+/// ## 每条推荐给两样东西
+///
+/// 除了书名与作者，还给**一句话介绍**和**建议的阅读顺序**。
+/// 只给书名的书单用户无从判断该不该读；给出顺序则可以照着读。
+class DiscoverPage extends ConsumerStatefulWidget {
+  const DiscoverPage({super.key});
 
   @override
-  ConsumerState<RecommendPage> createState() => _RecommendPageState();
+  ConsumerState<DiscoverPage> createState() => _DiscoverPageState();
 }
 
-class _RecommendPageState extends ConsumerState<RecommendPage> {
+class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   final _ctrl = TextEditingController();
 
-  RecommendSource _source = RecommendSource.shelfUnread;
+  RecommendSource _source = RecommendSource.shelf;
   bool _busy = false;
   bool _loaded = false;
   String? _error;
@@ -47,6 +52,9 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
     super.initState();
     // 进页面就出第一档的结果：用户是来看书的，等他点一下才出结果
     // 等于多一次无谓的空白。
+    //
+    // 放在**下一帧**而不是立刻：首帧要先把这个页面画出来，
+    // 查询跟着挤在首帧里做，转场动画就会被拖住（真机上卡一秒）。
     WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
   }
 
@@ -117,7 +125,7 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
     var added = 0;
     for (final i in picked) {
       final r = _items[i];
-      // 书架里已有的书（档①的推荐）不能再插一条——那会造出重复记录。
+      // 书架里已有的书（书架那档的推荐）不能再插一条——那会造出重复记录。
       if (r.alreadyInShelf) continue;
       final b = r.book;
       if (b.title.trim().isEmpty) continue;
@@ -166,7 +174,7 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
         ..addAll(remap.entries
             .where((e) => _selected.contains(e.key))
             .map((e) => e.value));
-      _notice = appLoc.recommendAdded(n: added);
+      _notice = appLoc.discoverAdded(n: added);
     });
   }
 
@@ -176,10 +184,11 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
     final svc = ref.watch(recommendationServiceProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(appLoc.recommendTitle)),
+      appBar: AppBar(title: Text(appLoc.discoverTitle)),
       body: Column(
         children: [
-          _sourceBar(svc),
+          _intro(cs),
+          _sourceBar(svc, cs),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: Row(
@@ -190,7 +199,7 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
                     textInputAction: TextInputAction.search,
                     onSubmitted: (_) => _refresh(),
                     decoration: InputDecoration(
-                      hintText: appLoc.recommendKeywordHint,
+                      hintText: appLoc.discoverKeywordHint,
                       isDense: true,
                       prefixIcon: const Icon(Icons.search, size: 20),
                       border: const OutlineInputBorder(),
@@ -201,7 +210,7 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
                 IconButton(
                   onPressed: _busy ? null : _refresh,
                   icon: const Icon(Icons.refresh),
-                  tooltip: appLoc.recommendRefresh,
+                  tooltip: appLoc.discoverRefresh,
                 ),
               ],
             ),
@@ -232,24 +241,55 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
                 child: FilledButton(
                   onPressed: _addSelected,
-                  child: Text(appLoc.recommendAddSelected(n: _selected.length)),
+                  child: Text(appLoc.discoverAddSelected(n: _selected.length)),
                 ),
               ),
             ),
     );
   }
 
-  /// 四个档位的分段按钮。
-  Widget _sourceBar(RecommendationService svc) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+  /// 顶部那句说明。
+  ///
+  /// 这个页面叫「发现」，光看名字不知道能干什么。
+  /// 一句话把「说出你感兴趣的东西 → 得到一份排好序的书单」讲清楚，
+  /// 比任何引导教程都省事。
+  Widget _intro(ColorScheme cs) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final s in RecommendSource.values) ...[
-            _chip(s, svc.available(s)),
-            const SizedBox(width: 8),
-          ],
+          Icon(Icons.auto_awesome, size: 16, color: cs.primary),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              appLoc.discoverIntro,
+              style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 两个来源的分段按钮。
+  Widget _sourceBar(RecommendationService svc, ColorScheme cs) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _chip(RecommendSource.shelf, true),
+              const SizedBox(width: 8),
+              _chip(RecommendSource.online,
+                  svc.available(RecommendSource.online)),
+            ],
+          ),
+          // 联网不可用时，**置灰之外还得说清楚缺什么**。
+          // 只放一个点不动的按钮，用户会以为功能坏了。
+          if (!svc.available(RecommendSource.online)) _needConfig(cs),
         ],
       ),
     );
@@ -268,23 +308,73 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
     );
   }
 
+  /// 联网不可用时的提示行。
+  ///
+  /// 只置灰不解释，用户会以为功能坏了。
+  /// 给一句「缺什么」+ 一个直达设置的按钮，用户才知道下一步做什么。
+  Widget _needConfig(ColorScheme cs) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
+        decoration: BoxDecoration(
+          color: cs.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.key_off_outlined, size: 16, color: cs.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                appLoc.discoverNeedConfig,
+                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+              ),
+            ),
+            TextButton(
+              onPressed: _goSettings,
+              child: Text(appLoc.discoverGoSettings),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 跳到设置栏。
+  ///
+  /// 先把底部导航切到设置，再关掉本页——
+  /// 顺序反了的话，关掉本页时 HomeShell 还没重建，用户看到的仍是旧栏。
+  void _goSettings() {
+    ref.read(homeTabProvider.notifier).state = HomeTabs.settings;
+    Navigator.of(context).pop();
+  }
+
   String _sourceLabel(RecommendSource s) => switch (s) {
-        RecommendSource.shelfUnread => appLoc.recommendSourceShelf,
-        RecommendSource.llm => appLoc.recommendSourceLlm,
-        RecommendSource.weread => appLoc.recommendSourceWeread,
-        RecommendSource.search => appLoc.recommendSourceSearch,
+        RecommendSource.shelf => appLoc.discoverSourceShelf,
+        RecommendSource.online => appLoc.discoverSourceOnline,
       };
 
   IconData _sourceIcon(RecommendSource s) => switch (s) {
-        RecommendSource.shelfUnread => Icons.local_library_outlined,
-        RecommendSource.llm => Icons.auto_awesome,
-        RecommendSource.weread => Icons.menu_book,
-        RecommendSource.search => Icons.travel_explore,
+        RecommendSource.shelf => Icons.local_library_outlined,
+        RecommendSource.online => Icons.travel_explore,
       };
 
   Widget _body(RecommendationService svc, ColorScheme cs) {
     if (_busy && _items.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 12),
+            Text(
+              appLoc.discoverLoading,
+              style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
+            ),
+          ],
+        ),
+      );
     }
     if (_error != null) {
       return _message(cs, Icons.error_outline, _error!);
@@ -293,22 +383,42 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
       return const SizedBox.shrink();
     }
     if (_items.isEmpty) {
-      return _message(cs, Icons.inbox_outlined, appLoc.recommendEmpty);
+      return _message(cs, Icons.inbox_outlined, appLoc.discoverEmpty);
     }
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      itemCount: _items.length,
+      itemCount: _items.length + 1,
       itemBuilder: (ctx, i) {
-        final r = _items[i];
-        final picked = _selected.contains(i);
+        // 第 0 行是「按这个顺序读」的提示，只在联网档出现——
+        // 书架那档的顺序是「最近加入的」，说成阅读顺序是误导。
+        if (i == 0) {
+          if (_source != RecommendSource.online) return const SizedBox.shrink();
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              children: [
+                Icon(Icons.format_list_numbered,
+                    size: 15, color: cs.primary),
+                const SizedBox(width: 5),
+                Text(
+                  appLoc.discoverOrderHint,
+                  style: TextStyle(fontSize: 12, color: cs.primary),
+                ),
+              ],
+            ),
+          );
+        }
+        final idx = i - 1;
+        final r = _items[idx];
+        final picked = _selected.contains(idx);
         return _tile(r, picked, () {
           // 已在书架的书不能入库，点了没反应等于坏了——直接不响应。
           if (r.alreadyInShelf) return;
           setState(() {
             if (!picked) {
-              _selected.add(i);
+              _selected.add(idx);
             } else {
-              _selected.remove(i);
+              _selected.remove(idx);
             }
           });
         });
@@ -350,6 +460,8 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _orderBadge(r.order, cs),
+                const SizedBox(width: 8),
                 SizedBox(
                   width: 46,
                   height: 64,
@@ -380,14 +492,19 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
                               TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant),
                         ),
                       ],
-                      if (r.reason.isNotEmpty) ...[
+                      if (r.reason.trim().isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
-                          r.reason,
+                          r.reason.trim(),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style:
-                              TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                          style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                        ),
+                      ] else if (r.alreadyInShelf) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          appLoc.discoverFromShelf,
+                          style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                         ),
                       ],
                     ],
@@ -406,6 +523,31 @@ class _RecommendPageState extends ConsumerState<RecommendPage> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  /// 阅读顺序的序号徽章。
+  ///
+  /// 放在封面左边而不是标题前面：标题前的数字会跟书名挤在一起，
+  /// 徽章则像一个独立的标记，一眼能扫到「这是第几本」。
+  Widget _orderBadge(int order, ColorScheme cs) {
+    if (order <= 0) return const SizedBox(width: 20);
+    return Container(
+      width: 20,
+      height: 20,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: cs.primary,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        '$order',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: cs.onPrimary,
         ),
       ),
     );

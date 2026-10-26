@@ -96,6 +96,28 @@ final secretStoreProvider = Provider<SecretStore>((ref) => SecretStore());
 /// 外观：当前皮肤（[AppTheme.id]）。默认取注册表第一项。
 final appThemeProvider = StateProvider<String>((ref) => appThemes.first.id);
 
+/// 底部导航当前选中第几栏。
+///
+/// 做成 provider 而不是 HomeShell 的私有 state，是为了**别的页面能切栏**：
+/// 「发现」页里有个「去设置」的按钮（联网推荐缺凭据时提示用户去配），
+/// 它得能把用户直接送到设置栏，而不是只把页面关掉让他自己找。
+final homeTabProvider = StateProvider<int>((ref) => 0);
+
+/// 底部导航各栏的序号。
+///
+/// 常量放在这里而不是 [HomeShell] 里：`ui/discover_page.dart` 要用它，
+/// 而 HomeShell 在 main.dart 里——从 ui 反向导入 main 会形成循环依赖
+/// （main → notes_page → plan_section → discover_page → main）。
+class HomeTabs {
+  const HomeTabs._();
+
+  static const int shelf = 0;
+  static const int notes = 1;
+  static const int stats = 2;
+  static const int insights = 3;
+  static const int settings = 4;
+}
+
 /// 外观：明暗模式。默认跟随系统。
 final appBrightnessProvider =
     StateProvider<AppBrightness>((ref) => AppBrightness.system);

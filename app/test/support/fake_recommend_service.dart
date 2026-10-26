@@ -63,8 +63,9 @@ Recommendation fakeRecommendation(
   String title, {
   String? author,
   String? reason,
+  int order = 0,
   bool inShelf = false,
-  RecommendSource source = RecommendSource.llm,
+  RecommendSource source = RecommendSource.online,
   String? coverUrl,
   String? category,
 }) {
@@ -82,6 +83,7 @@ Recommendation fakeRecommendation(
       updatedAt: now,
     ),
     reason: reason ?? '',
+    order: order,
     source: source,
     alreadyInShelf: inShelf,
   );

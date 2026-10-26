@@ -5,29 +5,22 @@ import '../data/recommendation.dart';
 import '../models/book.dart';
 import '../models/enums.dart';
 
-/// 推荐书单服务：四档书源共用一条管线。
+/// 推荐书单服务：两种来源共用一条管线。
 ///
-/// ## 为什么四档要共用一条管线
+/// ## 为什么两档要共用一条管线
 ///
 /// 「从哪来」和「怎么办」是两件事：
-///   - 从哪来：本地书架 / 大模型知识 / 微信读书 / 搜索+大模型
-///   - 怎么办：补元数据 → 查重 → 展示 → 用户勾选 → 入库
+///   - 从哪来：自己的书架 / 联网
+///   - 怎么办：补元数据 → 查重 → 排顺序 → 展示 → 用户勾选 → 入库
 ///
-/// 后半段完全一样，拆开写四遍迟早分叉（比如某档忘了查重，
-/// 用户就能把同一本书加两次）。所以四档只负责**产出候选书名**，
+/// 后半段完全一样，拆开写两遍迟早分叉（比如某档忘了查重，
+/// 用户就能把同一本书加两次）。所以两档只负责**产出候选**，
 /// 后半段由本类统一收口。
 ///
-/// ## 每档的凭据要求
+/// ## 联网档不暴露具体来源
 ///
-/// | 档位 | 需要 | 没有时 |
-/// |---|---|---|
-/// | shelfUnread | 无 | 永远可用 |
-/// | llm | 大模型 Key | 这一档不可用 |
-/// | weread | 微信读书 Key | 这一档不可用 |
-/// | search | 搜索 Key + 大模型 Key | 这一档不可用 |
-///
-/// 「没有凭据」不是错误，是**这一档此刻不可用**——用户可能只配了大模型
-/// 而没配微信读书，App 不该因此报错，该档显示成不可用即可。
+/// 界面���只有「联网」一个入口，具体走搜索+大模型、大模型还是微信读书，
+/// 由 [onlinePlan] 按已配置的凭据自动决定。理由见 [OnlinePlan]。
 class RecommendationService {
   final BookRepository repo;
   final LlmClient llm;
@@ -37,6 +30,14 @@ class RecommendationService {
   /// 补元数据用（公开书目库 + 微信读书书城）。
   final MetadataClient metadata;
 
+  /// 单本补全的总预算。
+  ///
+  /// 外部源不可达时（国内直连 Google Books 就是这样），
+  /// 每个源都要等满自己的超时；给整次补全一个上限，
+  /// 超时就用候选自带的字段入库——
+  /// 一本只有书名的书也能进书架，好过页面一直转圈。
+  static const Duration _enrichTimeout = Duration(seconds: 10);
+
   RecommendationService({
     required this.repo,
     required this.llm,
@@ -45,19 +46,32 @@ class RecommendationService {
     required this.metadata,
   });
 
+  /// 联网档内部实际走的路子。
+  ///
+  /// **自动降级，不问用户**。优先级：
+  /// 1. 搜索 + 大模型——搜索给当下真实的候选，大模型负责挑与写介绍；
+  /// 2. 大模型——凭训练知识推荐（模型不知道新书，但经典书没问题）；
+  /// 3. 微信读书书城——中文书库质量高，但排不了阅读顺序。
+  ///
+  /// 返回 null 表示一个凭据都没有，联网档在界面上置灰。
+  OnlinePlan? get onlinePlan {
+    if (llm.available && search.available) return OnlinePlan.searchAndModel;
+    if (llm.available) return OnlinePlan.modelOnly;
+    if (weread.available) return OnlinePlan.wereadOnly;
+    return null;
+  }
+
   /// 一档书源的可用性。
   ///
   /// 用户看到的是「这一档能不能用」，而不是一个笼统的报错。
   bool available(RecommendSource source) => switch (source) {
-        RecommendSource.shelfUnread => true,
-        RecommendSource.llm => llm.available,
-        RecommendSource.weread => weread.available,
-        RecommendSource.search => search.available && llm.available,
+        RecommendSource.shelf => true,
+        RecommendSource.online => onlinePlan != null,
       };
 
   /// 出推荐。
   ///
-  /// [keyword] 是用户填的关键词（可空）。
+  /// [keyword] 是用户填的「感兴趣的东西」（可空——空了就按本地画像推）。
   /// [limit] 是最终返回条数上限。
   Future<List<Recommendation>> recommend(
     RecommendSource source, {
@@ -65,18 +79,14 @@ class RecommendationService {
     int limit = 8,
   }) async {
     final drafts = switch (source) {
-      RecommendSource.shelfUnread => await _fromShelfUnread(limit: limit),
-      RecommendSource.llm => await _fromLlm(keyword: keyword, limit: limit),
-      RecommendSource.weread =>
-        await _fromWeread(keyword: keyword, limit: limit),
-      RecommendSource.search =>
-        await _fromSearch(keyword: keyword, limit: limit),
+      RecommendSource.shelf => await _fromShelfUnread(limit: limit),
+      RecommendSource.online => await _fromOnline(keyword: keyword, limit: limit),
     };
     if (drafts.isEmpty) return const [];
     return _enrich(drafts, limit: limit, source: source);
   }
 
-  // ── 档①：本地书架未读 ────────────────────────────────────────────────
+  // ── 来源一：自己的书架 ────────────────────────────────────────────────
 
   /// 从书架里挑还没读的书。
   ///
@@ -107,7 +117,26 @@ class RecommendationService {
     return out;
   }
 
-  // ── 档②：大模型知识 ──────────────────────────────────────────────────
+  // ── 来源二：联网 ──────────────────────────────────────────────────────
+
+  /// 联网档的候选产出。
+  ///
+  /// 具体走哪条路子由 [onlinePlan] 决定，用户不需要（也无权）干预。
+  Future<List<RecommendationDraft>> _fromOnline({
+    String? keyword,
+    int limit = 8,
+  }) async {
+    switch (onlinePlan) {
+      case OnlinePlan.searchAndModel:
+        return _fromSearch(keyword: keyword, limit: limit);
+      case OnlinePlan.modelOnly:
+        return _fromLlm(keyword: keyword, limit: limit);
+      case OnlinePlan.wereadOnly:
+        return _fromWeread(keyword: keyword, limit: limit);
+      case null:
+        return const [];
+    }
+  }
 
   /// 让大模型凭训练知识推荐。
   ///
@@ -165,16 +194,22 @@ class RecommendationService {
       '你是一位资深选书人。根据读者的藏书画像，推荐他们可能感兴趣但**尚未读过**的书。\n'
       '要求：\n'
       '1. 只输出 JSON 数组，不要任何解释文字或代码块标记。\n'
-      '2. 每个元素包含 title、author、reason、category 四个字段。\n'
-      '3. reason 用一句话说明为什么推给这位读者（不超过 40 字）。\n'
-      '4. 不要推荐读者已经拥有的书。\n'
-      '5. 推荐真实存在的书，不要编造。';
+      '2. 每个元素包含 title、author、reason、category、order 五个字段。\n'
+      '3. reason 用一句话说明这本书好在哪、为什么推给这位读者（不超过 40 字）。\n'
+      '4. **order 是建议的阅读顺序**，从 1 开始按「先入门、再进阶、最后深入」排；\n'
+      '   同一难度层次的书顺序可以随意，但不要重复。\n'
+      '5. 不要推荐读者已经拥有的书。\n'
+      '6. 推荐真实存在的书，不要编造。';
 
   String _buildUserPrompt(String profile, String? keyword, int limit) {
     final buf = StringBuffer()
       ..writeln('读者画像：$profile');
-    if (keyword != null && keyword.trim().isNotEmpty) {
-      buf.writeln('额外要求：围绕「${keyword.trim()}」推荐。');
+    final topic = keyword?.trim() ?? '';
+    if (topic.isNotEmpty) {
+      buf.writeln('读者感兴趣的主题：$topic');
+      buf.writeln('请围绕这个主题推荐，并按由浅入深的顺序排列。');
+    } else {
+      buf.writeln('读者没有指定主题，请根据画像选一个合适的方向，并按由浅入深排序。');
     }
     buf.write('请推荐 $limit 本书。');
     return buf.toString();
@@ -293,10 +328,12 @@ class RecommendationService {
       '请从中挑出**真实存在且值得推荐**的书籍，整理成 JSON 数组。\n'
       '要求：\n'
       '1. 只输出 JSON 数组，不要解释文字。\n'
-      '2. 每个元素包含 title、author（可选）、reason、category（可选）。\n'
+      '2. 每个元素包含 title、author（可选）、reason、category（可选）、order。\n'
       '3. reason 说明这本书好在哪、适合什么样的读者（一句话，40 字内）。\n'
-      '4. **只从候选里挑**，不要加入候选之外的书。\n'
-      '5. 候选里没有明确书名的条目直接跳过。';
+      '4. **order 是建议的阅读顺序**，从 1 开始按「先入门、再进阶、最后深入」排；\n'
+      '   同一难度层次的书顺序可以随意，但不要重复。\n'
+      '5. **只从候选里挑**，不要加入候选之外的书。\n'
+      '6. 候选里没有明确书名的条目直接跳过。';
 
   String _buildSearchPrompt(String keyword, List<SearchHit> hits, int limit) {
     final buf = StringBuffer()..writeln('主题：$keyword');
@@ -320,7 +357,7 @@ class RecommendationService {
   /// 搜索与大模型给的 ISBN 十有八九是编的或格式不对，
   /// 按 ISBN 查重等于没查。
   ///
-  /// ## 档①要豁免查重
+  /// ## 书架那档要豁免查重
   ///
   /// 本地书架那档的候选**本来就来自书架**——推荐的是「你买了但还没读的书」，
   /// 它们当然已在库里。若照常查重，结果会被全部剔除，这一档永远返回空。
@@ -332,28 +369,83 @@ class RecommendationService {
     required RecommendSource source,
   }) async {
     final known = <String>{};
-    if (source != RecommendSource.shelfUnread) {
+    if (source != RecommendSource.shelf) {
       final existing = await repo.all();
       known.addAll({for (final b in existing) _normTitle(b.title)});
     }
 
-    final out = <Recommendation>[];
+    final valid = <RecommendationDraft>[];
     final seen = <String>{};
     for (final d in drafts) {
-      if (out.length >= limit) break;
+      if (valid.length >= limit) break;
       final key = _normTitle(d.title);
       if (key.isEmpty) continue;
       if (known.contains(key)) continue; // 已经在书架里
       if (!seen.add(key)) continue; // 本批里重复
+      valid.add(d);
+    }
 
-      final book = await _toBook(d, source);
+    // 补全是网络请求，必须**并发**。
+    //
+    // 串行会把等待时间叠成 N 倍：一页 8 本、每本两个外部源、
+    // 源不可达时每个都要等满超时——串行下来是几十秒的转圈。
+    // 并发后总耗时等于最慢的那一条。
+    final books = await Future.wait(
+      valid.map((d) => _toBook(d, source)),
+    );
+
+    final orders = _assignOrders(valid);
+    final out = <Recommendation>[];
+    for (var i = 0; i < books.length; i++) {
+      final book = books[i];
       if (book == null) continue;
       out.add(Recommendation(
         book: book,
-        reason: d.reason ?? '',
+        reason: valid[i].reason ?? '',
+        order: orders[i],
         source: source,
-        alreadyInShelf: source == RecommendSource.shelfUnread,
+        alreadyInShelf: source == RecommendSource.shelf,
       ));
+    }
+
+    // 按建议的阅读顺序排列。
+    //
+    // 大模型给的是「先入门后深入」的顺序（order 3 可能排在第一行），
+    // 展示时必须按它排，否则序号和顺序对不上——用户照序号读就乱了。
+    out.sort((a, b) {
+      if (a.order != b.order) return a.order.compareTo(b.order);
+      return 0;
+    });
+    return out;
+  }
+
+  /// 给候选分配阅读顺序。
+  ///
+  /// 大模型给了 order 就用它（它知道哪本是入门哪本是进阶）；
+  /// 没给就按出现顺序补上——**顺序信息缺失不该让整份书单看起来没有顺序**。
+  ///
+  /// 补位时跳过已被占用的号，避免出现「1、1、3」这种编号。
+  static List<int> _assignOrders(List<RecommendationDraft> drafts) {
+    final out = List<int>.filled(drafts.length, 0);
+    final taken = <int>{};
+
+    // 先放模型给的
+    for (var i = 0; i < drafts.length; i++) {
+      final o = drafts[i].order;
+      if (o != null && o > 0 && !taken.contains(o)) {
+        out[i] = o;
+        taken.add(o);
+      }
+    }
+    // 剩下的按出现顺序补
+    var next = 1;
+    for (var i = 0; i < drafts.length; i++) {
+      if (out[i] != 0) continue;
+      while (taken.contains(next)) {
+        next++;
+      }
+      out[i] = next;
+      taken.add(next);
     }
     return out;
   }
@@ -372,25 +464,36 @@ class RecommendationService {
     var isbn = d.isbn;
     var coverUrl = d.coverUrl;
 
-    try {
-      final m = await metadata.lookup(title, author: d.author);
-      if (m != null) {
-        final t = (m.title ?? '').trim();
-        if (t.isNotEmpty) title = t;
-        if (m.authors.isNotEmpty) {
-          authors = m.authors
-              .map((e) => e.trim())
-              .where((e) => e.isNotEmpty)
-              .toList();
+    // 书架那档**不去网上补元数据**。
+    //
+    // 两个理由，第二个更要命：
+    // 一是慢——网络不可达时每本都要等满超时；
+    // 二是**会用网络版本的作者/简介覆盖用户自己填的内容**。
+    // 候选本来就来自书架，作者、简介、分类、封面全都在，
+    // 拿网上的版本去覆盖等于用低质量数据污染用户的数据。
+    if (source != RecommendSource.shelf) {
+      try {
+        final m = await metadata
+            .lookup(title, author: d.author)
+            .timeout(_enrichTimeout, onTimeout: () => null);
+        if (m != null) {
+          final t = (m.title ?? '').trim();
+          if (t.isNotEmpty) title = t;
+          if (m.authors.isNotEmpty) {
+            authors = m.authors
+                .map((e) => e.trim())
+                .where((e) => e.isNotEmpty)
+                .toList();
+          }
+          publisher = m.publisher ?? publisher;
+          description = m.description ?? description;
+          category = m.categoryPrimary ?? category;
+          isbn = m.isbn13 ?? isbn;
+          coverUrl = m.coverUrl ?? coverUrl;
         }
-        publisher = m.publisher ?? publisher;
-        description = m.description ?? description;
-        category = m.categoryPrimary ?? category;
-        isbn = m.isbn13 ?? isbn;
-        coverUrl = m.coverUrl ?? coverUrl;
+      } catch (_) {
+        // 补全失败不致命：下面还有兜底。
       }
-    } catch (_) {
-      // 补全失败不致命：下面还有兜底。
     }
 
     if (authors.isEmpty && d.author != null) {
@@ -411,7 +514,8 @@ class RecommendationService {
       categoryRaw: category,
       isbn13: isbn,
       coverUrl: coverUrl,
-      source: source == RecommendSource.weread
+      source: (source == RecommendSource.online &&
+              onlinePlan == OnlinePlan.wereadOnly)
           ? BookSource.weread
           : BookSource.manual,
       // 归一化统一由入库流程收口，这里只写 categoryRaw。

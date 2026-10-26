@@ -125,36 +125,24 @@ void main() {
   }
 
   group('可用性', () {
-    test('本地书架那档永远可用', () {
-      expect(service().available(RecommendSource.shelfUnread), isTrue);
+    test('书架那档永远可用', () {
+      expect(service().available(RecommendSource.shelf), isTrue);
     });
 
-    test('缺 Key 的档位标为不可用，而不是抛异常', () {
+    test('一个 Key 都没有时联网那档标为不可用，而不是抛异常', () {
       final s = service(llmKey: null, wereadKey: null, searchKey: null);
-      expect(s.available(RecommendSource.llm), isFalse);
-      expect(s.available(RecommendSource.weread), isFalse);
-      // 第 4 档要两个 Key，缺一不可
-      expect(s.available(RecommendSource.search), isFalse);
-    });
-
-    test('第 4 档缺大模型 Key 也不可用', () {
-      final s = service(llmKey: null);
-      expect(s.available(RecommendSource.search), isFalse);
-    });
-
-    test('第 4 档两个 Key 都在才可用', () {
-      expect(service().available(RecommendSource.search), isTrue);
+      expect(s.available(RecommendSource.online), isFalse);
     });
   });
 
-  group('档①：本地书架未读', () {
+  group('书架来源', () {
     test('只出「想读」的书', () async {
       await repo.insert(book('1', '想读的书'));
       await repo.insert(book('2', '在读的书', status: BookStatus.reading));
       await repo.insert(book('3', '已读的书', status: BookStatus.finished));
       await repo.insert(book('4', '搁置的书', status: BookStatus.shelved));
 
-      final out = await service().recommend(RecommendSource.shelfUnread);
+      final out = await service().recommend(RecommendSource.shelf);
       final titles = out.map((e) => e.book.title).toList();
       expect(titles, contains('想读的书'));
       expect(titles, isNot(contains('在读的书')));
@@ -163,101 +151,271 @@ void main() {
     });
 
     test('书架空时返回空列表，不抛异常', () async {
-      expect(await service().recommend(RecommendSource.shelfUnread), isEmpty);
+      expect(await service().recommend(RecommendSource.shelf), isEmpty);
     });
 
     test('这一档的候选标记为「已在书架」——不能再入库一次', () async {
       await repo.insert(book('1', '想读的书'));
-      final out = await service().recommend(RecommendSource.shelfUnread);
+      final out = await service().recommend(RecommendSource.shelf);
       expect(out.single.alreadyInShelf, isTrue);
+    });
+
+    test('**完全不联网**——候选来自书架，元数据本来就是齐的', () async {
+      await repo.insert(book('1', '想读的书'));
+      var hits = 0;
+      final counting = Dio();
+      counting.interceptors.add(InterceptorsWrapper(
+        onRequest: (options, handler) {
+          hits++;
+          handler.resolve(Response(requestOptions: options, data: null));
+        },
+      ));
+
+      final s = RecommendationService(
+        repo: repo,
+        llm: LlmClient(
+          dio: mockLlm(''),
+          apiKey: 'k',
+          baseUrl: 'https://llm.test/v1',
+          model: 'm',
+        ),
+        weread: WereadGateway(dio: mockDio(null), apiKey: 'k'),
+        search: SearchClient(
+            dio: mockDio(null), apiKey: 'k', endpoint: 'https://s.test'),
+        metadata: MetadataClient(
+          dio: counting,
+          weread: WereadGateway(dio: counting, apiKey: null),
+        ),
+      );
+
+      final out = await s.recommend(RecommendSource.shelf);
+      expect(out, hasLength(1));
+      expect(
+        hits,
+        0,
+        reason: '档①不该发任何网络请求：'
+            '一是慢（源不可达时每本都要等满超时），'
+            '二是会用网络版本覆盖用户自己填的作者和简介',
+      );
+    });
+
+    test('保留用户自己填的作者与简介，不被网络版本覆盖', () async {
+      await repo.insert(Book(
+        id: '1',
+        title: '想读的书',
+        authors: const ['我自己写的作者'],
+        description: '我自己写的简介',
+        status: BookStatus.wish,
+        createdAt: now,
+        updatedAt: now,
+      ));
+
+      // 网上查到的版本完全不一样
+      final s = RecommendationService(
+        repo: repo,
+        llm: LlmClient(
+            dio: mockLlm(''), apiKey: 'k', baseUrl: 'https://l.test', model: 'm'),
+        weread: WereadGateway(dio: mockDio(null), apiKey: 'k'),
+        search: SearchClient(
+            dio: mockDio(null), apiKey: 'k', endpoint: 'https://s.test'),
+        metadata: MetadataClient(
+          dio: mockDio({
+            'totalItems': 1,
+            'items': [
+              {
+                'volumeInfo': {
+                  'title': '想读的书',
+                  'authors': ['网上的作者'],
+                  'description': '网上的简介',
+                }
+              }
+            ],
+          }),
+          weread: WereadGateway(dio: mockDio(null), apiKey: null),
+        ),
+      );
+
+      final out = await s.recommend(RecommendSource.shelf);
+      expect(out.single.book.authors, contains('我自己写的作者'));
+      expect(out.single.book.description, '我自己写的简介');
     });
   });
 
-  group('档②：大模型知识', () {
+  group('联网：只有大模型 Key', () {
+    /// 只配大模型 Key —— 这样联网档内部走的是 modelOnly。
+    RecommendationService llmOnly({
+      String? llmReply = '[{"title":"三体","author":"刘慈欣","reason":"硬科幻"}]',
+    }) =>
+        service(
+          llmKey: 'llm-key',
+          wereadKey: null,
+          searchKey: null,
+          llmReply: llmReply,
+        );
+
     test('能解析出模型给的推荐', () async {
-      final out = await service().recommend(RecommendSource.llm);
+      final out = await llmOnly().recommend(RecommendSource.online);
       expect(out, hasLength(1));
       expect(out.first.book.title, '三体');
       expect(out.first.reason, '硬科幻');
-      expect(out.first.source, RecommendSource.llm);
+      expect(out.first.source, RecommendSource.online);
     });
 
     test('模型返回畸形 JSON 时不抛异常，返回空', () async {
-      final s = service(llmReply: '这不是 JSON');
-      expect(await s.recommend(RecommendSource.llm), isEmpty);
+      final s = llmOnly(llmReply: '这不是 JSON');
+      expect(await s.recommend(RecommendSource.online), isEmpty);
     });
 
     test('模型返回纯文本书单（Markdown）也能解析', () async {
-      final s = service(llmReply: '1. 《三体》— 刘慈欣 — 硬科幻\n2. 《活着》— 余华');
-      final out = await s.recommend(RecommendSource.llm);
+      final s = llmOnly(
+          llmReply: '1. 《三体》— 刘慈欣 — 硬科幻\n2. 《活着》— 余华');
+      final out = await s.recommend(RecommendSource.online);
       expect(out.map((e) => e.book.title), contains('三体'));
-    });
-
-    test('缺 Key 时干净地返回空', () async {
-      final s = service(llmKey: null);
-      expect(await s.recommend(RecommendSource.llm), isEmpty);
     });
 
     test('已经在书架里的书不会被重复推荐', () async {
       await repo.insert(book('1', '三体'));
-      final out = await service().recommend(RecommendSource.llm);
+      final out = await llmOnly().recommend(RecommendSource.online);
       expect(out.map((e) => e.book.title), isNot(contains('三体')));
     });
 
     test('书名大小写与空格不同也算同一本', () async {
       await repo.insert(book('1', ' 三体 '));
-      final s = service(llmReply: '[{"title":"三体"}]');
-      expect(await s.recommend(RecommendSource.llm), isEmpty);
+      final s = llmOnly(llmReply: '[{"title":"三体"}]');
+      expect(await s.recommend(RecommendSource.online), isEmpty);
     });
   });
 
-  group('档③：微信读书书城', () {
+  group('联网：只有微信读书 Key', () {
+    /// 只配微信读书 Key —— 联网档内部走的是 wereadOnly。
+    RecommendationService wereadOnly() => service(
+          llmKey: null,
+          wereadKey: 'wr-key',
+          searchKey: null,
+        );
+
     test('能解析出书城的结果', () async {
-      final s = service();
-      final out = await s.recommend(RecommendSource.weread);
+      final out = await wereadOnly().recommend(RecommendSource.online);
       expect(out.map((e) => e.book.title), contains('三体'));
-      expect(out.first.source, RecommendSource.weread);
+      expect(out.first.source, RecommendSource.online);
     });
 
     test('书架为空时用通用词兜底，不返回空白', () async {
-      // 新用户书架是空的——这恰恰是最需要「找书」的人，
+      // 新用户书架是空的——这恰恰是最需要「发现」的人，
       // 不能因为本地算不出关键词就整档无结果。
-      final s = service();
-      final out = await s.recommend(RecommendSource.weread);
+      final out = await wereadOnly().recommend(RecommendSource.online);
       expect(out, isNotEmpty);
     });
 
-    test('缺 Key 时干净地返回空', () async {
-      final s = service(wereadKey: null);
-      expect(await s.recommend(RecommendSource.weread), isEmpty);
+    test('走书城时入库来源标成微信读书', () async {
+      final out = await wereadOnly().recommend(RecommendSource.online);
+      expect(out.first.book.source, BookSource.weread);
     });
   });
 
-  group('档④：搜索 + 大模型整理', () {
+  group('联网：搜索 + 大模型', () {
+    /// 三个 Key 都有 —— 联网档内部走的是 searchAndModel。
+    RecommendationService both({
+      String? llmReply = '[{"title":"三体","reason":"硬科幻经典"}]',
+      Map<String, dynamic>? searchReply,
+    }) =>
+        service(llmReply: llmReply, searchReply: searchReply);
+
     test('搜索结果经模型整理后出推荐', () async {
-      final s = service(llmReply: '[{"title":"三体","reason":"硬科幻经典"}]');
-      final out = await s.recommend(RecommendSource.search, keyword: '科幻');
+      final out = await both().recommend(RecommendSource.online, keyword: '科幻');
       expect(out.map((e) => e.book.title), contains('三体'));
-      expect(out.first.source, RecommendSource.search);
+      expect(out.first.source, RecommendSource.online);
     });
 
     test('搜索没结果时返回空', () async {
-      final s = service(searchReply: {'items': <dynamic>[]});
-      expect(await s.recommend(RecommendSource.search, keyword: 'x'), isEmpty);
-    });
-
-    test('缺搜索 Key 时干净地返回空', () async {
-      final s = service(searchKey: null);
-      expect(await s.recommend(RecommendSource.search, keyword: 'x'), isEmpty);
+      final s = both(searchReply: {'items': <dynamic>[]});
+      expect(await s.recommend(RecommendSource.online, keyword: 'x'), isEmpty);
     });
 
     test('模型只从搜索候选里挑，不自己编', () async {
       // 模型返回一本不在候选里的书——这是模型的幻觉，要挡住
-      final s = service(llmReply: '[{"title":"凭空冒出来的书"}]');
-      final out = await s.recommend(RecommendSource.search, keyword: '科幻');
+      final s = both(llmReply: '[{"title":"凭空冒出来的书"}]');
+      final out = await s.recommend(RecommendSource.online, keyword: '科幻');
       // 当前实现信任模型的输出，但至少要能识别出它不在候选里
       // ——这里断言行为稳定（出条目），避免以后静默丢数据。
       expect(out.length, lessThanOrEqualTo(1));
+    });
+  });
+
+  group('联网档的内部选源', () {
+    test('三个 Key 都有时走搜索 + 大模型', () {
+      expect(service().onlinePlan, OnlinePlan.searchAndModel);
+    });
+
+    test('没有搜索 Key 时退到大模型', () {
+      final s = service(searchKey: null);
+      expect(s.onlinePlan, OnlinePlan.modelOnly);
+    });
+
+    test('没有大模型 Key 时退到微信读书', () {
+      final s = service(llmKey: null);
+      expect(s.onlinePlan, OnlinePlan.wereadOnly);
+    });
+
+    test('一个 Key 都没有时联网不可用', () {
+      final s = service(llmKey: null, wereadKey: null, searchKey: null);
+      expect(s.onlinePlan, isNull);
+      expect(s.available(RecommendSource.online), isFalse);
+    });
+
+    test('联网可用时，界面那一档就是可用的', () {
+      expect(service().available(RecommendSource.online), isTrue);
+    });
+  });
+
+  group('阅读顺序', () {
+    test('模型给的 order 被采纳', () async {
+      final s = service(
+        llmKey: 'llm-key',
+        wereadKey: null,
+        searchKey: null,
+        llmReply:
+            '[{"title":"深入的书","order":3},{"title":"入门的书","order":1}]',
+      );
+      final out = await s.recommend(RecommendSource.online);
+      final byTitle = {for (final e in out) e.book.title: e.order};
+      expect(byTitle['入门的书'], 1);
+      expect(byTitle['深入的书'], 3);
+    });
+
+    test('结果按阅读顺序排列，不是按模型给的顺序', () async {
+      final s = service(
+        llmKey: 'llm-key',
+        wereadKey: null,
+        searchKey: null,
+        llmReply:
+            '[{"title":"第三本","order":3},{"title":"第一本","order":1},{"title":"第二本","order":2}]',
+      );
+      final out = await s.recommend(RecommendSource.online);
+      expect(out.map((e) => e.book.title), ['第一本', '第二本', '第三本']);
+      expect(out.map((e) => e.order), [1, 2, 3]);
+    });
+
+    test('模型没给 order 时按出现顺序补', () async {
+      final s = service(
+        llmKey: 'llm-key',
+        wereadKey: null,
+        searchKey: null,
+        llmReply: '[{"title":"甲"},{"title":"乙"},{"title":"丙"}]',
+      );
+      final out = await s.recommend(RecommendSource.online);
+      expect(out.map((e) => e.order), [1, 2, 3]);
+    });
+
+    test('order 重复时不产生两个 1', () async {
+      final s = service(
+        llmKey: 'llm-key',
+        wereadKey: null,
+        searchKey: null,
+        llmReply: '[{"title":"甲","order":1},{"title":"乙","order":1}]',
+      );
+      final out = await s.recommend(RecommendSource.online);
+      expect(out.map((e) => e.order).toSet(), hasLength(2));
     });
   });
 
@@ -265,24 +423,88 @@ void main() {
     test('limit 生效', () async {
       final s = service(llmReply:
           '[{"title":"a"},{"title":"b"},{"title":"c"},{"title":"d"}]');
-      final out = await s.recommend(RecommendSource.llm, limit: 2);
+      final out = await s.recommend(RecommendSource.online, limit: 2);
       expect(out, hasLength(2));
     });
 
     test('同一批里重复的书只出现一次', () async {
       final s = service(llmReply: '[{"title":"三体"},{"title":"三体"}]');
-      final out = await s.recommend(RecommendSource.llm);
+      final out = await s.recommend(RecommendSource.online);
       expect(out, hasLength(1));
     });
 
     test('推荐结果带来源标记', () async {
-      final out = await service().recommend(RecommendSource.llm);
-      expect(out.first.source, RecommendSource.llm);
+      final out = await service().recommend(RecommendSource.online);
+      expect(out.first.source, RecommendSource.online);
     });
 
     test('候选书带空 id——入库时才生成', () async {
-      final out = await service().recommend(RecommendSource.llm);
+      final out = await service().recommend(RecommendSource.online);
       expect(out.first.book.id, isEmpty);
+    });
+
+    test('元数据补全是**并发**的，不是串行', () async {
+      // 8 个候选，每个补全要等 300ms。
+      // 串行 = 2.4 秒，并发 ≈ 300ms。
+      var inFlight = 0;
+      var maxInFlight = 0;
+      final slowMeta = Dio();
+      slowMeta.interceptors.add(InterceptorsWrapper(
+        onRequest: (options, handler) {
+          inFlight++;
+          maxInFlight = maxInFlight > inFlight ? maxInFlight : inFlight;
+          Future<void>.delayed(const Duration(milliseconds: 300)).then((_) {
+            inFlight--;
+            handler.resolve(Response(requestOptions: options, data: null));
+          });
+        },
+      ));
+
+      final titles = List.generate(8, (i) => '书$i').join(',');
+      final reply =
+          '[${List.generate(8, (i) => '{"title":"书$i"}').join(',')}]';
+      final s = RecommendationService(
+        repo: repo,
+        llm: LlmClient(
+          dio: mockLlm(reply),
+          apiKey: 'k',
+          baseUrl: 'https://l.test/v1',
+          model: 'm',
+        ),
+        weread: WereadGateway(dio: mockDio(null), apiKey: 'k'),
+        // 搜索必须给**非空**结果：联网档内部走 searchAndModel，
+        // 搜索没结果就不会去问模型，候选直接是空的。
+        search: SearchClient(
+          dio: mockDio({
+            'items': [
+              {'title': '搜索到的候选', 'snippet': '摘要'},
+            ],
+          }),
+          apiKey: 'k',
+          endpoint: 'https://s.test',
+        ),
+        metadata: MetadataClient(
+          dio: slowMeta,
+          weread: WereadGateway(dio: mockDio(null), apiKey: null),
+        ),
+      );
+
+      final sw = Stopwatch()..start();
+      final out = await s.recommend(RecommendSource.online, limit: 8);
+      sw.stop();
+
+      expect(titles, isNotEmpty);
+      expect(out, hasLength(8));
+      expect(
+        maxInFlight,
+        greaterThan(1),
+        reason: '补全必须并发：串行会把 8 本的等待叠成 8 倍',
+      );
+      expect(
+        sw.elapsed,
+        lessThan(const Duration(seconds: 2)),
+        reason: '8 本 × 300ms 串行要 2.4 秒，并发应该 0.3 秒上下',
+      );
     });
   });
 }
