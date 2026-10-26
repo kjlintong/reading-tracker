@@ -53,26 +53,53 @@ class BookCover extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
-    final local = book.coverLocalPath;
-    if (local != null && local.isNotEmpty) {
-      final file = File(local);
-      return Image.file(
-        file,
-        fit: BoxFit.cover,
-        // 文件被删/读不了时不能只画个破图：退回远程，再退回占位。
-        // 这两级在用户眼里是「封面还在」，比一个错误图标好得多。
-        errorBuilder: (_, __, ___) => _remoteOrPlaceholder(context),
-      );
-    }
-    return _remoteOrPlaceholder(context);
+    // ⚠️ 必须按**实际显示尺寸**限制解码分辨率。
+    //
+    // 列表里的封面只有 46×64 逻辑像素，但 `Image.network` 默认按**原图**解码
+    // （图书封面动辄 800×1200）。一张列表缩略图解码 100 万像素、
+    // 屏幕上只画 46×64 —— 打开「发现」页一次要解码 6 张，
+    // 正好挤在路由转场动画里，动画直接掉帧（真机观感：点进去卡一下）。
+    //
+    // 限制成「显示尺寸 × 设备像素比」后，解码量降到 1/20，
+    // 画面在高分屏上依然清晰（显示尺寸本来就是按物理像素算的）。
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cacheWidth = _cacheWidth(context, constraints);
+        final local = book.coverLocalPath;
+        if (local != null && local.isNotEmpty) {
+          final file = File(local);
+          return Image.file(
+            file,
+            fit: BoxFit.cover,
+            cacheWidth: cacheWidth,
+            // 文件被删/读不了时不能只画个破图：退回远程，再退回占位。
+            // 这两级在用户眼里是「封面还在」，比一个错误图标好得多。
+            errorBuilder: (_, __, ___) => _remoteOrPlaceholder(context, cacheWidth),
+          );
+        }
+        return _remoteOrPlaceholder(context, cacheWidth);
+      },
+    );
   }
 
-  Widget _remoteOrPlaceholder(BuildContext context) {
+  /// 解码目标宽度（物理像素）。无约束或取不到 DPR 时返回 null（不限制）。
+  int? _cacheWidth(BuildContext context, BoxConstraints c) {
+    if (!c.maxWidth.isFinite || c.maxWidth <= 0) return null;
+    final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1.0;
+    final w = (c.maxWidth * dpr).round();
+    if (w <= 0) return null;
+    // 上限 480：详情页那种大封面也不必按原图解码，
+    // 真机 DPR 3 时 480 物理像素已经远超肉眼分辨极限。
+    return w > 480 ? 480 : w;
+  }
+
+  Widget _remoteOrPlaceholder(BuildContext context, int? cacheWidth) {
     final url = book.coverUrl;
     if (url == null || url.isEmpty) return _placeholder(context);
     return Image.network(
       url,
       fit: BoxFit.cover,
+      cacheWidth: cacheWidth,
       errorBuilder: (_, __, ___) => _placeholder(context),
       loadingBuilder: (ctx, child, p) =>
           p == null ? child : _placeholder(context),

@@ -2972,4 +2972,13 @@ class SEn extends S {
 
   @override
   String get discoverRefresh => 'Search again';
+
+  @override
+  String get discoverShelfIntro => 'Books on your shelf you haven\'t read yet, newest first. Finish one, then pick the next.';
+
+  @override
+  String get discoverLocalGroup => 'Already on your shelf';
+
+  @override
+  String get discoverInShelf => 'On your shelf';
 }

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../perf.dart';
 import 'theme.dart';
 
 /// 皮肤背景层：把贴图铺在页面底下，并保证上面的文字始终读得清。
@@ -54,6 +55,9 @@ class AppBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 性能打点：MaterialApp.builder 每次路由变化都会跑这里，
+    // 这个计数能直接看出「切一个页面重建了几次背景」。
+    perfMark('AppBackground.build');
     // 明暗共用同一张素材：不再为深色单独派生 `_dark` 版本。
     //
     // 之所以能这样，是因为贴图亮度被**重新居中到med 0.32**
@@ -99,11 +103,7 @@ class AppBackground extends StatelessWidget {
 
     if (theme.backgroundBlur > 0) {
       image = ImageFiltered(
-        imageFilter: ImageFilter.blur(
-          sigmaX: theme.backgroundBlur,
-          sigmaY: theme.backgroundBlur,
-          tileMode: TileMode.decal,
-        ),
+        imageFilter: _blurFilter(theme.backgroundBlur),
         child: image,
       );
     }
@@ -191,4 +191,33 @@ class AppBackground extends StatelessWidget {
   /// 深色合成结果约 0.208（亮 0.07），浅色约 0.846（暗 0.13），
   /// 两边都稳稳浮得出来，不再是「压在临界点上」。
   double _scrim(bool isLight) => isLight ? 0.58 : 0.30;
+
+  /// 按 sigma 缓存高斯模糊滤镜。
+  ///
+  /// ## 为什么必须缓存（这是「点开新页面卡一秒」的真凶）
+  ///
+  /// `ImageFilter.blur(...)` 每次调用都返回**一个新对象**，而
+  /// `RenderImageFilter` 判断要不要重画，用的是 `imageFilter != oldWidget.imageFilter`
+  /// —— 对象相等是**按引用**的，新对象永远「不等于」旧对象。
+  ///
+  /// 于是每次 AppBackground 重建（MaterialApp.builder 每次路由变化都会跑），
+  /// 都会 `markNeedsPaint` → **整屏 1260×2800 的高斯模糊重算一遍**。
+  ///
+  /// 上一轮给背景三层加了 `RepaintBoundary`，本来能挡住这次重画，
+  /// 但 RepaintBoundary 只在「没人要求重画」时才能贴回旧 layer；
+  /// 上面这条 `markNeedsPaint` 恰好就是「要求重画」——
+  /// **边界被这一行直接抵消掉了**。所以 RepaintBoundary 与本缓存必须同时在。
+  ///
+  /// 缓存后，同一个 sigma 拿到的是**同一个对象**，`!=` 为假，
+  /// 不重画、不重算模糊，路由切换就是真的零成本。
+  static final Map<double, ImageFilter> _blurCache = {};
+
+  static ImageFilter _blurFilter(double sigma) => _blurCache.putIfAbsent(
+        sigma,
+        () => ImageFilter.blur(
+          sigmaX: sigma,
+          sigmaY: sigma,
+          tileMode: TileMode.decal,
+        ),
+      );
 }

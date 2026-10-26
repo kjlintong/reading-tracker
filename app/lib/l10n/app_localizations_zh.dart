@@ -2972,4 +2972,13 @@ class SZh extends S {
 
   @override
   String get discoverRefresh => '重新找一次';
+
+  @override
+  String get discoverShelfIntro => '你书架上还没读的书，按加入顺序排在前面。读完一本，再挑下一本。';
+
+  @override
+  String get discoverLocalGroup => '你书架上已有的';
+
+  @override
+  String get discoverInShelf => '已在书架';
 }

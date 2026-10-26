@@ -2972,4 +2972,13 @@ class SDe extends S {
 
   @override
   String get discoverRefresh => 'Erneut suchen';
+
+  @override
+  String get discoverShelfIntro => 'Bücher in deinem Regal, die du noch nicht gelesen hast – neueste zuerst. Lies eines, dann das nächste.';
+
+  @override
+  String get discoverLocalGroup => 'Bereits in deinem Regal';
+
+  @override
+  String get discoverInShelf => 'Im Regal';
 }

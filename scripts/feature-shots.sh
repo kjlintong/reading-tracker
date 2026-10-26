@@ -22,7 +22,7 @@ export PUB_HOSTED_URL="${PUB_HOSTED_URL:-https://pub.flutter-io.cn}"
 
 cd "$APP_DIR"
 SHOTS=1 "$FLUTTER" test \
-  test/recommend_shots_test.dart \
+  test/discover_shots_test.dart \
   test/share_card_shots_test.dart \
   test/settings_search_shots_test.dart
 

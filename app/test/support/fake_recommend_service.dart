@@ -21,9 +21,11 @@ class FakeRecommendService extends RecommendationService {
   FakeRecommendService({
     required List<Recommendation> Function(RecommendSource source) result,
     Set<RecommendSource> available = const {},
+    String intro = '',
     required super.repo,
   })  : _result = result,
         _available = available,
+        _intro = intro,
         super(
           llm: LlmClient(
             dio: Dio(),
@@ -46,16 +48,19 @@ class FakeRecommendService extends RecommendationService {
   final List<Recommendation> Function(RecommendSource source) _result;
   final Set<RecommendSource> _available;
 
+  /// 书单的总体介绍。页面测试用它验证「导语卡片」渲染。
+  final String _intro;
+
   @override
   bool available(RecommendSource source) => _available.contains(source);
 
   @override
-  Future<List<Recommendation>> recommend(
+  Future<RecommendationBundle> recommend(
     RecommendSource source, {
     String? keyword,
     int limit = 8,
   }) async =>
-      _result(source);
+      RecommendationBundle(intro: _intro, items: _result(source));
 }
 
 /// 造一条推荐结果。
@@ -68,6 +73,7 @@ Recommendation fakeRecommendation(
   RecommendSource source = RecommendSource.online,
   String? coverUrl,
   String? category,
+  String? group,
 }) {
   const now = '2026-10-01T10:00:00.000Z';
   return Recommendation(
@@ -86,5 +92,6 @@ Recommendation fakeRecommendation(
     order: order,
     source: source,
     alreadyInShelf: inShelf,
+    group: group,
   );
 }

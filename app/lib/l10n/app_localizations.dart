@@ -5278,6 +5278,24 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Search again'**
   String get discoverRefresh;
+
+  /// No description provided for @discoverShelfIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Books on your shelf you haven\'t read yet, newest first. Finish one, then pick the next.'**
+  String get discoverShelfIntro;
+
+  /// No description provided for @discoverLocalGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Already on your shelf'**
+  String get discoverLocalGroup;
+
+  /// No description provided for @discoverInShelf.
+  ///
+  /// In en, this message translates to:
+  /// **'On your shelf'**
+  String get discoverInShelf;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

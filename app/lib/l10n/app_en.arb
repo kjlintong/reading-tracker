@@ -3656,5 +3656,8 @@
       }
     }
   },
-  "discoverRefresh": "Search again"
+  "discoverRefresh": "Search again",
+  "discoverShelfIntro": "Books on your shelf you haven't read yet, newest first. Finish one, then pick the next.",
+  "discoverLocalGroup": "Already on your shelf",
+  "discoverInShelf": "On your shelf"
 }

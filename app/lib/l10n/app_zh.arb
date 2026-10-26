@@ -3656,5 +3656,8 @@
       }
     }
   },
-  "discoverRefresh": "重新找一次"
+  "discoverRefresh": "重新找一次",
+  "discoverShelfIntro": "你书架上还没读的书，按加入顺序排在前面。读完一本，再挑下一本。",
+  "discoverLocalGroup": "你书架上已有的",
+  "discoverInShelf": "已在书架"
 }

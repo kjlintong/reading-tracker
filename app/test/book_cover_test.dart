@@ -44,6 +44,16 @@ void main() {
         ),
       );
 
+  /// 取出 Image 真正用的 provider。
+  ///
+  /// 组件给封面设了 `cacheWidth`（按显示尺寸解码，别按原图解码），
+  /// Flutter 会把原 provider 包一层 `ResizeImage`——
+  /// 所以断言得看**底下那层**是谁。
+  ImageProvider providerOf(Image img) {
+    final p = img.image;
+    return p is ResizeImage ? p.imageProvider : p;
+  }
+
   setUpAll(loadFonts);
 
   testWidgets('有本地封面时用本地文件，不吃远程 URL', (tester) async {
@@ -73,7 +83,7 @@ void main() {
     // 本地优先：两个都给了，必须走 file。
     expect(find.byType(Image), findsOneWidget);
     final img = tester.widget<Image>(find.byType(Image));
-    expect(img.image, isA<FileImage>(),
+    expect(providerOf(img), isA<FileImage>(),
         reason: '本地封面必须压过远程 URL，否则用户换封面等于没换');
   });
 
@@ -82,7 +92,20 @@ void main() {
     await tester.pump();
 
     final img = tester.widget<Image>(find.byType(Image));
-    expect(img.image, isA<NetworkImage>());
+    expect(providerOf(img), isA<NetworkImage>());
+  });
+
+  testWidgets('封面按显示尺寸解码，不按原图解码', (tester) async {
+    // 列表里的封面只有几十像素宽，但原图动辄 800×1200。
+    // 不限制解码尺寸的话，打开一个列表要解码十几张大图，
+    // 正好挤在路由转场动画里——真机观感就是「点进去卡一下」。
+    await tester.pumpWidget(host(bookWith(url: 'https://example.com/r.jpg')));
+    await tester.pump();
+
+    final img = tester.widget<Image>(find.byType(Image));
+    // 传了 cacheWidth 才会被包成 ResizeImage——这就是「按显示尺寸解码」的证据。
+    expect(img.image, isA<ResizeImage>(),
+        reason: 'cacheWidth 丢了就等于按原图解码，转场动画会被拖住');
   });
 
   testWidgets('两个都没有时画占位块，而不是空白', (tester) async {
@@ -107,7 +130,7 @@ void main() {
     await tester.pump();
 
     final img = tester.widget<Image>(find.byType(Image));
-    expect(img.image, isA<NetworkImage>());
+    expect(providerOf(img), isA<NetworkImage>());
   });
 
   testWidgets('远程 URL 为空字符串时视同没有封面，画占位块', (tester) async {

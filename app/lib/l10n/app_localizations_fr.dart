@@ -2972,4 +2972,13 @@ class SFr extends S {
 
   @override
   String get discoverRefresh => 'Relancer la recherche';
+
+  @override
+  String get discoverShelfIntro => 'Les livres de votre étagère que vous n\'avez pas encore lus, du plus récent au plus ancien. Lisez-en un, puis le suivant.';
+
+  @override
+  String get discoverLocalGroup => 'Déjà dans votre étagère';
+
+  @override
+  String get discoverInShelf => 'Dans votre étagère';
 }

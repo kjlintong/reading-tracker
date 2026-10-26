@@ -3656,5 +3656,8 @@
       }
     }
   },
-  "discoverRefresh": "Relancer la recherche"
+  "discoverRefresh": "Relancer la recherche",
+  "discoverShelfIntro": "Les livres de votre étagère que vous n'avez pas encore lus, du plus récent au plus ancien. Lisez-en un, puis le suivant.",
+  "discoverLocalGroup": "Déjà dans votre étagère",
+  "discoverInShelf": "Dans votre étagère"
 }

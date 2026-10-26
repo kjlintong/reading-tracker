@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/app_loc.dart';
 import 'data/database.dart';
+import 'perf.dart';
 import 'providers.dart';
 import 'ui/shelf_page.dart';
 import 'ui/notes_page.dart';
@@ -171,6 +172,7 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
+    perfMark('HomeShell.build');
     if (!_loaded) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }

@@ -3656,5 +3656,8 @@
       }
     }
   },
-  "discoverRefresh": "Buscar de nuevo"
+  "discoverRefresh": "Buscar de nuevo",
+  "discoverShelfIntro": "Libros de tu estantería que aún no has leído, del más reciente al más antiguo. Lee uno y luego el siguiente.",
+  "discoverLocalGroup": "Ya en tu estantería",
+  "discoverInShelf": "En tu estantería"
 }

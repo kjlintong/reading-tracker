@@ -128,6 +128,9 @@ void main() {
   }
 
   /// 两个来源各自的候选。
+  ///
+  /// 联网那档刻意做成一份**完整的书单**：本地书架已有的书在前（标「已在书架」），
+  /// 网上找的新书在后，并按模型给的分组切段。
   List<Recommendation> resultsFor(RecommendSource src) => switch (src) {
         RecommendSource.shelf => [
             fakeRecommendation('置身事外',
@@ -144,20 +147,30 @@ void main() {
                 source: src),
           ],
         RecommendSource.online => [
+            // 本地书架里相关的书：已在书架，不占阅读序号
             fakeRecommendation('克拉拉与太阳',
                 author: '石黑一雄',
-                reason: '诺奖作家群落里唯一还没读过的一本，叙事视角很特别',
-                order: 1,
+                reason: '你书里已经有一本石黑一雄，这本是同一条线上的另一本',
+                inShelf: true,
                 source: src),
+            // 网上找的新书：带分组
             fakeRecommendation('海边的卡夫卡',
                 author: '村上春树',
                 reason: '你今年的虚构类目标还差两本，这本是同作者的另一条线',
-                order: 2,
+                order: 1,
+                group: '零基础入门',
                 source: src),
             fakeRecommendation('昨日的世界',
                 author: '茨威格',
                 reason: '最近读过两本回忆录，这本能接上同一条脉络',
+                order: 2,
+                group: '零基础入门',
+                source: src),
+            fakeRecommendation('人类群星闪耀时',
+                author: '斯蒂芬·茨威格',
+                reason: '同一作者的另一条线：把个人命运放进时代的坐标系里看',
                 order: 3,
+                group: '进阶深读',
                 source: src),
           ],
       };
@@ -177,13 +190,23 @@ void main() {
         ),
       );
 
+  /// 大模型写的那段导读（选书指南）。
+  ///
+  /// 参照真实的书单整理稿：先说清这批书分几条线，再说先读哪本。
+  const guide =
+      '这批书分两条线：石黑一雄与村上春树写的是「人如何被更大的东西推着走」，'
+      '茨威格写的是「一个人怎样目送时代退场」。想读故事从前两本入手，'
+      '想读历史补最后一本。';
+
   RecommendationService service({
     Set<RecommendSource> available = const {},
+    String intro = guide,
   }) =>
       FakeRecommendService(
         repo: repo,
         available: available.isEmpty ? RecommendSource.values.toSet() : available,
         result: resultsFor,
+        intro: intro,
       );
 
   /// 出一张图。
@@ -246,7 +269,7 @@ void main() {
     await tester.pumpWidget(harness(service()));
     await settleAsync(tester);
     await switchTo(tester, '联网');
-    await tester.tap(find.byKey(const ValueKey('rec_title_克拉拉与太阳')));
+    await tester.tap(find.byKey(const ValueKey('rec_title_海边的卡夫卡')));
     await settleAsync(tester);
     await capture(tester, 'discover-04-selected');
   });
@@ -264,7 +287,7 @@ void main() {
     await tester.pumpWidget(harness(service()));
     await settleAsync(tester);
     await switchTo(tester, '联网');
-    await tester.tap(find.byKey(const ValueKey('rec_title_克拉拉与太阳')));
+    await tester.tap(find.byKey(const ValueKey('rec_title_海边的卡夫卡')));
     await settleAsync(tester);
     await tester.tap(find.text('把 1 本加入书架'));
     await settleAsync(tester);

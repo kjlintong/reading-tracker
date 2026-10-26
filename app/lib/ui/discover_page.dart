@@ -6,6 +6,7 @@ import '../data/recommendation_service.dart';
 import '../l10n/app_loc.dart';
 import '../models/book.dart';
 import '../models/enums.dart';
+import '../perf.dart';
 import '../providers.dart';
 import 'book_cover.dart';
 
@@ -41,6 +42,14 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   List<Recommendation> _items = const [];
   final Set<int> _selected = {};
 
+  /// 书单的**总体介绍 / 选书指南**。
+  ///
+  /// 联网档由大模型写——它知道这批书之间是什么关系（两条线？先读哪本？）。
+  /// 书架档没有模型，用本地固定文案。
+  ///
+  /// 没有它，书单只是一列书名：用户看得到书，却不知道该从哪本开始。
+  String _guide = '';
+
   /// 入库成功后的提示小字。3 秒后自动消失。
   ///
   /// 不用 SnackBar：它跨页留存、2 秒就消失，用户往往来不及看。
@@ -50,6 +59,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   @override
   void initState() {
     super.initState();
+    perfMark('Discover.initState');
     // 进页面就出第一档的结果：用户是来看书的，等他点一下才出结果
     // 等于多一次无谓的空白。
     //
@@ -60,6 +70,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
   @override
   void dispose() {
+    perfMark('Discover.dispose');
     _ctrl.dispose();
     super.dispose();
   }
@@ -68,19 +79,22 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
 
   Future<void> _refresh() async {
     if (_busy) return;
+    perfMark('Discover.refresh.start');
     setState(() {
       _busy = true;
       _error = null;
       _notice = null;
     });
     try {
-      final items = await _svc.recommend(
+      final bundle = await _svc.recommend(
         _source,
         keyword: _ctrl.text.trim(),
       );
+      perfMark('Discover.refresh.done');
       if (!mounted) return;
       setState(() {
-        _items = items;
+        _items = bundle.items;
+        _guide = bundle.intro;
         _selected.clear();
         _loaded = true;
       });
@@ -101,6 +115,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     setState(() {
       _source = s;
       _items = const [];
+      _guide = '';
       _loaded = false;
       _error = null;
       _notice = null;
@@ -385,44 +400,141 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     if (_items.isEmpty) {
       return _message(cs, Icons.inbox_outlined, appLoc.discoverEmpty);
     }
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-      itemCount: _items.length + 1,
-      itemBuilder: (ctx, i) {
-        // 第 0 行是「按这个顺序读」的提示，只在联网档出现——
-        // 书架那档的顺序是「最近加入的」，说成阅读顺序是误导。
-        if (i == 0) {
-          if (_source != RecommendSource.online) return const SizedBox.shrink();
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              children: [
-                Icon(Icons.format_list_numbered,
-                    size: 15, color: cs.primary),
-                const SizedBox(width: 5),
-                Text(
-                  appLoc.discoverOrderHint,
-                  style: TextStyle(fontSize: 12, color: cs.primary),
-                ),
-              ],
-            ),
-          );
+    return _list(cs);
+  }
+
+  /// 要显示的导语。
+  ///
+  /// 联网档用模型写的那段；模型没写就退回本地文案。
+  /// 书架档没有模型，永远用本地文案。
+  String get _introText {
+    final t = _guide.trim();
+    if (t.isNotEmpty) return t;
+    if (_source == RecommendSource.shelf) return appLoc.discoverShelfIntro;
+    return '';
+  }
+
+  /// 书单正文。
+  ///
+  /// 自上而下四层：
+  ///   1. **总体介绍**——一段选书指南（模型写的），告诉用户这批书怎么读；
+  ///   2. 「建议按这个顺序读」——只在联网档出现。书架档的顺序是
+  ///      「最近加入的」，说成阅读顺序是误导；
+  ///   3. 分段标题——「你书架上已有的」+ 模型给的分组（如「零基础通俗入门」）；
+  ///   4. 逐条推荐。
+  ///
+  /// 一次构建全部行（最多十几条），不做懒加载——
+  /// 这个量级下懒加载只会换来「滑动时白一下」的小毛病。
+  Widget _list(ColorScheme cs) {
+    final rows = <Widget>[];
+
+    final intro = _introText;
+    if (intro.isNotEmpty) rows.add(_introCard(intro, cs));
+
+    if (_source == RecommendSource.online) {
+      rows.add(_orderHint(cs));
+    }
+
+    var localHeaderShown = false;
+    String? lastGroup;
+    for (var i = 0; i < _items.length; i++) {
+      final r = _items[i];
+      final picked = _selected.contains(i);
+      if (r.alreadyInShelf) {
+        // 联网档里的「你已有的那几本」，单独起一段。
+        // 书架档整档都是书架里的书，不需要这个标题。
+        if (_source == RecommendSource.online && !localHeaderShown) {
+          rows.add(_groupTitle(appLoc.discoverLocalGroup, cs));
+          localHeaderShown = true;
         }
-        final idx = i - 1;
-        final r = _items[idx];
-        final picked = _selected.contains(idx);
-        return _tile(r, picked, () {
-          // 已在书架的书不能入库，点了没反应等于坏了——直接不响应。
-          if (r.alreadyInShelf) return;
-          setState(() {
-            if (!picked) {
-              _selected.add(idx);
-            } else {
-              _selected.remove(idx);
-            }
-          });
+      } else {
+        final g = r.group;
+        if (g != null && g != lastGroup) {
+          rows.add(_groupTitle(g, cs));
+          lastGroup = g;
+        }
+      }
+      rows.add(_tile(r, picked, () {
+        // 已在书架的书不能入库，点了没反应等于坏了——直接不响应。
+        if (r.alreadyInShelf) return;
+        setState(() {
+          if (!picked) {
+            _selected.add(i);
+          } else {
+            _selected.remove(i);
+          }
         });
-      },
+      }));
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+      children: rows,
+    );
+  }
+
+  /// 总体介绍卡片。
+  ///
+  /// 左边一道主色竖条：它是「导读」不是「一条推荐」，
+  /// 竖条能把两者的视觉层级分开。
+  Widget _introCard(String text, ColorScheme cs) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border(left: BorderSide(color: cs.primary, width: 3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.auto_awesome, size: 15, color: cs.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12.5,
+                height: 1.5,
+                color: cs.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 「建议按这个顺序读」提示。
+  Widget _orderHint(ColorScheme cs) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(Icons.format_list_numbered, size: 15, color: cs.primary),
+          const SizedBox(width: 5),
+          Text(
+            appLoc.discoverOrderHint,
+            style: TextStyle(fontSize: 12, color: cs.primary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 分段标题。
+  Widget _groupTitle(String text, ColorScheme cs) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 4, 0, 8),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: cs.onSurface,
+        ),
+      ),
     );
   }
 
@@ -500,11 +612,30 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                         ),
-                      ] else if (r.alreadyInShelf) ...[
+                      ] else if (r.alreadyInShelf &&
+                          r.source == RecommendSource.shelf) ...[
                         const SizedBox(height: 4),
                         Text(
                           appLoc.discoverFromShelf,
                           style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                        ),
+                      ],
+                      // 联网档里的本地书要标出来：它跟「建议再读」的那些
+                      // 不是一回事——这本你已经买了。
+                      if (r.alreadyInShelf &&
+                          r.source == RecommendSource.online) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.check_circle_outline,
+                                size: 12, color: cs.onSurfaceVariant),
+                            const SizedBox(width: 4),
+                            Text(
+                              appLoc.discoverInShelf,
+                              style: TextStyle(
+                                  fontSize: 11, color: cs.onSurfaceVariant),
+                            ),
+                          ],
                         ),
                       ],
                     ],

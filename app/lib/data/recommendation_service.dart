@@ -4,6 +4,7 @@ import '../data/database.dart';
 import '../data/recommendation.dart';
 import '../models/book.dart';
 import '../models/enums.dart';
+import '../perf.dart';
 
 /// 推荐书单服务：两种来源共用一条管线。
 ///
@@ -73,17 +74,22 @@ class RecommendationService {
   ///
   /// [keyword] 是用户填的「感兴趣的东西」（可空——空了就按本地画像推）。
   /// [limit] 是最终返回条数上限。
-  Future<List<Recommendation>> recommend(
+  ///
+  /// 返回的是**一份书单**（导语 + 条目），不是一列书名——
+  /// 只有书名的列表用户无从判断该从哪本开始。
+  Future<RecommendationBundle> recommend(
     RecommendSource source, {
     String? keyword,
     int limit = 8,
   }) async {
-    final drafts = switch (source) {
-      RecommendSource.shelf => await _fromShelfUnread(limit: limit),
-      RecommendSource.online => await _fromOnline(keyword: keyword, limit: limit),
-    };
-    if (drafts.isEmpty) return const [];
-    return _enrich(drafts, limit: limit, source: source);
+    switch (source) {
+      case RecommendSource.shelf:
+        final drafts = await _fromShelfUnread(limit: limit);
+        if (drafts.isEmpty) return const RecommendationBundle();
+        return _enrichShelf(drafts, limit: limit);
+      case RecommendSource.online:
+        return _onlineBundle(keyword: keyword, limit: limit);
+    }
   }
 
   // ── 来源一：自己的书架 ────────────────────────────────────────────────
@@ -117,12 +123,187 @@ class RecommendationService {
     return out;
   }
 
+  /// 书架档的收口。
+  ///
+  /// 这一档的候选本来就来自书架，所以：
+  ///   - **不查重**（查重会把这一档全剔光）；
+  ///   - **不联网补元数据**（见 [_toBook] 的理由）；
+  ///   - 全部标成「已在书架」，不可勾选、不可入库。
+  Future<RecommendationBundle> _enrichShelf(
+    List<RecommendationDraft> drafts, {
+    required int limit,
+  }) async {
+    final books = await Future.wait(
+      drafts.take(limit).map((d) => _toBook(d, RecommendSource.shelf)),
+    );
+    final kept = <RecommendationDraft>[];
+    for (final d in drafts.take(limit)) {
+      kept.add(d);
+    }
+    final orders = _assignOrders(kept);
+    final out = <Recommendation>[];
+    for (var i = 0; i < books.length; i++) {
+      final b = books[i];
+      if (b == null) continue;
+      out.add(Recommendation(
+        book: b,
+        reason: kept[i].reason ?? '',
+        order: orders[i],
+        source: RecommendSource.shelf,
+        alreadyInShelf: true,
+        group: kept[i].group,
+      ));
+    }
+    return RecommendationBundle(items: out);
+  }
+
   // ── 来源二：联网 ──────────────────────────────────────────────────────
+
+  /// 联网档：把**本地书架里相关的书**与**网上找的新书**合成一份书单。
+  ///
+  /// ## 为什么本地书架的书要进联网档
+  ///
+  /// 用户说「我想读博弈论」，期待的是**一份这个主题的书单**。
+  /// 如果他书架上已经有《策略思维》，而书单里只出现一堆他没听过的书，
+  /// 他会以为「我连这本都没有」——这与事实相反。
+  ///
+  /// 所以联网档的书单 = **你有的（已在书架）+ 建议再读的（网上新书）**。
+  /// 已在书架的那几本标成「已在书架」，不能勾选、不能入库
+  /// （入库就是插一条重复记录）。
+  ///
+  /// ## 网上候选里书架已有的，一律剔掉
+  ///
+  /// 免得同一本书出现两次：一次在「你有的」段（用本地数据），
+  /// 一次在「建议再读」段（用网上数据）。本地数据更准，以本地那份为准。
+  /// 已经读完的书同样不该再被推荐。
+  Future<RecommendationBundle> _onlineBundle({
+    String? keyword,
+    int limit = 8,
+  }) async {
+    // 1. 本地书架里与主题相关的书。
+    final local = await _localMatches(keyword: keyword);
+
+    // 2. 网上候选（带模型的导语）。
+    final remote = await _fromOnline(keyword: keyword, limit: limit);
+
+    // 3. 剔除书架已有的网上候选；本批内也要去重
+    //    （模型偶尔把同一本书写两遍：不同译名、不同副标题）。
+    perfMark('svc.shelfKeys.query');
+    final shelfKeys = <String>{};
+    for (final b in await repo.all()) {
+      shelfKeys.add(_normTitle(b.title));
+    }
+    perfMark('svc.shelfKeys.done');
+    final seenRemote = <String>{};
+    final remoteDrafts = <RecommendationDraft>[];
+    for (final d in remote.items) {
+      final key = _normTitle(d.title);
+      if (key.isEmpty) continue;
+      if (shelfKeys.contains(key)) continue; // 书架里已有
+      if (!seenRemote.add(key)) continue; // 本批里重复
+      remoteDrafts.add(d);
+    }
+
+    // 4. 按模型给的阅读顺序排（没给 order 的排最后，随后由 [_assignOrders] 补位）。
+    //
+    //    ⚠️ 必须排：模型的 order 可能是 3、1、2（它知道哪本是入门哪本是进阶），
+    //    不排的话列表顺序与序号徽章对不上——用户照着序号读会乱。
+    remoteDrafts.sort((a, b) {
+      final oa = a.order ?? (1 << 30);
+      final ob = b.order ?? (1 << 30);
+      return oa.compareTo(ob);
+    });
+
+    // 5. 网上候选补元数据（并发）。
+    final books = await Future.wait(
+      remoteDrafts.map((d) => _toBook(d, RecommendSource.online)),
+    );
+
+    // 5. 合并：本地在前（你的存量），网上在后（建议再读）。
+    //
+    //    ⚠️ 两段**各自编号**：本地段不编号（order=0，界面不画序号徽章），
+    //    网上段从 1 开始。
+    //    本地那几本是「你已经有了」，不是「推荐你接下来读」，
+    //    混进阅读顺序里会让序号对不上「先读哪本」这件事。
+    final out = <Recommendation>[];
+    for (final b in local) {
+      out.add(Recommendation(
+        book: b,
+        reason: (b.description ?? '').trim(),
+        order: 0,
+        source: RecommendSource.online,
+        alreadyInShelf: true,
+      ));
+    }
+    final orders = _assignOrders(remoteDrafts);
+    for (var i = 0; i < books.length; i++) {
+      final b = books[i];
+      if (b == null) continue;
+      out.add(Recommendation(
+        book: b,
+        reason: remoteDrafts[i].reason ?? '',
+        order: orders[i],
+        source: RecommendSource.online,
+        alreadyInShelf: false,
+        group: remoteDrafts[i].group,
+      ));
+    }
+
+    return RecommendationBundle(intro: remote.intro, items: out);
+  }
+
+  /// 本地书架里与主题相关的书。
+  ///
+  /// 有关键词时按书名/作者/分类/简介/标签匹配；没关键词时取「想读」的书
+  /// （已买未读，最可能想读的一批）。
+  ///
+  /// 最多 [_localMatchCap] 本：本地段是补充，不该把网上推荐的位置挤光。
+  static const int _localMatchCap = 4;
+
+  Future<List<Book>> _localMatches({String? keyword}) async {
+    perfMark('svc.localMatches.start');
+    final kw = (keyword ?? '').trim().toLowerCase();
+    if (kw.isEmpty) {
+      final books = await repo.all(
+        status: BookStatus.wish,
+        orderBy: 'createdAt DESC',
+      );
+      perfMark('svc.localMatches.done');
+      return books.take(_localMatchCap).toList();
+    }
+    final books = await repo.all();
+    final out = <Book>[];
+    for (final b in books) {
+      if (_matchesTopic(b, kw)) out.add(b);
+      if (out.length >= _localMatchCap) break;
+    }
+    perfMark('svc.localMatches.done');
+    return out;
+  }
+
+  /// 这本书和主题有没有关系。
+  ///
+  /// 书名、作者、分类、简介、标签都算——
+  /// 只看书名会漏掉「简介里提到这个领域」的书。
+  bool _matchesTopic(Book b, String needle) {
+    final hay = <String>[
+      b.title,
+      ...b.authors,
+      b.categoryPrimary ?? '',
+      b.categoryRaw ?? '',
+      b.description ?? '',
+      ...b.tags,
+    ];
+    for (final h in hay) {
+      if (h.toLowerCase().contains(needle)) return true;
+    }
+    return false;
+  }
 
   /// 联网档的候选产出。
   ///
   /// 具体走哪条路子由 [onlinePlan] 决定，用户不需要（也无权）干预。
-  Future<List<RecommendationDraft>> _fromOnline({
+  Future<DraftBundle> _fromOnline({
     String? keyword,
     int limit = 8,
   }) async {
@@ -134,7 +315,7 @@ class RecommendationService {
       case OnlinePlan.wereadOnly:
         return _fromWeread(keyword: keyword, limit: limit);
       case null:
-        return const [];
+        return const DraftBundle();
     }
   }
 
@@ -143,17 +324,21 @@ class RecommendationService {
   /// 喂给它的只有**本地画像摘要**（分类占比、作者偏好频次），
   /// 不含任何书名——书名属于用户数据，推荐没必要知道具体是哪几本。
   /// 摘要本身是本地统计出来的，只传统计结果不传明细。
-  Future<List<RecommendationDraft>> _fromLlm({
+  Future<DraftBundle> _fromLlm({
     String? keyword,
     int limit = 8,
   }) async {
-    if (!llm.available) return const [];
+    if (!llm.available) return const DraftBundle();
     final profile = await _profileSummary();
     final raw = await llm.chat([
       {'role': 'system', 'content': _llmSystemPrompt()},
       {'role': 'user', 'content': _buildUserPrompt(profile, keyword, limit)},
     ], temperature: 0.7, jsonMode: true);
-    return RecommendationDraft.parseList(raw).take(limit).toList();
+    final bundle = RecommendationDraft.parseBundle(raw);
+    return DraftBundle(
+      intro: bundle.intro,
+      items: bundle.items.take(limit).toList(),
+    );
   }
 
   /// 本地画像摘要（**不含书名**）。
@@ -193,13 +378,22 @@ class RecommendationService {
   String _llmSystemPrompt() =>
       '你是一位资深选书人。根据读者的藏书画像，推荐他们可能感兴趣但**尚未读过**的书。\n'
       '要求：\n'
-      '1. 只输出 JSON 数组，不要任何解释文字或代码块标记。\n'
-      '2. 每个元素包含 title、author、reason、category、order 五个字段。\n'
-      '3. reason 用一句话说明这本书好在哪、为什么推给这位读者（不超过 40 字）。\n'
-      '4. **order 是建议的阅读顺序**，从 1 开始按「先入门、再进阶、最后深入」排；\n'
+      '1. 只输出 JSON 对象，不要任何解释文字或代码块标记。格式：\n'
+      '   {"intro": "一段选书指南", "items": [{"title": "...", "author": "...", '
+      '"reason": "...", "category": "...", "order": 1, "group": "..."}]}\n'
+      '2. **intro 是一段总体介绍**（2~4 句，120 字以内）：\n'
+      '   这批书分成哪几条线、先读哪本合适、适合什么样的读者。\n'
+      '   例：「博弈论书籍分两条线：通俗读物培养策略直觉，教材走理论体系。'
+      '先定自己是想看懂生活里的博弈，还是真学一门分析工具，再挑书。」\n'
+      '   它是给读者的**导读**，不是复述书名。\n'
+      '3. 每个条目包含 title、author、reason、category、order 五个字段。\n'
+      '4. reason 用一句话说明这本书好在哪、为什么推给这位读者（不超过 40 字）。\n'
+      '5. **order 是建议的阅读顺序**，从 1 开始按「先入门、再进阶、最后深入」排；\n'
       '   同一难度层次的书顺序可以随意，但不要重复。\n'
-      '5. 不要推荐读者已经拥有的书。\n'
-      '6. 推荐真实存在的书，不要编造。';
+      '6. group 可选：若这批书天然分几档（如「零基础通俗入门」「系统学习」），\n'
+      '   就给同一档的书写**完全相同**的 group 值；不需要分组就省略这个字段。\n'
+      '7. 不要推荐读者已经拥有的书。\n'
+      '8. 推荐真实存在的书，不要编造。';
 
   String _buildUserPrompt(String profile, String? keyword, int limit) {
     final buf = StringBuffer()
@@ -221,11 +415,11 @@ class RecommendationService {
   ///
   /// 没有关键词时给一个**由本地画像算出的关键词**去搜——
   /// 书城搜索需要关键词，空搜没有意义。
-  Future<List<RecommendationDraft>> _fromWeread({
+  Future<DraftBundle> _fromWeread({
     String? keyword,
     int limit = 8,
   }) async {
-    if (!weread.available) return const [];
+    if (!weread.available) return const DraftBundle();
     // 关键词缺省时用本地占比最高的分类；连那个都没有（书架是空的）
     // 就退回一个通用词——**不能因为本地没数据就不给结果**。
     final kw = _effectiveKeyword(keyword, await _topCategoryKeyword());
@@ -247,7 +441,7 @@ class RecommendationService {
         coverUrl: meta.coverUrl,
       ));
     }
-    return out;
+    return DraftBundle(items: out);
   }
 
   /// 拿本地占比最高的分类当搜索词。
@@ -304,36 +498,47 @@ class RecommendationService {
   /// 搜索 API 给出当下真实的候选，大模型只负责挑与写理由。
   ///
   /// 这一档需要两个 Key（搜索 + 大模型），缺一不可。
-  Future<List<RecommendationDraft>> _fromSearch({
+  Future<DraftBundle> _fromSearch({
     String? keyword,
     int limit = 8,
   }) async {
-    if (!search.available || !llm.available) return const [];
+    if (!search.available || !llm.available) return const DraftBundle();
 
     final kw = _effectiveKeyword(keyword, await _topCategoryKeyword());
 
     final hits = await search.search(_searchQuery(kw), count: limit * 3);
-    if (hits.isEmpty) return const [];
+    if (hits.isEmpty) return const DraftBundle();
 
     // 把搜索结果交给大模型：只让它挑书名和写理由，不让它自由发挥。
     final raw = await llm.chat([
       {'role': 'system', 'content': _searchLlmSystemPrompt()},
       {'role': 'user', 'content': _buildSearchPrompt(kw, hits, limit)},
     ], temperature: 0.4, jsonMode: true);
-    return RecommendationDraft.parseList(raw).take(limit).toList();
+    final bundle = RecommendationDraft.parseBundle(raw);
+    return DraftBundle(
+      intro: bundle.intro,
+      items: bundle.items.take(limit).toList(),
+    );
   }
 
   String _searchLlmSystemPrompt() =>
       '你是一位选书编辑。下面给你的是搜索引擎返回的候选网页标题与摘要。\n'
-      '请从中挑出**真实存在且值得推荐**的书籍，整理成 JSON 数组。\n'
+      '请从中挑出**真实存在且值得推荐**的书籍，整理成一份书单。\n'
       '要求：\n'
-      '1. 只输出 JSON 数组，不要解释文字。\n'
-      '2. 每个元素包含 title、author（可选）、reason、category（可选）、order。\n'
-      '3. reason 说明这本书好在哪、适合什么样的读者（一句话，40 字内）。\n'
-      '4. **order 是建议的阅读顺序**，从 1 开始按「先入门、再进阶、最后深入」排；\n'
+      '1. 只输出 JSON 对象，不要解释文字。格式：\n'
+      '   {"intro": "一段选书指南", "items": [{"title": "...", "author": "...", '
+      '"reason": "...", "category": "...", "order": 1, "group": "..."}]}\n'
+      '2. **intro 是一段总体介绍**（2~4 句，120 字以内）：\n'
+      '   这批书怎么组织、先读哪本合适、适合什么样的读者。\n'
+      '   它是给读者的**导读**，不是复述书名。\n'
+      '3. 每个条目包含 title、author（可选）、reason、category（可选）、order。\n'
+      '4. reason 说明这本书好在哪、适合什么样的读者（一句话，40 字内）。\n'
+      '5. **order 是建议的阅读顺序**，从 1 开始按「先入门、再进阶、最后深入」排；\n'
       '   同一难度层次的书顺序可以随意，但不要重复。\n'
-      '5. **只从候选里挑**，不要加入候选之外的书。\n'
-      '6. 候选里没有明确书名的条目直接跳过。';
+      '6. group 可选：若这批书天然分几档（如「零基础通俗入门」「系统学习」），\n'
+      '   就给同一档的书写**完全相同**的 group 值；不需要分组就省略这个字段。\n'
+      '7. **只从候选里挑**，不要加入候选之外的书。\n'
+      '8. 候选里没有明确书名的条目直接跳过。';
 
   String _buildSearchPrompt(String keyword, List<SearchHit> hits, int limit) {
     final buf = StringBuffer()..writeln('主题：$keyword');
@@ -349,75 +554,7 @@ class RecommendationService {
     return buf.toString();
   }
 
-  // ── 统一收口：补元数据 → 查重 → 出结果 ─────────────────────────────
-
-  /// 给候选补元数据，并剔除已在书架里的。
-  ///
-  /// 查重是**按书名**（忽略大小写与空格），不是按 ISBN：
-  /// 搜索与大模型给的 ISBN 十有八九是编的或格式不对，
-  /// 按 ISBN 查重等于没查。
-  ///
-  /// ## 书架那档要豁免查重
-  ///
-  /// 本地书架那档的候选**本来就来自书架**——推荐的是「你买了但还没读的书」，
-  /// 它们当然已在库里。若照常查重，结果会被全部剔除，这一档永远返回空。
-  ///
-  /// 豁免的语义是：这一档的候选不来自外部，不存在「重复推荐」的问题。
-  Future<List<Recommendation>> _enrich(
-    List<RecommendationDraft> drafts, {
-    required int limit,
-    required RecommendSource source,
-  }) async {
-    final known = <String>{};
-    if (source != RecommendSource.shelf) {
-      final existing = await repo.all();
-      known.addAll({for (final b in existing) _normTitle(b.title)});
-    }
-
-    final valid = <RecommendationDraft>[];
-    final seen = <String>{};
-    for (final d in drafts) {
-      if (valid.length >= limit) break;
-      final key = _normTitle(d.title);
-      if (key.isEmpty) continue;
-      if (known.contains(key)) continue; // 已经在书架里
-      if (!seen.add(key)) continue; // 本批里重复
-      valid.add(d);
-    }
-
-    // 补全是网络请求，必须**并发**。
-    //
-    // 串行会把等待时间叠成 N 倍：一页 8 本、每本两个外部源、
-    // 源不可达时每个都要等满超时——串行下来是几十秒的转圈。
-    // 并发后总耗时等于最慢的那一条。
-    final books = await Future.wait(
-      valid.map((d) => _toBook(d, source)),
-    );
-
-    final orders = _assignOrders(valid);
-    final out = <Recommendation>[];
-    for (var i = 0; i < books.length; i++) {
-      final book = books[i];
-      if (book == null) continue;
-      out.add(Recommendation(
-        book: book,
-        reason: valid[i].reason ?? '',
-        order: orders[i],
-        source: source,
-        alreadyInShelf: source == RecommendSource.shelf,
-      ));
-    }
-
-    // 按建议的阅读顺序排列。
-    //
-    // 大模型给的是「先入门后深入」的顺序（order 3 可能排在第一行），
-    // 展示时必须按它排，否则序号和顺序对不上——用户照序号读就乱了。
-    out.sort((a, b) {
-      if (a.order != b.order) return a.order.compareTo(b.order);
-      return 0;
-    });
-    return out;
-  }
+  // ── 收口辅助 ─────────────────────────────────────────────────────────
 
   /// 给候选分配阅读顺序。
   ///

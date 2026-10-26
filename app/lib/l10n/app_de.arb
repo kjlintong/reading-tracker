@@ -3656,5 +3656,8 @@
       }
     }
   },
-  "discoverRefresh": "Erneut suchen"
+  "discoverRefresh": "Erneut suchen",
+  "discoverShelfIntro": "Bücher in deinem Regal, die du noch nicht gelesen hast – neueste zuerst. Lies eines, dann das nächste.",
+  "discoverLocalGroup": "Bereits in deinem Regal",
+  "discoverInShelf": "Im Regal"
 }

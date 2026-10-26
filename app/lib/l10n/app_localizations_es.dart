@@ -2972,4 +2972,13 @@ class SEs extends S {
 
   @override
   String get discoverRefresh => 'Buscar de nuevo';
+
+  @override
+  String get discoverShelfIntro => 'Libros de tu estantería que aún no has leído, del más reciente al más antiguo. Lee uno y luego el siguiente.';
+
+  @override
+  String get discoverLocalGroup => 'Ya en tu estantería';
+
+  @override
+  String get discoverInShelf => 'En tu estantería';
 }

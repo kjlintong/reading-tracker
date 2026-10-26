@@ -77,8 +77,16 @@ class Recommendation {
   ///
   /// 书架那档天然为 true——那些书本来就在库里，
   /// 用户看到它们是为了「提醒自己还有哪些没读」，不是要把它们加进来。
+  /// 联网档里，本地书架中与主题相关的书也会标成 true。
   /// 这类条目**不能**再走「加入书架」，否则会插一条重复记录。
   final bool alreadyInShelf;
+
+  /// 所属分组标题（可空）。
+  ///
+  /// 大模型可以把书单分成「零基础入门 / 系统进阶」这样的几组，
+  /// 组标题对读者很有用——它解释了**为什么按这个顺序读**。
+  /// 模型没给就留空，展示时平铺。
+  final String? group;
 
   const Recommendation({
     required this.book,
@@ -86,7 +94,32 @@ class Recommendation {
     required this.source,
     this.order = 0,
     this.alreadyInShelf = false,
+    this.group,
   });
+}
+
+/// 一份完整的书单：一段导语 + 若干条推荐。
+///
+/// ## 为什么要导语
+///
+/// 只给一列书名，用户看到的是「一堆标题」，不知道它们之间的关系。
+/// 一段导语（选书指南）把这件事讲清楚：
+/// > 「博弈论书籍分两条线：通俗读物培养策略直觉，教材走理论体系。
+/// > 先定自己是想看懂生活里的博弈，还是真学一门分析工具，再挑书。」
+///
+/// 有了它，书单才像**一份整理好的方案**，而不是一堆搜索结果。
+@immutable
+class RecommendationBundle {
+  /// 总体介绍 / 选书指南。可为空（模型没给、或本地档无从生成）。
+  final String intro;
+
+  /// 书单正文。
+  final List<Recommendation> items;
+
+  const RecommendationBundle({this.intro = '', this.items = const []});
+
+  bool get isEmpty => items.isEmpty;
+  bool get isNotEmpty => items.isNotEmpty;
 }
 
 /// 大模型返回的推荐条目（解析用）。
@@ -117,6 +150,12 @@ class RecommendationDraft {
   /// （`rank` / `index` / `position`），所以解析放宽到能吃下这些。
   final int? order;
 
+  /// 所属分组标题（可空）。
+  ///
+  /// 大模型把书单分成几组时给出（如「零基础通俗入门」）。
+  /// 键名同样不统一，`section` / `part` 都认。
+  final String? group;
+
   const RecommendationDraft({
     required this.title,
     this.author,
@@ -127,6 +166,7 @@ class RecommendationDraft {
     this.description,
     this.coverUrl,
     this.order,
+    this.group,
   });
 
   /// 从大模型返回的 JSON 对象里取一条。
@@ -145,6 +185,7 @@ class RecommendationDraft {
       publisher: _str(j['publisher']),
       coverUrl: _str(j['coverUrl']) ?? _str(j['cover']),
       order: _order(j),
+      group: _str(j['group']) ?? _str(j['section']) ?? _str(j['part']),
     );
   }
 
@@ -170,23 +211,31 @@ class RecommendationDraft {
 
   /// 解析一段 JSON 文本，返回可用的条目列表。
   ///
-  /// 宽容到能吃下三种常见形态：
-  ///   - `[{...}, {...}]`            —— 裸数组
-  ///   - `{"books": [{...}]}`        —— 带一个包裹键
-  ///   - `{"recommendations": [...]}`
-  /// 以及数组里混着字符串（模型偶尔直接给书名）的情况。
-  static List<RecommendationDraft> parseList(String raw) {
+  /// 等价于 [parseBundle] 的 `items`——保留这个入口是为了不打断既有调用。
+  static List<RecommendationDraft> parseList(String raw) =>
+      parseBundle(raw).items;
+
+  /// 解析一段 JSON 文本，返回「导语 + 条目」。
+  ///
+  /// 现在要求模型返回：
+  /// ```json
+  /// {"intro": "…选书指南…", "items": [{"title": "…", "order": 1}]}
+  /// ```
+  /// 但也要吃得下旧形态：裸数组 `[{...}]`、`{"books": [...]}`、
+  /// 甚至整段 Markdown 书单。**导语缺失不是错误**——只是没有而已。
+  static DraftBundle parseBundle(String raw) {
     final text = raw.trim();
-    if (text.isEmpty) return const [];
+    if (text.isEmpty) return const DraftBundle();
 
     dynamic decoded;
     try {
       decoded = jsonDecode(text);
     } catch (_) {
       // 不是 JSON：退化成「按行取书名」。模型偶尔会回纯文本书单。
-      return _fromPlainLines(text);
+      return DraftBundle(items: _fromPlainLines(text));
     }
 
+    final intro = decoded is Map ? _intro(decoded) : '';
     final list = _asList(decoded);
     final out = <RecommendationDraft>[];
     for (final item in list) {
@@ -199,7 +248,26 @@ class RecommendationDraft {
         out.add(RecommendationDraft(title: item.trim()));
       }
     }
-    return out;
+    return DraftBundle(intro: intro, items: out);
+  }
+
+  /// 取总体介绍 / 选书指南。
+  ///
+  /// 键名不统一，挨个试；都没有就当没有导语。
+  static String _intro(Map<dynamic, dynamic> j) {
+    for (final key in const [
+      'intro',
+      'overview',
+      'summary',
+      'guide',
+      'preface',
+      'headline',
+      'note',
+    ]) {
+      final v = _str(j[key]);
+      if (v != null) return v;
+    }
+    return '';
   }
 
   /// 从大模型返回的一段纯文本里抠出书名。
@@ -301,4 +369,19 @@ class RecommendationDraft {
     final s = v.toString().trim();
     return s.isEmpty ? null : s;
   }
+}
+
+/// 模型返回的原始书单：一段导语 + 若干条草稿。
+///
+/// 与 [RecommendationBundle] 的区别：这一层还没补元数据、没查重、没排顺序，
+/// 是「模型原话」。等收口之后才变成 [RecommendationBundle]。
+@immutable
+class DraftBundle {
+  /// 总体介绍 / 选书指南。
+  final String intro;
+
+  /// 条目草稿。
+  final List<RecommendationDraft> items;
+
+  const DraftBundle({this.intro = '', this.items = const []});
 }

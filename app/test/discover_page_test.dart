@@ -53,6 +53,7 @@ void main() {
     int order = 0,
     bool inShelf = false,
     RecommendSource source = RecommendSource.online,
+    String? group,
   }) =>
       Recommendation(
         book: Book(
@@ -67,6 +68,7 @@ void main() {
         order: order,
         source: source,
         alreadyInShelf: inShelf,
+        group: group,
       );
 
   /// 标题的精确 finder。
@@ -409,6 +411,109 @@ void main() {
       await tester.tap(find.text('把 1 本加入书架'));
       await settleAsync(tester);
       expect((await repo.all()).length, 2);
+    });
+  });
+
+  group('总体介绍', () {
+    testWidgets('联网档显示模型写的那段导读', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf, RecommendSource.online},
+        intro: '这批书分两条线：入门与进阶，先读第一本。',
+        result: (_) => [rec('三体', order: 1)],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+      await tester.tap(find.widgetWithText(ChoiceChip, '联网'));
+      await settleAsync(tester);
+
+      expect(find.text('这批书分两条线：入门与进阶，先读第一本。'), findsOneWidget);
+    });
+
+    testWidgets('模型没给导读时不留空卡片', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf, RecommendSource.online},
+        result: (_) => [rec('三体', order: 1)],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+      await tester.tap(find.widgetWithText(ChoiceChip, '联网'));
+      await settleAsync(tester);
+
+      // 联网档没有模型导读，就不该显示书架档那句本地文案。
+      expect(find.textContaining('还没读'), findsNothing);
+    });
+
+    testWidgets('书架档显示本地的那句导读', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf},
+        result: (_) => [
+          rec('三体', source: RecommendSource.shelf, inShelf: true),
+        ],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+
+      expect(find.textContaining('还没读'), findsOneWidget);
+    });
+  });
+
+  group('本地书架与分组', () {
+    testWidgets('联网档里的本地书标出「已在书架」，并单独起一段', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf, RecommendSource.online},
+        result: (src) => src == RecommendSource.online
+            ? [
+                rec('博弈论导论', inShelf: true, source: RecommendSource.online),
+                rec('策略思维', order: 1),
+              ]
+            : const [],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+      await tester.tap(find.widgetWithText(ChoiceChip, '联网'));
+      await settleAsync(tester);
+
+      expect(find.text('已在书架'), findsOneWidget);
+      expect(find.text('你书架上已有的'), findsOneWidget);
+      // 本地那本不占阅读序号：徽章只出现在网上那本
+      expect(find.text('1'), findsOneWidget);
+    });
+
+    testWidgets('模型给的分组标题会显示，同组只出现一次', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf, RecommendSource.online},
+        result: (_) => [
+          rec('甲', order: 1, group: '零基础入门'),
+          rec('乙', order: 2, group: '零基础入门'),
+          rec('丙', order: 3, group: '系统学习'),
+        ],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+      await tester.tap(find.widgetWithText(ChoiceChip, '联网'));
+      await settleAsync(tester);
+
+      expect(find.text('零基础入门'), findsOneWidget);
+      expect(find.text('系统学习'), findsOneWidget);
+    });
+
+    testWidgets('没有分组时不平白加标题', (tester) async {
+      final s = FakeRecommendService(
+        repo: repo,
+        available: const {RecommendSource.shelf, RecommendSource.online},
+        result: (_) => [rec('甲', order: 1)],
+      );
+      await tester.pumpWidget(harness(s));
+      await settleAsync(tester);
+      await tester.tap(find.widgetWithText(ChoiceChip, '联网'));
+      await settleAsync(tester);
+
+      expect(find.text('你书架上已有的'), findsNothing);
     });
   });
 }
