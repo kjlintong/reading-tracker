@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:reading_tracker/app_info.dart';
 import 'package:reading_tracker/data/database.dart';
 import 'package:reading_tracker/data/profile_store.dart';
 import 'package:reading_tracker/data/report_period.dart';
@@ -1560,7 +1561,10 @@ void main() {
       await settleAsync(tester);
 
       expect(find.text('已经是最新版本了'), findsOneWidget);
-      expect(find.textContaining('1.0.0'), findsWidgets);
+      // 版本号取**当前 App 版本**，不写死：写死 '1.0.0' 的那条断言在
+      // 版本升到 1.0.1 之后就永远找不到文本了——它守的是「把当前版本
+      // 告诉用户」这件事，不是某个具体版本号。
+      expect(find.textContaining(AppInfo.version), findsWidgets);
       expect(find.text('这一版改了什么'), findsNothing,
           reason: '没有新版就不该展示更新说明');
       expect(find.textContaining('下载'), findsNothing,
