@@ -122,6 +122,30 @@ final metadataClientProvider = Provider<MetadataClient>((ref) {
 final planReminderProvider =
     Provider<PlanReminderService>((ref) => PlanReminderService());
 
+/// 补排所有「开了提醒」的计划提醒。
+///
+/// ## 为什么每次启动都要补一遍
+///
+/// 本地通知的闹钟由 AlarmManager 持有，它**不会自己回来**。这些情况都会让它消失：
+///  - 国产 ROM 的「清理后台 / 省电策略」（最常见）；
+///  - 用户在系统里对 App「强制停止」；
+///  - 覆盖安装（应用数据被换掉）；
+///  - 系统时间/时区被改，原排期失效。
+///
+/// 从前只有「用户手动改一次计划」才会重排，于是用户看到的现象是
+/// **「提醒只在打开 App 时才有」**——那次保存把闹钟补上了，
+/// 而闹钟再被 ROM 清掉之后，就再也没有下一次了。
+///
+/// 现在每次启动、每次回到前台都补一遍，把丢失的排期找回来。
+/// 失败一律自己吞掉：提醒是增强功能，绝不能拖住启动。
+Future<void> resyncPlanReminders(WidgetRef ref) async {
+  try {
+    final repo = ref.read(repoProvider);
+    final plans = await repo.activePlans();
+    await ref.read(planReminderProvider).resync(plans);
+  } catch (_) {}
+}
+
 /// 「过期周期自动补生成」的结果，供档案页显示提示条。
 ///
 /// 存 null 表示「这一轮没有新报告」——也就是绝大多数时候，

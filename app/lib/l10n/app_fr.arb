@@ -3230,6 +3230,23 @@
     }
   },
   "settingsPlanReminder": "Rappels de lecture",
+  "reminderDiagDesc": "Les rappels sont envoyés par le système en arrière-plan. Si le système limite l’exécution en arrière-plan, vous ne les verrez qu’avec l’application ouverte.",
+  "reminderNotifOn": "Notifications autorisées",
+  "reminderNotifOff": "Notifications non autorisées — les rappels ne peuvent pas être envoyés",
+  "reminderNotifBtn": "Autoriser les notifications",
+  "reminderBgOk": "L’exécution en arrière-plan n’est pas limitée",
+  "reminderBgBlocked": "Le système peut limiter l’exécution en arrière-plan ; les rappels peuvent être retardés ou manqués",
+  "reminderBgBtn": "Régler l’exécution en arrière-plan",
+  "reminderAutoStartBtn": "Autoriser le démarrage auto",
+  "reminderAutoStartHint": "Sur les appareils Xiaomi, Huawei, OPPO et vivo, autorisez le démarrage automatique ici — sinon le système efface les alarmes programmées.",
+  "reminderScheduledCount": "{count} rappel(s) de plan programmé(s)",
+  "@reminderScheduledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reportSettings": "Réglages du rapport",
   "reportBackfill": "Générer les rapports manquants",
   "reportNothingToBackfill": "Tous les rapports qui devraient exister sont déjà là.",

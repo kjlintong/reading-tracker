@@ -2469,6 +2469,38 @@ class SFr extends S {
   String get settingsPlanReminder => 'Rappels de lecture';
 
   @override
+  String get reminderDiagDesc => 'Les rappels sont envoyés par le système en arrière-plan. Si le système limite l’exécution en arrière-plan, vous ne les verrez qu’avec l’application ouverte.';
+
+  @override
+  String get reminderNotifOn => 'Notifications autorisées';
+
+  @override
+  String get reminderNotifOff => 'Notifications non autorisées — les rappels ne peuvent pas être envoyés';
+
+  @override
+  String get reminderNotifBtn => 'Autoriser les notifications';
+
+  @override
+  String get reminderBgOk => 'L’exécution en arrière-plan n’est pas limitée';
+
+  @override
+  String get reminderBgBlocked => 'Le système peut limiter l’exécution en arrière-plan ; les rappels peuvent être retardés ou manqués';
+
+  @override
+  String get reminderBgBtn => 'Régler l’exécution en arrière-plan';
+
+  @override
+  String get reminderAutoStartBtn => 'Autoriser le démarrage auto';
+
+  @override
+  String get reminderAutoStartHint => 'Sur les appareils Xiaomi, Huawei, OPPO et vivo, autorisez le démarrage automatique ici — sinon le système efface les alarmes programmées.';
+
+  @override
+  String reminderScheduledCount({required int count}) {
+    return '$count rappel(s) de plan programmé(s)';
+  }
+
+  @override
   String get reportSettings => 'Réglages du rapport';
 
   @override

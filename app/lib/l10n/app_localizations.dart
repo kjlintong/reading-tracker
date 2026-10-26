@@ -4361,6 +4361,66 @@ abstract class S {
   /// **'Reading reminders'**
   String get settingsPlanReminder;
 
+  /// No description provided for @reminderDiagDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders are delivered by the system in the background. If the system restricts background running, you will only see them while the app is open.'**
+  String get reminderDiagDesc;
+
+  /// No description provided for @reminderNotifOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications allowed'**
+  String get reminderNotifOn;
+
+  /// No description provided for @reminderNotifOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications not allowed — reminders cannot be delivered'**
+  String get reminderNotifOff;
+
+  /// No description provided for @reminderNotifBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications'**
+  String get reminderNotifBtn;
+
+  /// No description provided for @reminderBgOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Background running is not restricted'**
+  String get reminderBgOk;
+
+  /// No description provided for @reminderBgBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'The system may restrict background running; reminders can be delayed or missed'**
+  String get reminderBgBlocked;
+
+  /// No description provided for @reminderBgBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust background running'**
+  String get reminderBgBtn;
+
+  /// No description provided for @reminderAutoStartBtn.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow auto-start'**
+  String get reminderAutoStartBtn;
+
+  /// No description provided for @reminderAutoStartHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On Xiaomi, Huawei, OPPO and vivo devices, allow this app to start automatically here — otherwise the system clears scheduled alarms.'**
+  String get reminderAutoStartHint;
+
+  /// No description provided for @reminderScheduledCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} plan reminder(s) scheduled'**
+  String reminderScheduledCount({required int count});
+
   /// No description provided for @reportSettings.
   ///
   /// In en, this message translates to:

@@ -2469,6 +2469,38 @@ class SDe extends S {
   String get settingsPlanReminder => 'Leseerinnerungen';
 
   @override
+  String get reminderDiagDesc => 'Erinnerungen werden vom System im Hintergrund zugestellt. Wenn das System die Hintergrundausführung einschränkt, sehen Sie sie nur bei geöffneter App.';
+
+  @override
+  String get reminderNotifOn => 'Benachrichtigungen erlaubt';
+
+  @override
+  String get reminderNotifOff => 'Benachrichtigungen nicht erlaubt — Erinnerungen können nicht zugestellt werden';
+
+  @override
+  String get reminderNotifBtn => 'Benachrichtigungen aktivieren';
+
+  @override
+  String get reminderBgOk => 'Hintergrundausführung ist nicht eingeschränkt';
+
+  @override
+  String get reminderBgBlocked => 'Das System kann die Hintergrundausführung einschränken; Erinnerungen können verzögert oder verpasst werden';
+
+  @override
+  String get reminderBgBtn => 'Hintergrundausführung anpassen';
+
+  @override
+  String get reminderAutoStartBtn => 'Autostart erlauben';
+
+  @override
+  String get reminderAutoStartHint => 'Auf Xiaomi-, Huawei-, OPPO- und vivo-Geräten hier die Autostart-Berechtigung erteilen — sonst löscht das System geplante Alarme.';
+
+  @override
+  String reminderScheduledCount({required int count}) {
+    return '$count Planerinnerung(en) geplant';
+  }
+
+  @override
   String get reportSettings => 'Report-Einstellungen';
 
   @override

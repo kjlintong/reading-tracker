@@ -3230,6 +3230,23 @@
     }
   },
   "settingsPlanReminder": "Reading reminders",
+  "reminderDiagDesc": "Reminders are delivered by the system in the background. If the system restricts background running, you will only see them while the app is open.",
+  "reminderNotifOn": "Notifications allowed",
+  "reminderNotifOff": "Notifications not allowed — reminders cannot be delivered",
+  "reminderNotifBtn": "Enable notifications",
+  "reminderBgOk": "Background running is not restricted",
+  "reminderBgBlocked": "The system may restrict background running; reminders can be delayed or missed",
+  "reminderBgBtn": "Adjust background running",
+  "reminderAutoStartBtn": "Allow auto-start",
+  "reminderAutoStartHint": "On Xiaomi, Huawei, OPPO and vivo devices, allow this app to start automatically here — otherwise the system clears scheduled alarms.",
+  "reminderScheduledCount": "{count} plan reminder(s) scheduled",
+  "@reminderScheduledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reportSettings": "Report settings",
   "reportBackfill": "Generate missing reports",
   "reportNothingToBackfill": "Every report that should exist is already here.",

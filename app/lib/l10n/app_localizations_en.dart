@@ -2469,6 +2469,38 @@ class SEn extends S {
   String get settingsPlanReminder => 'Reading reminders';
 
   @override
+  String get reminderDiagDesc => 'Reminders are delivered by the system in the background. If the system restricts background running, you will only see them while the app is open.';
+
+  @override
+  String get reminderNotifOn => 'Notifications allowed';
+
+  @override
+  String get reminderNotifOff => 'Notifications not allowed — reminders cannot be delivered';
+
+  @override
+  String get reminderNotifBtn => 'Enable notifications';
+
+  @override
+  String get reminderBgOk => 'Background running is not restricted';
+
+  @override
+  String get reminderBgBlocked => 'The system may restrict background running; reminders can be delayed or missed';
+
+  @override
+  String get reminderBgBtn => 'Adjust background running';
+
+  @override
+  String get reminderAutoStartBtn => 'Allow auto-start';
+
+  @override
+  String get reminderAutoStartHint => 'On Xiaomi, Huawei, OPPO and vivo devices, allow this app to start automatically here — otherwise the system clears scheduled alarms.';
+
+  @override
+  String reminderScheduledCount({required int count}) {
+    return '$count plan reminder(s) scheduled';
+  }
+
+  @override
   String get reportSettings => 'Report settings';
 
   @override

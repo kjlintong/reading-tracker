@@ -102,13 +102,16 @@ class HomeShell extends ConsumerStatefulWidget {
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends ConsumerState<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserver {
   int _index = 0;
   bool _loaded = false;
 
   @override
   void initState() {
     super.initState();
+    // 回到前台时补排提醒：用户在 App 里待着的时候，系统可能把闹钟清了
+    // （国产 ROM 的后台清理），回来时补一次最省事。
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await loadSettings(ref);
       if (mounted) setState(() => _loaded = true);
@@ -125,7 +128,25 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       // 它读「是否启用 / 上次跑到哪」两项设置，也必须在首帧之后才跑。
       // 失败自己吞掉——挪书不该拖住启动，更不该让 App 打不开。
       unawaited(runAutoShelveIfDue(ref).catchError((_) {}));
+
+      // 补排计划提醒。AlarmManager 里的闹钟会被国产 ROM 的后台清理、
+      // 用户的「强制停止」、覆盖安装弄丢，而且**丢了不会自己回来**——
+      // 从前只有用户手动改计划才重排，于是「提醒只在打开 App 时才有」。
+      // 同样不 await、失败自己吞掉。
+      unawaited(resyncPlanReminders(ref).catchError((_) {}));
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    unawaited(resyncPlanReminders(ref).catchError((_) {}));
   }
 
   /// 顺序：书架 → 记录 → 统计 → 阅读档案 → 设置。

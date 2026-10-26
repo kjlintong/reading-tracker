@@ -7,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../l10n/app_loc.dart';
 import '../models/reading_plan.dart';
+import 'system_settings.dart';
 
 /// 调度一条提醒的结果。
 ///
@@ -30,7 +31,68 @@ enum ReminderOutcome {
   unavailable,
 }
 
+/// 提醒链路的体检结果。
 ///
+/// 用来回答一个用户永远问不出口的问题：**「为什么我收不到提醒？」**
+///
+/// 提醒能不能送到，取决于四件事，全都不在 App 的控制范围内：
+///  1. 通知权限（Android 13+ 的 POST_NOTIFICATIONS）；
+///  2. 通知渠道没被用户关掉；
+///  3. 系统没把本 App 的后台掐掉（国产 ROM 的省电策略）；
+///  4. 闹钟本身还在（AlarmManager 里的排期没被清掉）。
+///
+/// [ReminderOutcome] 只说得清「这一次排没排上」，说不清「为什么没弹出来」。
+/// 这个类把状态一次性摊开，设置页才能如实告诉用户缺哪一环。
+class ReminderDiagnostics {
+  /// 通知插件是否可用（测试环境 / 不支持的平台为 false）。
+  final bool pluginReady;
+
+  /// 系统层面是否允许本 App 发通知。
+  ///
+  /// 这一项已经**含**了 Android 13+ 的运行时权限：
+  /// `NotificationManager.areNotificationsEnabled()` 在权限被拒时返回 false。
+  final bool notificationsAllowed;
+
+  /// 已排期的通知条数（来自 AlarmManager 的挂起请求）。
+  final int scheduledCount;
+
+  /// 是否已被排除在电池优化之外。
+  ///
+  /// 为 false 不代表收不到——只是国产 ROM 上很可能被掐。
+  final bool batteryExempt;
+
+  /// ROM 品牌标记（miui / coloros / emui / harmony / originos / iqoo /
+  /// oneplus / oneui）；原生 AOSP 为空串。
+  final String romBrand;
+
+  const ReminderDiagnostics({
+    this.pluginReady = false,
+    this.notificationsAllowed = false,
+    this.scheduledCount = 0,
+    this.batteryExempt = false,
+    this.romBrand = '',
+  });
+
+  /// 系统是否可能在后台掐掉本 App。
+  ///
+  /// 判定依据两条：没被豁免电池优化，或 ROM 属于有「自启动」概念的国产系。
+  bool get backgroundRestricted {
+    if (!batteryExempt) return true;
+    return const {
+      'miui',
+      'coloros',
+      'emui',
+      'harmony',
+      'originos',
+      'iqoo',
+      'oneplus',
+    }.contains(romBrand);
+  }
+
+  /// 一切正常：能发通知、且没有已知的后台限制。
+  bool get ok => pluginReady && notificationsAllowed && !backgroundRestricted;
+}
+
 /// 设计原则：**永不抛异常**。通知失败绝不能让计划数据保存失败——
 /// 与 [SecretStore] 同样的取舍：平台能力是增强，不是前置条件。
 /// 在测试环境、未授权、厂商 ROM 收紧后台等情况下，
@@ -51,6 +113,21 @@ class PlanReminderService {
   /// 否则取消时找不到那条通知，提醒永远撤不掉。
   static int _idOf(String planId) => planId.hashCode & 0x7fffffff;
 
+  /// 计划提醒的 Android 通知渠道 id。
+  ///
+  /// **带 _v2 后缀是刻意的**：Android 的通知渠道一旦创建就固定下来，
+  /// 之后再改代码里的 importance **不会覆盖已有渠道**——系统沿用创建时
+  /// 的设置（用户改过则用用户的）。原来这个渠道是
+  /// `Importance.defaultImportance`：只进通知栏、有声音，**不弹横幅**。
+  /// 用户看到的正是「没有弹出提醒」。
+  ///
+  /// 要让新设置生效，只能换一个新 id，让系统新建一个渠道。
+  /// 旧渠道留着无害（它只是不再被使用）。
+  static const String planChannel = 'reading_plans_v2';
+
+  /// 自动报告提醒的渠道 id。同样带 _v2，理由同上。
+  static const String reportChannel = 'reports_v2';
+
   Future<void> init() async {
     if (_ready) return;
     try {
@@ -59,7 +136,10 @@ class PlanReminderService {
       tzdata.initializeTimeZones();
       tz.setLocalLocation(tz.getLocation(_deviceZone()));
 
-      const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+      // 小图标必须是**纯白剪影**。用彩色启动图标 @mipmap/ic_launcher 的话，
+      // 系统会按 alpha 通道把它压成一块白方块，少数 ROM 还会因图标不合法
+      // 干脆不显示这条通知。
+      const android = AndroidInitializationSettings('@drawable/ic_stat_readnest');
       const ios = DarwinInitializationSettings(
         requestAlertPermission: false,
         requestBadgePermission: false,
@@ -162,6 +242,36 @@ class PlanReminderService {
     return false;
   }
 
+  /// 体检当前提醒链路的状态。给设置页用。
+  ///
+  /// **绝不抛异常**：任何一项查不到就当 false / 0。
+  Future<ReminderDiagnostics> diagnose() async {
+    await init();
+    if (!_ready) {
+      return const ReminderDiagnostics();
+    }
+    var allowed = false;
+    var count = 0;
+    try {
+      allowed = await hasPermission();
+      final pending = await _plugin.pendingNotificationRequests();
+      count = pending.length;
+    } catch (_) {}
+    var exempt = false;
+    var brand = '';
+    try {
+      exempt = await SystemSettings.isIgnoringBatteryOptimizations();
+      brand = await SystemSettings.romBrand();
+    } catch (_) {}
+    return ReminderDiagnostics(
+      pluginReady: true,
+      notificationsAllowed: allowed,
+      scheduledCount: count,
+      batteryExempt: exempt,
+      romBrand: brand,
+    );
+  }
+
   /// 提醒的挂钟时刻（当地时间 24 小时制）。
   ///
   /// 用户明确要求：**每日计划与到期提醒都在晚上 9 点**。
@@ -180,7 +290,43 @@ class PlanReminderService {
   ///
   /// 返回值区分「排上了 / 按规则不用排 / 没权限 / 平台不可用」四种，
   /// 详见 [ReminderOutcome]。调用方据此决定要不要提示用户。
-  Future<ReminderOutcome> schedule(ReadingPlan plan) async {
+  Future<ReminderOutcome> schedule(ReadingPlan plan) =>
+      _schedule(plan, askPermission: true);
+
+  /// 重新排期所有「开了提醒」的计划，返回排成功的条数。
+  ///
+  /// ## 为什么必须有这一步
+  ///
+  /// AlarmManager 里的闹钟**不会自己回来**，这些情况都会让它消失：
+  ///  - 国产 ROM 的「清理后台」/ 省电策略（最常见）；
+  ///  - 用户在系统里对 App「强制停止」；
+  ///  - 覆盖安装（应用数据被换掉，插件的排期缓存也可能丢）；
+  ///  - 用户改了系统时间/时区，原排期失效。
+  ///
+  /// 从前只有「用户手动改一次计划」才会重排，于是用户看到的现象就是
+  /// **「提醒只在打开 App 时才有」**——因为那次保存才把闹钟补上，
+  /// 而闹钟补上后如果又被 ROM 清掉，就再没有下一次了。
+  ///
+  /// 现在每次启动（以及每次回到前台）都补一遍，把丢失的排期找回来。
+  ///
+  /// **不弹权限框**：这里只查状态不索取权限（[askPermission] 为 false）。
+  /// 启动时弹系统的通知权限框既突兀又常被拒，用户没上下文时最不该被打扰。
+  Future<int> resync(List<ReadingPlan> plans) async {
+    await init();
+    if (!_ready) return 0;
+    var n = 0;
+    for (final p in plans) {
+      if (!p.reminderEnabled || p.done) continue;
+      final outcome = await _schedule(p, askPermission: false);
+      if (outcome == ReminderOutcome.scheduled) n++;
+    }
+    return n;
+  }
+
+  Future<ReminderOutcome> _schedule(
+    ReadingPlan plan, {
+    required bool askPermission,
+  }) async {
     await init();
     if (!_ready) return ReminderOutcome.unavailable;
 
@@ -214,7 +360,12 @@ class PlanReminderService {
     }
 
     // 要排了才问权限。
-    if (!await requestPermission()) return ReminderOutcome.denied;
+    if (askPermission) {
+      if (!await requestPermission()) return ReminderOutcome.denied;
+    } else if (!await hasPermission()) {
+      // 重排期时不索取权限，但没权限就别排——排了也发不出来。
+      return ReminderOutcome.denied;
+    }
 
     try {
       await _show(
@@ -272,12 +423,19 @@ class PlanReminderService {
       title,
       body,
       _tz(when),
-      _details('reading_plans'),
+      _details(planChannel),
       // iOS 10 以前不支持时区，靠这个参数决定「绝对时刻」还是「挂钟时间」。
       // 我们构造的都是本地挂钟时间，所以选 wallClock。
       // 参数在 17.x 仍是必填，不能省。
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.wallClockTime,
+      // inexactAllowWhileIdle → AlarmManager.setAndAllowWhileIdle：
+      // 非精确但在 Doze 里照样会响，且**不需要任何特殊权限**。
+      //
+      // 不用 exactAllowWhileIdle：它要求 SCHEDULE_EXACT_ALARM，
+      // 而 Google Play 只放行「闹钟/计时器类」App 申请该权限，
+      // 读书打卡类 App 申请会被拒。差个十来分钟对「21:00 提醒读书」
+      // 完全无所谓，被商店拒审才是真要命。
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: matchDateTimeComponents,
     );
@@ -289,6 +447,10 @@ class PlanReminderService {
   /// 渠道一旦创建，用户在系统设置里改过重要性/声音之后再改代码是**不生效**
   /// 的（系统沿用旧配置），所以这里按用途分渠道，并且一次定好不再变动。
   ///
+  /// 重要性用 [Importance.high] 而不是 `defaultImportance`：
+  /// 后者只进通知栏、不弹横幅，用户会以为「没收到提醒」。
+  /// 要改重要性必须换渠道 id（见 [planChannel]）。
+  ///
   /// 渠道名与描述走中文常量而非 ARB：Android 渠道名只在系统设置里显示，
   /// 那里没有本 App 的语言上下文；用 appLoc 反而会随 App 语言切换而错位。
   NotificationDetails _details(String channelId) => NotificationDetails(
@@ -296,8 +458,8 @@ class PlanReminderService {
           channelId,
           '阅读提醒',
           channelDescription: '每日阅读提醒、计划到期提醒与阅读报告提醒',
-          importance: Importance.defaultImportance,
-          priority: Priority.defaultPriority,
+          importance: Importance.high,
+          priority: Priority.high,
         ),
         iOS: const DarwinNotificationDetails(),
       );
@@ -323,7 +485,7 @@ class PlanReminderService {
   /// 立刻弹一条通知（不排期、立即显示）。
   ///
   /// 给「自动生成的报告已就绪」用——它不是计划提醒，而是一条
-  /// 「有事发生了、请回来看」的消息，与计划提醒共用通道与权限，
+  /// 「有事发生了、请回来看」的消息，与计划提醒共用权限，
   /// 所以放在同一个服务里，而不是再造一个插件实例。
   ///
   /// **不在这里索取权限**。若用户还没授权就静默返回：
@@ -338,7 +500,7 @@ class PlanReminderService {
     if (!_ready) return;
     if (!await hasPermission()) return;
     try {
-      await _plugin.show(id, title, body, _details('reports'));
+      await _plugin.show(id, title, body, _details(reportChannel));
     } catch (_) {}
   }
 

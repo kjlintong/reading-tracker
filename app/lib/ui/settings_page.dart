@@ -14,6 +14,8 @@ import '../l10n/app_localizations.dart';
 import '../models/enums.dart';
 import '../providers.dart';
 import '../services/auto_shelve.dart';
+import '../services/plan_reminder.dart';
+import '../services/system_settings.dart';
 import 'backup_page.dart';
 import 'theme.dart';
 import '../l10n/language_names.dart';
@@ -36,7 +38,8 @@ class SettingsPage extends ConsumerStatefulWidget {
   ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends ConsumerState<SettingsPage> {
+class _SettingsPageState extends ConsumerState<SettingsPage>
+    with WidgetsBindingObserver {
   late final TextEditingController _wereadKey;
   late final TextEditingController _llmKey;
   late final TextEditingController _llmBase;
@@ -56,11 +59,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   bool? _llmOk;
   String? _llmText;
 
+  /// 提醒链路的体检结果。null = 还没查出来（面板显示为「检查中」）。
+  ReminderDiagnostics? _remindDiag;
+
   String? _busy;
 
   @override
   void initState() {
     super.initState();
+    // 从系统设置页改完权限回来，面板要能反映新状态。
+    WidgetsBinding.instance.addObserver(this);
     // 自动搁置开关：把存储里的值同步进 provider，避免「上次关了但重开又显示开」。
     ref.read(repoProvider).getSetting(AutoShelve.enabledKey).then((v) {
       ref.read(autoShelveEnabledProvider.notifier).state = (v ?? 'true') == 'true';
@@ -70,16 +78,38 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _llmBase = TextEditingController(text: ref.read(llmBaseUrlProvider));
     _llmModel = TextEditingController(text: ref.read(llmModelProvider));
     _protocol = ref.read(llmProtocolProvider);
+    // 体检走平台通道（插件 + 系统设置页），首帧之后再查，别挡住界面。
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadReminderDiag());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _saveDebounce?.cancel();
     _wereadKey.dispose();
     _llmKey.dispose();
     _llmBase.dispose();
     _llmModel.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 用户去系统设置改完权限再回来：重新体检一次，面板要如实反映。
+    if (state == AppLifecycleState.resumed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadReminderDiag());
+    }
+  }
+
+  /// 查一次提醒链路的体检结果。
+  Future<void> _loadReminderDiag() async {
+    try {
+      final d = await ref.read(planReminderProvider).diagnose();
+      if (!mounted) return;
+      setState(() => _remindDiag = d);
+    } catch (_) {
+      // 查不到就保持「未知」，面板显示为不可用——总比报错好。
+    }
   }
 
   /// 文本框改动后自动保存（防抖）。用户不用再手动点「保存配置」。
@@ -773,6 +803,35 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ],
               ),
 
+              // ── 阅读提醒 ────────────────────────────────────────────
+              //
+              // 放在「第三方渠道」之后、「数据」之前：提醒属于「App 怎么替我
+              // 做一件事」这一组功能设置，不是数据也不是关于。
+              //
+              // 这一段存在的唯一理由：用户报「提醒只在打开 App 时才有」。
+              // 而这个现象的成因**全在系统侧**（通知权限 / 渠道被关 /
+              // 国产 ROM 清后台），App 里看不出来，用户也不知道该改哪里。
+              // 面板把三件事如实摆出来，并给出去系统设置改的入口——
+              // 诊断不了就修不了，而修不了就只能反复问「你用的什么手机」。
+              _Section(
+                title: l10n.settingsPlanReminder,
+                subtitle: l10n.reminderDiagDesc,
+                children: [
+                  _ReminderPanel(
+                    diag: _remindDiag,
+                    onOpenNotifications: () async {
+                      await SystemSettings.openNotificationSettings();
+                    },
+                    onOpenBackground: () async {
+                      await SystemSettings.openBatteryOptimizationSettings();
+                    },
+                    onOpenAutoStart: () async {
+                      await SystemSettings.openAutoStartSettings();
+                    },
+                  ),
+                ],
+              ),
+
               _Section(
                 title: appLoc.s_67677b3d,
                 subtitle: appLoc.s_d596ba9b,
@@ -1148,6 +1207,166 @@ class _Section extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 提醒体检面板。
+///
+/// 每一行对应「提醒送不到」的一个成因：
+///  1. 通知权限没给（Android 13+ 的 POST_NOTIFICATIONS）；
+///  2. 通知渠道被用户关掉；
+///  3. 系统在后台掐掉本 App（国产 ROM 的省电策略 / 自启动）；
+///  4. 提醒压根没排上（AlarmManager 里的排期被清掉）。
+///
+/// 之所以要在设置里显式摆出来：这些状态**在 App 里完全看不出来**，
+/// 用户唯一能观察到的是「没收到通知」这一个结果。
+/// 不给入口，用户就只能一直问「是不是 App 的 bug」。
+class _ReminderPanel extends StatelessWidget {
+  final ReminderDiagnostics? diag;
+  final Future<void> Function() onOpenNotifications;
+  final Future<void> Function() onOpenBackground;
+  final Future<void> Function() onOpenAutoStart;
+
+  const _ReminderPanel({
+    required this.diag,
+    required this.onOpenNotifications,
+    required this.onOpenBackground,
+    required this.onOpenAutoStart,
+  });
+
+  /// 有「自启动」概念的国产 ROM。只有这些机型才需要给出自启动入口——
+  /// 原生 AOSP 上给这个按钮是纯噪音。
+  static const _autoStartBrands = {
+    'miui',
+    'coloros',
+    'emui',
+    'harmony',
+    'originos',
+    'iqoo',
+    'oneplus',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final d = diag;
+    if (d == null) {
+      return const SizedBox(
+        height: 20,
+        child: Center(
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    final cs = Theme.of(context).colorScheme;
+    final needsAutoStart = _autoStartBrands.contains(d.romBrand);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _ReminderRow(
+          icon: Icons.notifications_active_outlined,
+          ok: d.notificationsAllowed,
+          okText: appLoc.reminderNotifOn,
+          badText: appLoc.reminderNotifOff,
+          action: d.notificationsAllowed
+              ? null
+              : _ReminderRow.button(
+                  label: appLoc.reminderNotifBtn,
+                  onPressed: onOpenNotifications,
+                ),
+        ),
+        const SizedBox(height: 8),
+        _ReminderRow(
+          icon: Icons.battery_saver_outlined,
+          ok: !d.backgroundRestricted,
+          okText: appLoc.reminderBgOk,
+          badText: appLoc.reminderBgBlocked,
+          action: d.backgroundRestricted
+              ? _ReminderRow.button(
+                  label: appLoc.reminderBgBtn,
+                  onPressed: onOpenBackground,
+                )
+              : null,
+        ),
+        if (needsAutoStart) ...[
+          const SizedBox(height: 8),
+          _ReminderRow(
+            icon: Icons.restart_alt,
+            ok: false,
+            okText: '',
+            badText: appLoc.reminderAutoStartHint,
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: () => onOpenAutoStart(),
+              icon: const Icon(Icons.rocket_launch_outlined, size: 16),
+              label: Text(appLoc.reminderAutoStartBtn),
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
+        Text(
+          appLoc.reminderScheduledCount(count: d.scheduledCount),
+          style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant),
+        ),
+      ],
+    );
+  }
+}
+
+/// 体检面板里的一行：图标 + 状态 + 可选的动作。
+class _ReminderRow extends StatelessWidget {
+  final IconData icon;
+  final bool ok;
+  final String okText;
+  final String badText;
+  final Widget? action;
+
+  const _ReminderRow({
+    required this.icon,
+    required this.ok,
+    required this.okText,
+    required this.badText,
+    this.action,
+  });
+
+  /// 造一个动作按钮。抽成静态方法是因为构造时不好直接写闭包。
+  static Widget button({
+    required String label,
+    required Future<void> Function() onPressed,
+  }) =>
+      TextButton(
+        onPressed: () => onPressed(),
+        style: TextButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+        ),
+        child: Text(label, style: const TextStyle(fontSize: 12)),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final color = ok ? cs.primary : cs.error;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            ok ? okText : badText,
+            style: TextStyle(fontSize: 12, color: ok ? cs.onSurface : cs.error),
+          ),
+        ),
+        if (action != null) action!,
+      ],
     );
   }
 }

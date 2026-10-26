@@ -3230,6 +3230,23 @@
     }
   },
   "settingsPlanReminder": "Recordatorios de lectura",
+  "reminderDiagDesc": "Los recordatorios los envía el sistema en segundo plano. Si el sistema restringe la ejecución en segundo plano, solo los verá con la app abierta.",
+  "reminderNotifOn": "Notificaciones permitidas",
+  "reminderNotifOff": "Notificaciones no permitidas: los recordatorios no se pueden enviar",
+  "reminderNotifBtn": "Permitir notificaciones",
+  "reminderBgOk": "La ejecución en segundo plano no está restringida",
+  "reminderBgBlocked": "El sistema puede restringir la ejecución en segundo plano; los recordatorios pueden retrasarse o perderse",
+  "reminderBgBtn": "Ajustar la ejecución en segundo plano",
+  "reminderAutoStartBtn": "Permitir inicio automático",
+  "reminderAutoStartHint": "En dispositivos Xiaomi, Huawei, OPPO y vivo, permita el inicio automático aquí: si no, el sistema borra las alarmas programadas.",
+  "reminderScheduledCount": "{count} recordatorio(s) de plan programado(s)",
+  "@reminderScheduledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reportSettings": "Ajustes del informe",
   "reportBackfill": "Generar los informes que falten",
   "reportNothingToBackfill": "Ya están todos los informes que deberían existir.",

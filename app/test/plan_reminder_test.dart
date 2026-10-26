@@ -266,4 +266,65 @@ void main() {
       expect(pending.map((p) => p.key).toList(), ['2026-08', '2025']);
     });
   });
+
+  group('提醒体检（用户报「提醒只在打开 App 时才有」）', () {
+    // 用户报的现象是：App 开着就收到提醒，不开就收不到。
+    // 成因全在系统侧，App 里看不出来，只能靠体检把状态摆出来。
+    // 这些判据决定设置页上「后台运行」那一行显示什么、
+    // 要不要给出「去调整后台运行」的入口。
+
+    test('没豁免电池优化 → 判为后台受限', () {
+      // 没豁免就判受限：宁可多提醒一次用户去设置里看一眼，
+      // 也不能反过来——放过了受限的用户就永远收不到提醒。
+      const d = ReminderDiagnostics(
+        pluginReady: true,
+        notificationsAllowed: true,
+        batteryExempt: false,
+      );
+      expect(d.backgroundRestricted, isTrue);
+      expect(d.ok, isFalse, reason: '受限就不算一切正常');
+    });
+
+    test('豁免了电池优化且是原生 ROM → 不判受限', () {
+      const d = ReminderDiagnostics(
+        pluginReady: true,
+        notificationsAllowed: true,
+        batteryExempt: true,
+        romBrand: '',
+      );
+      expect(d.backgroundRestricted, isFalse);
+      expect(d.ok, isTrue);
+    });
+
+    test('国产 ROM 即便豁免了电池优化，仍要提示开自启动', () {
+      // 小米/华为/OPPO/vivo 的「自启动」是**独立于电池优化**的一道开关：
+      // 关着的话系统照样会清掉 AlarmManager 里的闹钟。
+      // 只看 batteryExempt 会漏掉这一类——而这恰好是最常见的那个。
+      for (final brand in ['miui', 'coloros', 'emui', 'harmony', 'originos']) {
+        final d = ReminderDiagnostics(
+          pluginReady: true,
+          notificationsAllowed: true,
+          batteryExempt: true,
+          romBrand: brand,
+        );
+        expect(d.backgroundRestricted, isTrue, reason: brand);
+      }
+    });
+
+    test('通知没允许 → 一定不算正常', () {
+      const d = ReminderDiagnostics(
+        pluginReady: true,
+        notificationsAllowed: false,
+        batteryExempt: true,
+      );
+      expect(d.ok, isFalse);
+    });
+
+    test('插件不可用时不算正常，且不抛异常', () {
+      const d = ReminderDiagnostics();
+      expect(d.pluginReady, isFalse);
+      expect(d.ok, isFalse);
+      expect(d.scheduledCount, 0);
+    });
+  });
 }

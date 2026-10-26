@@ -3230,6 +3230,23 @@
     }
   },
   "settingsPlanReminder": "Leseerinnerungen",
+  "reminderDiagDesc": "Erinnerungen werden vom System im Hintergrund zugestellt. Wenn das System die Hintergrundausführung einschränkt, sehen Sie sie nur bei geöffneter App.",
+  "reminderNotifOn": "Benachrichtigungen erlaubt",
+  "reminderNotifOff": "Benachrichtigungen nicht erlaubt — Erinnerungen können nicht zugestellt werden",
+  "reminderNotifBtn": "Benachrichtigungen aktivieren",
+  "reminderBgOk": "Hintergrundausführung ist nicht eingeschränkt",
+  "reminderBgBlocked": "Das System kann die Hintergrundausführung einschränken; Erinnerungen können verzögert oder verpasst werden",
+  "reminderBgBtn": "Hintergrundausführung anpassen",
+  "reminderAutoStartBtn": "Autostart erlauben",
+  "reminderAutoStartHint": "Auf Xiaomi-, Huawei-, OPPO- und vivo-Geräten hier die Autostart-Berechtigung erteilen — sonst löscht das System geplante Alarme.",
+  "reminderScheduledCount": "{count} Planerinnerung(en) geplant",
+  "@reminderScheduledCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reportSettings": "Report-Einstellungen",
   "reportBackfill": "Fehlende Berichte generieren",
   "reportNothingToBackfill": "Jeder Bericht, der existieren sollte, ist bereits hier.",

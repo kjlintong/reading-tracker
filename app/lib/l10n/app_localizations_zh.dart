@@ -2469,6 +2469,38 @@ class SZh extends S {
   String get settingsPlanReminder => '阅读提醒';
 
   @override
+  String get reminderDiagDesc => '提醒由系统在后台发出。系统若限制后台运行，你会只在打开 App 时才收到提醒。';
+
+  @override
+  String get reminderNotifOn => '通知已允许';
+
+  @override
+  String get reminderNotifOff => '通知未允许，提醒无法送达';
+
+  @override
+  String get reminderNotifBtn => '去开启通知';
+
+  @override
+  String get reminderBgOk => '后台运行未被限制';
+
+  @override
+  String get reminderBgBlocked => '系统可能在后台限制运行，提醒会延迟或不送达';
+
+  @override
+  String get reminderBgBtn => '去调整后台运行';
+
+  @override
+  String get reminderAutoStartBtn => '允许自启动';
+
+  @override
+  String get reminderAutoStartHint => '小米、华为、OPPO、vivo 等机型还要在这里允许本应用自启动，否则系统会清掉已排好的闹钟。';
+
+  @override
+  String reminderScheduledCount({required int count}) {
+    return '已排期 $count 条计划提醒';
+  }
+
+  @override
   String get reportSettings => '报告设置';
 
   @override

@@ -2469,6 +2469,38 @@ class SEs extends S {
   String get settingsPlanReminder => 'Recordatorios de lectura';
 
   @override
+  String get reminderDiagDesc => 'Los recordatorios los envía el sistema en segundo plano. Si el sistema restringe la ejecución en segundo plano, solo los verá con la app abierta.';
+
+  @override
+  String get reminderNotifOn => 'Notificaciones permitidas';
+
+  @override
+  String get reminderNotifOff => 'Notificaciones no permitidas: los recordatorios no se pueden enviar';
+
+  @override
+  String get reminderNotifBtn => 'Permitir notificaciones';
+
+  @override
+  String get reminderBgOk => 'La ejecución en segundo plano no está restringida';
+
+  @override
+  String get reminderBgBlocked => 'El sistema puede restringir la ejecución en segundo plano; los recordatorios pueden retrasarse o perderse';
+
+  @override
+  String get reminderBgBtn => 'Ajustar la ejecución en segundo plano';
+
+  @override
+  String get reminderAutoStartBtn => 'Permitir inicio automático';
+
+  @override
+  String get reminderAutoStartHint => 'En dispositivos Xiaomi, Huawei, OPPO y vivo, permita el inicio automático aquí: si no, el sistema borra las alarmas programadas.';
+
+  @override
+  String reminderScheduledCount({required int count}) {
+    return '$count recordatorio(s) de plan programado(s)';
+  }
+
+  @override
   String get reportSettings => 'Ajustes del informe';
 
   @override
