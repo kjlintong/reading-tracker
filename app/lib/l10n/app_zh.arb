@@ -3612,5 +3612,45 @@
         "type": "int"
       }
     }
+  },
+  "recommendTitle": "找书",
+  "recommendSourceShelf": "书架里的",
+  "recommendSourceLlm": "大模型推荐",
+  "recommendSourceWeread": "微信读书书城",
+  "recommendSourceSearch": "联网搜索",
+  "recommendKeywordHint": "关键词（可留空）",
+  "recommendRefresh": "换一批",
+  "recommendEmpty": "这里暂时没有结果。换一档来源，或填个关键词试试。",
+  "recommendAdded": "已把 {n} 本书加入书架",
+  "@recommendAdded": {
+    "description": "推荐书单：数量相关文案",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendAddSelected": "把 {n} 本加入书架",
+  "@recommendAddSelected": {
+    "description": "推荐书单：数量相关文案",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendEntry": "找书",
+  "settingsSearchService": "搜索服务",
+  "settingsSearchKeyLabel": "搜索 API Key",
+  "settingsSearchEndpointLabel": "搜索服务地址",
+  "settingsSearchHeadersLabel": "附加请求头（JSON）",
+  "searchTestOk": "搜索可用，返回 {n} 条",
+  "@searchTestOk": {
+    "description": "推荐书单：数量相关文案",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

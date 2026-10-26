@@ -2906,4 +2906,58 @@ class SZh extends S {
   String planReadTodayCount({required int done, required int total}) {
     return '今天 $done/$total 本';
   }
+
+  @override
+  String get recommendTitle => '找书';
+
+  @override
+  String get recommendSourceShelf => '书架里的';
+
+  @override
+  String get recommendSourceLlm => '大模型推荐';
+
+  @override
+  String get recommendSourceWeread => '微信读书书城';
+
+  @override
+  String get recommendSourceSearch => '联网搜索';
+
+  @override
+  String get recommendKeywordHint => '关键词（可留空）';
+
+  @override
+  String get recommendRefresh => '换一批';
+
+  @override
+  String get recommendEmpty => '这里暂时没有结果。换一档来源，或填个关键词试试。';
+
+  @override
+  String recommendAdded({required int n}) {
+    return '已把 $n 本书加入书架';
+  }
+
+  @override
+  String recommendAddSelected({required int n}) {
+    return '把 $n 本加入书架';
+  }
+
+  @override
+  String get recommendEntry => '找书';
+
+  @override
+  String get settingsSearchService => '搜索服务';
+
+  @override
+  String get settingsSearchKeyLabel => '搜索 API Key';
+
+  @override
+  String get settingsSearchEndpointLabel => '搜索服务地址';
+
+  @override
+  String get settingsSearchHeadersLabel => '附加请求头（JSON）';
+
+  @override
+  String searchTestOk({required int n}) {
+    return '搜索可用，返回 $n 条';
+  }
 }

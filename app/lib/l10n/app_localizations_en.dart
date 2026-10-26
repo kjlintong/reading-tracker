@@ -2906,4 +2906,58 @@ class SEn extends S {
   String planReadTodayCount({required int done, required int total}) {
     return '$done/$total today';
   }
+
+  @override
+  String get recommendTitle => 'Find books';
+
+  @override
+  String get recommendSourceShelf => 'On your shelf';
+
+  @override
+  String get recommendSourceLlm => 'AI picks';
+
+  @override
+  String get recommendSourceWeread => 'WeRead store';
+
+  @override
+  String get recommendSourceSearch => 'Web search';
+
+  @override
+  String get recommendKeywordHint => 'Keyword (optional)';
+
+  @override
+  String get recommendRefresh => 'Refresh';
+
+  @override
+  String get recommendEmpty => 'Nothing found here yet. Try another source, or add a keyword.';
+
+  @override
+  String recommendAdded({required int n}) {
+    return 'Added $n book(s) to your shelf';
+  }
+
+  @override
+  String recommendAddSelected({required int n}) {
+    return 'Add $n to shelf';
+  }
+
+  @override
+  String get recommendEntry => 'Find books';
+
+  @override
+  String get settingsSearchService => 'Search service';
+
+  @override
+  String get settingsSearchKeyLabel => 'Search API Key';
+
+  @override
+  String get settingsSearchEndpointLabel => 'Search endpoint';
+
+  @override
+  String get settingsSearchHeadersLabel => 'Extra headers (JSON)';
+
+  @override
+  String searchTestOk({required int n}) {
+    return 'Search works — $n result(s)';
+  }
 }

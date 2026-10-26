@@ -11,6 +11,7 @@ import '../models/enums.dart';
 import '../models/reading_plan.dart';
 import '../providers.dart';
 import 'plan_editor_sheet.dart';
+import 'recommend_page.dart';
 import 'theme.dart';
 
 /// 阅读计划板块。嵌在「记录」页（笔记 + 计划）里，不是独立导航栏。
@@ -75,6 +76,19 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
   Future<void> _edit([ReadingPlan? plan]) async {
     final saved = await showPlanEditorSheet(context, plan: plan);
     if (saved == true) _load();
+  }
+
+  /// 打开推荐书单页。
+  ///
+  /// 从这里而不是从书架页进：推荐是「找下一本读什么」，
+  /// 与「定下接下来读什么」是同一件事的前后两步，
+  /// 放在计划区旁边才说得通。
+  Future<void> _openRecommend() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const RecommendPage()),
+    );
+    // 推荐页可能往书架里加了书，回来要刷新计划区的书名映射。
+    if (mounted) _load();
   }
 
   Future<void> _delete(ReadingPlan p) async {
@@ -368,6 +382,13 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
                     .titleMedium
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),
+            ),
+            // 「找书」与「新建计划」并列：两者都是「往书架里加东西」的动作，
+            // 放一起用户一眼就知道这一区能干什么。
+            TextButton.icon(
+              onPressed: _openRecommend,
+              icon: const Icon(Icons.travel_explore, size: 18),
+              label: Text(appLoc.recommendEntry),
             ),
             TextButton.icon(
               onPressed: () => _edit(),

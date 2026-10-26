@@ -1,11 +1,15 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'ai/llm_protocol.dart';
+import 'ai/search_client.dart';
 import 'data/category_prefs.dart';
 import 'data/database.dart';
 import 'data/report_period.dart';
 import 'data/report_style.dart';
+import 'data/recommendation_service.dart';
 import 'ai/ai_client.dart';
 import 'import/import_manager.dart';
 import 'l10n/app_loc.dart';
@@ -58,6 +62,24 @@ final autoShelveEnabledProvider = StateProvider<bool>((ref) => true);
 /// 截图识别是否允许调用大模型整理 OCR 文本
 final ocrUseLlmProvider = StateProvider<bool>((ref) => true);
 
+/// 通用搜索服务的 API Key（推荐书单第 4 档用）。
+///
+/// 用户自填，存系统密钥库——与微信读书 Key、大模型 Key 同一套处置。
+final searchKeyProvider = StateProvider<String?>((ref) => null);
+
+/// 搜索服务的地址。留空则用 [SearchClient.defaultEndpoint]（Bing Web Search v7）。
+///
+/// 做成可配置而不是写死一家：各家的订阅与配额不一样，
+/// 写死等于「没订那家就这一档直接废掉」。
+final searchEndpointProvider =
+    StateProvider<String>((ref) => SearchClient.defaultEndpoint);
+
+/// 搜索服务额外请求头（JSON 字符串）。
+///
+/// 某些服务要 `Ocp-Apim-Subscription-Key` 之外的别的头，
+/// 留个口子省得每次都要改代码。
+final searchHeadersProvider = StateProvider<String>((ref) => '');
+
 /// 图片识别通道：`auto` 多模态优先、失败回落端侧 OCR；
 /// `device` 只用端侧 OCR；`vision` 只走多模态大模型。
 ///
@@ -86,7 +108,7 @@ final appBrightnessProvider =
 final appLocaleProvider = StateProvider<Locale?>((ref) => null);
 
 /// 机密项（API Key 等）存系统密钥库而非明文 SQLite。
-const _secretKeys = {'weread_key', 'llm_key'};
+const _secretKeys = {'weread_key', 'llm_key', 'search_key'};
 
 /// 是否允许把书架截图上传到用户自填的多模态大模型端点。
 ///
@@ -115,6 +137,45 @@ final metadataClientProvider = Provider<MetadataClient>((ref) {
   return MetadataClient(
     dio: ref.watch(dioProvider),
     weread: ref.watch(wereadGatewayProvider),
+  );
+});
+
+/// 通用搜索服务客户端。用于推荐书单第 4 档。
+final searchClientProvider = Provider<SearchClient>((ref) {
+  // 额外请求头以 JSON 存；解析失败就当没有——
+  // 一个手滑打错的括号不该让整个推荐功能不可用。
+  var headers = <String, String>{};
+  final raw = ref.watch(searchHeadersProvider).trim();
+  if (raw.isNotEmpty) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        headers = {
+          for (final e in decoded.entries)
+            if (e.key is String && e.value != null)
+              e.key as String: e.value.toString(),
+        };
+      }
+    } catch (_) {
+      headers = const {};
+    }
+  }
+  return SearchClient(
+    dio: ref.watch(dioProvider),
+    apiKey: ref.watch(searchKeyProvider),
+    endpoint: ref.watch(searchEndpointProvider),
+    extraHeaders: headers,
+  );
+});
+
+/// 推荐书单服务。
+final recommendationServiceProvider = Provider<RecommendationService>((ref) {
+  return RecommendationService(
+    repo: ref.watch(repoProvider),
+    llm: ref.watch(llmClientProvider),
+    weread: ref.watch(wereadGatewayProvider),
+    search: ref.watch(searchClientProvider),
+    metadata: ref.watch(metadataClientProvider),
   );
 });
 
@@ -408,6 +469,12 @@ void _apply(WidgetRef ref, String key, String value) {
     case 'llm_protocol':
       ref.read(llmProtocolProvider.notifier).state =
           LlmProtocol.fromString(value);
+    case 'search_key':
+      ref.read(searchKeyProvider.notifier).state = value;
+    case 'search_endpoint':
+      ref.read(searchEndpointProvider.notifier).state = value;
+    case 'search_headers':
+      ref.read(searchHeadersProvider.notifier).state = value;
     case 'ocr_enhance':
       ref.read(ocrEnhanceProvider.notifier).state = value == 'true';
     case 'ocr_use_llm':

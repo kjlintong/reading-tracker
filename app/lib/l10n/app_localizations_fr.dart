@@ -2906,4 +2906,58 @@ class SFr extends S {
   String planReadTodayCount({required int done, required int total}) {
     return 'Aujourd\'hui $done/$total';
   }
+
+  @override
+  String get recommendTitle => 'Trouver des livres';
+
+  @override
+  String get recommendSourceShelf => 'Dans ta bibliothèque';
+
+  @override
+  String get recommendSourceLlm => 'Choix de l’IA';
+
+  @override
+  String get recommendSourceWeread => 'Librairie WeRead';
+
+  @override
+  String get recommendSourceSearch => 'Recherche web';
+
+  @override
+  String get recommendKeywordHint => 'Mot-clé (facultatif)';
+
+  @override
+  String get recommendRefresh => 'Actualiser';
+
+  @override
+  String get recommendEmpty => 'Rien pour l’instant. Essaie une autre source ou ajoute un mot-clé.';
+
+  @override
+  String recommendAdded({required int n}) {
+    return '$n livre(s) ajouté(s) à ta bibliothèque';
+  }
+
+  @override
+  String recommendAddSelected({required int n}) {
+    return 'Ajouter $n à la bibliothèque';
+  }
+
+  @override
+  String get recommendEntry => 'Trouver des livres';
+
+  @override
+  String get settingsSearchService => 'Service de recherche';
+
+  @override
+  String get settingsSearchKeyLabel => 'Clé API de recherche';
+
+  @override
+  String get settingsSearchEndpointLabel => 'Point de terminaison';
+
+  @override
+  String get settingsSearchHeadersLabel => 'En-têtes supplémentaires (JSON)';
+
+  @override
+  String searchTestOk({required int n}) {
+    return 'La recherche fonctionne — $n résultat(s)';
+  }
 }

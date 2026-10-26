@@ -2906,4 +2906,58 @@ class SEs extends S {
   String planReadTodayCount({required int done, required int total}) {
     return 'Hoy $done/$total';
   }
+
+  @override
+  String get recommendTitle => 'Buscar libros';
+
+  @override
+  String get recommendSourceShelf => 'En tu estantería';
+
+  @override
+  String get recommendSourceLlm => 'Sugerencias de IA';
+
+  @override
+  String get recommendSourceWeread => 'Tienda WeRead';
+
+  @override
+  String get recommendSourceSearch => 'Búsqueda web';
+
+  @override
+  String get recommendKeywordHint => 'Palabra clave (opcional)';
+
+  @override
+  String get recommendRefresh => 'Actualizar';
+
+  @override
+  String get recommendEmpty => 'Aquí no hay nada todavía. Prueba otra fuente o añade una palabra clave.';
+
+  @override
+  String recommendAdded({required int n}) {
+    return 'Se añadieron $n libro(s) a tu estantería';
+  }
+
+  @override
+  String recommendAddSelected({required int n}) {
+    return 'Añadir $n a la estantería';
+  }
+
+  @override
+  String get recommendEntry => 'Buscar libros';
+
+  @override
+  String get settingsSearchService => 'Servicio de búsqueda';
+
+  @override
+  String get settingsSearchKeyLabel => 'Clave API de búsqueda';
+
+  @override
+  String get settingsSearchEndpointLabel => 'Punto de conexión';
+
+  @override
+  String get settingsSearchHeadersLabel => 'Cabeceras adicionales (JSON)';
+
+  @override
+  String searchTestOk({required int n}) {
+    return 'La búsqueda funciona: $n resultado(s)';
+  }
 }

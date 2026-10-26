@@ -3612,5 +3612,45 @@
         "type": "int"
       }
     }
+  },
+  "recommendTitle": "Bücher finden",
+  "recommendSourceShelf": "Auf deinem Regal",
+  "recommendSourceLlm": "KI-Tipps",
+  "recommendSourceWeread": "WeRead-Shop",
+  "recommendSourceSearch": "Websuche",
+  "recommendKeywordHint": "Stichwort (optional)",
+  "recommendRefresh": "Neu laden",
+  "recommendEmpty": "Hier gibt es noch nichts. Probier eine andere Quelle oder ein Stichwort.",
+  "recommendAdded": "{n} Buch/Bücher zur Shelf hinzugefügt",
+  "@recommendAdded": {
+    "description": "推荐书单：数量相关文案",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendAddSelected": "{n} zur Shelf hinzufügen",
+  "@recommendAddSelected": {
+    "description": "推荐书单：数量相关文案",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendEntry": "Bücher finden",
+  "settingsSearchService": "Suchdienst",
+  "settingsSearchKeyLabel": "Such-API-Key",
+  "settingsSearchEndpointLabel": "Such-Endpunkt",
+  "settingsSearchHeadersLabel": "Zusätzliche Header (JSON)",
+  "searchTestOk": "Suche funktioniert — {n} Treffer",
+  "@searchTestOk": {
+    "description": "推荐书单：数量相关文案",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

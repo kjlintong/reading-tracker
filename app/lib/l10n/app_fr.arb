@@ -3612,5 +3612,45 @@
         "type": "int"
       }
     }
+  },
+  "recommendTitle": "Trouver des livres",
+  "recommendSourceShelf": "Dans ta bibliothèque",
+  "recommendSourceLlm": "Choix de l’IA",
+  "recommendSourceWeread": "Librairie WeRead",
+  "recommendSourceSearch": "Recherche web",
+  "recommendKeywordHint": "Mot-clé (facultatif)",
+  "recommendRefresh": "Actualiser",
+  "recommendEmpty": "Rien pour l’instant. Essaie une autre source ou ajoute un mot-clé.",
+  "recommendAdded": "{n} livre(s) ajouté(s) à ta bibliothèque",
+  "@recommendAdded": {
+    "description": "推荐书单：数量相关文案",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendAddSelected": "Ajouter {n} à la bibliothèque",
+  "@recommendAddSelected": {
+    "description": "推荐书单：数量相关文案",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "recommendEntry": "Trouver des livres",
+  "settingsSearchService": "Service de recherche",
+  "settingsSearchKeyLabel": "Clé API de recherche",
+  "settingsSearchEndpointLabel": "Point de terminaison",
+  "settingsSearchHeadersLabel": "En-têtes supplémentaires (JSON)",
+  "searchTestOk": "La recherche fonctionne — {n} résultat(s)",
+  "@searchTestOk": {
+    "description": "推荐书单：数量相关文案",
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   }
 }

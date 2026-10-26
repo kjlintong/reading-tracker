@@ -2906,4 +2906,58 @@ class SDe extends S {
   String planReadTodayCount({required int done, required int total}) {
     return 'Heute $done/$total';
   }
+
+  @override
+  String get recommendTitle => 'Bücher finden';
+
+  @override
+  String get recommendSourceShelf => 'Auf deinem Regal';
+
+  @override
+  String get recommendSourceLlm => 'KI-Tipps';
+
+  @override
+  String get recommendSourceWeread => 'WeRead-Shop';
+
+  @override
+  String get recommendSourceSearch => 'Websuche';
+
+  @override
+  String get recommendKeywordHint => 'Stichwort (optional)';
+
+  @override
+  String get recommendRefresh => 'Neu laden';
+
+  @override
+  String get recommendEmpty => 'Hier gibt es noch nichts. Probier eine andere Quelle oder ein Stichwort.';
+
+  @override
+  String recommendAdded({required int n}) {
+    return '$n Buch/Bücher zur Shelf hinzugefügt';
+  }
+
+  @override
+  String recommendAddSelected({required int n}) {
+    return '$n zur Shelf hinzufügen';
+  }
+
+  @override
+  String get recommendEntry => 'Bücher finden';
+
+  @override
+  String get settingsSearchService => 'Suchdienst';
+
+  @override
+  String get settingsSearchKeyLabel => 'Such-API-Key';
+
+  @override
+  String get settingsSearchEndpointLabel => 'Such-Endpunkt';
+
+  @override
+  String get settingsSearchHeadersLabel => 'Zusätzliche Header (JSON)';
+
+  @override
+  String searchTestOk({required int n}) {
+    return 'Suche funktioniert — $n Treffer';
+  }
 }

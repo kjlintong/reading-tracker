@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import '../app_info.dart';
 import '../l10n/app_loc.dart';
 
@@ -9,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:reading_tracker/services/update_checker.dart';
 import '../ai/ai_client.dart';
 import '../ai/llm_protocol.dart';
+import '../ai/search_client.dart';
 import '../data/category_prefs.dart';
 import '../l10n/app_localizations.dart';
 import '../models/enums.dart';
@@ -44,6 +46,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
   late final TextEditingController _llmKey;
   late final TextEditingController _llmBase;
   late final TextEditingController _llmModel;
+  late final TextEditingController _searchKey;
+  late final TextEditingController _searchEndpoint;
+  late final TextEditingController _searchHeaders;
   late LlmProtocol _protocol;
 
   bool _obscure = true;
@@ -54,6 +59,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
   /// 微信读书（第三方渠道）验证结果
   bool? _wereadOk;
   String? _wereadText;
+
+  /// 搜索服务连通性测试结果。
+  bool? _searchOk;
+  String? _searchText;
 
   /// 大模型连通性测试结果（测试 / 拉取模型共用）
   bool? _llmOk;
@@ -77,6 +86,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
     _llmKey = TextEditingController(text: ref.read(llmKeyProvider) ?? '');
     _llmBase = TextEditingController(text: ref.read(llmBaseUrlProvider));
     _llmModel = TextEditingController(text: ref.read(llmModelProvider));
+    _searchKey = TextEditingController(text: ref.read(searchKeyProvider) ?? '');
+    _searchEndpoint =
+        TextEditingController(text: ref.read(searchEndpointProvider));
+    _searchHeaders =
+        TextEditingController(text: ref.read(searchHeadersProvider));
     _protocol = ref.read(llmProtocolProvider);
     // 体检走平台通道（插件 + 系统设置页），首帧之后再查，别挡住界面。
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadReminderDiag());
@@ -90,6 +104,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
     _llmKey.dispose();
     _llmBase.dispose();
     _llmModel.dispose();
+    _searchKey.dispose();
+    _searchEndpoint.dispose();
+    _searchHeaders.dispose();
     super.dispose();
   }
 
@@ -128,6 +145,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
     await saveSetting(ref, 'llm_base_url', _llmBase.text.trim());
     await saveSetting(ref, 'llm_model', _llmModel.text.trim());
     await saveSetting(ref, 'llm_protocol', _protocol.name);
+    await saveSetting(ref, 'search_key', _searchKey.text.trim());
+    await saveSetting(ref, 'search_endpoint', _searchEndpoint.text.trim());
+    await saveSetting(ref, 'search_headers', _searchHeaders.text.trim());
     if (toast && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
          SnackBar(content: Text(appLoc.s_72cca1f6)),
@@ -327,6 +347,60 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
       }
     } catch (e) {
       if (mounted) setState(() => _wereadText = _readable(e));
+    } finally {
+      if (mounted) setState(() => _busy = null);
+    }
+  }
+
+  /// 搜索服务连通性测试。
+  ///
+  /// 用**输入框当前的值**构造客户端，而不是已保存的配置——
+  /// 用户填完就想点测试，不该被迫先保存一次再测。
+  SearchClient _formSearchClient() {
+    var headers = <String, String>{};
+    final raw = _searchHeaders.text.trim();
+    if (raw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) {
+          headers = {
+            for (final e in decoded.entries)
+              if (e.key is String && e.value != null)
+                e.key as String: e.value.toString(),
+          };
+        }
+      } catch (_) {
+        // 头写坏了就当没有——测试本身要能给出可读的错误。
+      }
+    }
+    return SearchClient(
+      dio: ref.read(dioProvider),
+      apiKey: _searchKey.text.trim(),
+      endpoint: _searchEndpoint.text.trim(),
+      extraHeaders: headers,
+    );
+  }
+
+  Future<void> _testSearch() async {
+    setState(() {
+      _busy = appLoc.s_5df0d12b;
+      _searchOk = null;
+      _searchText = null;
+    });
+    await _save(toast: false);
+    try {
+      final hits = await _formSearchClient().search('三体', count: 3);
+      if (!mounted) return;
+      setState(() {
+        _searchOk = true;
+        _searchText = appLoc.searchTestOk(n: hits.length);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _searchOk = false;
+        _searchText = _readable(e);
+      });
     } finally {
       if (mounted) setState(() => _busy = null);
     }
@@ -799,6 +873,63 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                   if (_wereadText != null) ...[
                     const SizedBox(height: 10),
                     _ResultBanner(ok: _wereadOk, text: _wereadText!),
+                  ],
+
+                  // ── 搜索服务 ────────────────────────────────────────
+                  //
+                  // 推荐书单第 4 档「联网搜索」要用。
+                  //
+                  // 做成**可配置**而不是写死一家：搜索 API 的订阅与配额
+                  // 各家不同，写死等于「没订那家这一档直接废掉」。
+                  // 默认 endpoint 指向 Bing Web Search v7，填别的地址
+                  // 就能换成任何兼容服务。
+                  const SizedBox(height: 14),
+                  Divider(height: 1),
+                  const SizedBox(height: 14),
+                  Text(
+                    appLoc.settingsSearchService,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _searchKey,
+                    obscureText: _obscure,
+                    onChanged: (_) => _scheduleSave(),
+                    decoration: InputDecoration(
+                      labelText: appLoc.settingsSearchKeyLabel,
+                      hintText: 'sk-xxxxxxxx',
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _searchEndpoint,
+                    onChanged: (_) => _scheduleSave(),
+                    decoration: InputDecoration(
+                      labelText: appLoc.settingsSearchEndpointLabel,
+                      hintText: SearchClient.defaultEndpoint,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _searchHeaders,
+                    onChanged: (_) => _scheduleSave(),
+                    decoration: InputDecoration(
+                      labelText: appLoc.settingsSearchHeadersLabel,
+                      hintText: '{"X-Custom": "value"}',
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: _busy != null ? null : _testSearch,
+                    icon: const Icon(Icons.wifi_tethering, size: 18),
+                    label: Text(appLoc.s_e44e9f26),
+                  ),
+                  if (_searchText != null) ...[
+                    const SizedBox(height: 10),
+                    _ResultBanner(ok: _searchOk, text: _searchText!),
                   ],
                 ],
               ),

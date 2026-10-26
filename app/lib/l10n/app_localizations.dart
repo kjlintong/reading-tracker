@@ -5158,6 +5158,102 @@ abstract class S {
   /// In en, this message translates to:
   /// **'{done}/{total} today'**
   String planReadTodayCount({required int done, required int total});
+
+  /// No description provided for @recommendTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Find books'**
+  String get recommendTitle;
+
+  /// No description provided for @recommendSourceShelf.
+  ///
+  /// In en, this message translates to:
+  /// **'On your shelf'**
+  String get recommendSourceShelf;
+
+  /// No description provided for @recommendSourceLlm.
+  ///
+  /// In en, this message translates to:
+  /// **'AI picks'**
+  String get recommendSourceLlm;
+
+  /// No description provided for @recommendSourceWeread.
+  ///
+  /// In en, this message translates to:
+  /// **'WeRead store'**
+  String get recommendSourceWeread;
+
+  /// No description provided for @recommendSourceSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Web search'**
+  String get recommendSourceSearch;
+
+  /// No description provided for @recommendKeywordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyword (optional)'**
+  String get recommendKeywordHint;
+
+  /// No description provided for @recommendRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get recommendRefresh;
+
+  /// No description provided for @recommendEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing found here yet. Try another source, or add a keyword.'**
+  String get recommendEmpty;
+
+  /// 推荐书单：数量相关文案
+  ///
+  /// In en, this message translates to:
+  /// **'Added {n} book(s) to your shelf'**
+  String recommendAdded({required int n});
+
+  /// 推荐书单：数量相关文案
+  ///
+  /// In en, this message translates to:
+  /// **'Add {n} to shelf'**
+  String recommendAddSelected({required int n});
+
+  /// No description provided for @recommendEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Find books'**
+  String get recommendEntry;
+
+  /// No description provided for @settingsSearchService.
+  ///
+  /// In en, this message translates to:
+  /// **'Search service'**
+  String get settingsSearchService;
+
+  /// No description provided for @settingsSearchKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search API Key'**
+  String get settingsSearchKeyLabel;
+
+  /// No description provided for @settingsSearchEndpointLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Search endpoint'**
+  String get settingsSearchEndpointLabel;
+
+  /// No description provided for @settingsSearchHeadersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra headers (JSON)'**
+  String get settingsSearchHeadersLabel;
+
+  /// 推荐书单：数量相关文案
+  ///
+  /// In en, this message translates to:
+  /// **'Search works — {n} result(s)'**
+  String searchTestOk({required int n});
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {
