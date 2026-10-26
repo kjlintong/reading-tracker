@@ -9,6 +9,7 @@ import '../models/enums.dart';
 import '../models/reading_plan.dart';
 import '../providers.dart';
 import '../services/plan_reminder.dart';
+import 'plan_due_date.dart';
 
 /// 打开计划编辑抽屉。[plan] 为空表示新建。
 /// 保存成功返回 true。
@@ -83,20 +84,25 @@ class _PlanEditorSheetState extends ConsumerState<PlanEditorSheet> {
 
   Future<void> _pickDue() async {
     final now = DateTime.now();
-    final initial = _dueDate != null
-        ? (DateTime.tryParse(_dueDate!) ?? now)
-        : now.add(const Duration(days: 14));
+    final existing = _dueDate != null ? DateTime.tryParse(_dueDate!) : null;
+    // 边界计算放在纯函数里（见 plan_due_date.dart），
+    // 要点是**已逾期的计划也要能改回原来的截止日**。
+    //
+    // 此前 firstDate 固定为「昨天」，于是编辑一条已逾期的计划时，
+    // initialDate（= 已存的截止日）落在 firstDate 之前：
+    // debug 下 Flutter 直接断言失败，release 下则把日历翻到
+    // 没有那一天的月份——用户存着的截止日在界面上消失，
+    // 保存后就被静默改成了别的日期。
+    final b = dueDateBounds(now, existing: existing);
     final picked = await showDatePicker(
       context: context,
-      initialDate: initial,
-      firstDate: now.subtract(const Duration(days: 1)),
+      initialDate: b.initial,
+      firstDate: b.first,
       lastDate: now.add(const Duration(days: 3650)),
     );
     if (picked == null) return;
     setState(() {
-      _dueDate = '${picked.year.toString().padLeft(4, '0')}-'
-          '${picked.month.toString().padLeft(2, '0')}-'
-          '${picked.day.toString().padLeft(2, '0')}';
+      _dueDate = formatDueDate(picked);
     });
   }
 
