@@ -138,11 +138,18 @@ final planReminderProvider =
 ///
 /// 现在每次启动、每次回到前台都补一遍，把丢失的排期找回来。
 /// 失败一律自己吞掉：提醒是增强功能，绝不能拖住启动。
-Future<void> resyncPlanReminders(WidgetRef ref) async {
+///
+/// [resetFirst] 用于「整库覆盖」的场景（恢复备份）：
+/// 先把系统里所有旧排期撤掉，再按新数据重排。
+/// 不撤的话，备份里已经删除的计划会留下**孤儿闹钟**——
+/// 到了那个点照样弹一条提醒，而用户在这台设备上根本没有这条计划。
+Future<void> resyncPlanReminders(WidgetRef ref, {bool resetFirst = false}) async {
   try {
     final repo = ref.read(repoProvider);
     final plans = await repo.activePlans();
-    await ref.read(planReminderProvider).resync(plans);
+    final reminders = ref.read(planReminderProvider);
+    if (resetFirst) await reminders.cancelAll();
+    await reminders.resync(plans);
   } catch (_) {}
 }
 

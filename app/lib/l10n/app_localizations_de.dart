@@ -2377,6 +2377,9 @@ class SDe extends S {
   String get planRemind => 'Erinnere mich vor Ablauf der Frist';
 
   @override
+  String get planRemindNoLonger => 'Frist zu nah — keine Erinnerung mehr';
+
+  @override
   String get planRemindOff => 'Wenn Sie diese Option aktivieren, wird um Benachrichtigungsberechtigung gebeten. Die Erinnerung storniert sich selbst, sobald der Plan fertig ist.';
 
   @override

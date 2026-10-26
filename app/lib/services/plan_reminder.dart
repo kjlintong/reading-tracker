@@ -315,13 +315,29 @@ class PlanReminderService {
     await init();
     if (!_ready) return 0;
     var n = 0;
-    for (final p in plans) {
-      if (!p.reminderEnabled || p.done) continue;
+    for (final p in needsReminder(plans)) {
       final outcome = await _schedule(p, askPermission: false);
       if (outcome == ReminderOutcome.scheduled) n++;
     }
     return n;
   }
+
+  /// 从一批计划里挑出**需要排提醒**的那些。
+  ///
+  /// 抽成纯函数是为了能穷举测试：这几个条件一旦写错，
+  /// 表现是「提醒莫名消失」或「该提醒的不提醒」，在真机上极难复现。
+  ///
+  /// 两条排除规则：
+  ///  - 没开提醒的：用户自己关掉的，不再替他排；
+  ///  - 已整体结束的（[ReadingPlan.done]）：一次性目标做完就该撤。
+  ///
+  /// 注意**每日型计划打卡后不算 done**——那是「今天读完了」，
+  /// 明天还要读，提醒要留着。
+  @visibleForTesting
+  static List<ReadingPlan> needsReminder(List<ReadingPlan> plans) => [
+        for (final p in plans)
+          if (p.reminderEnabled && !p.done) p,
+      ];
 
   Future<ReminderOutcome> _schedule(
     ReadingPlan plan, {

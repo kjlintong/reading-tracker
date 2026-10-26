@@ -279,6 +279,26 @@ class ReadingPlan {
     final b = DateTime(parsed.year, parsed.month, parsed.day);
     return b.difference(a).inDays;
   }
+
+  /// 这条计划**当前是否还会有系统提醒**。
+  ///
+  /// 提醒是排进系统闹钟的，而闹钟的排期规则跟计划类型有关：
+  ///  - 每日型：每天 21:00 一次，永远有；
+  ///  - 书本型：截止日前 3 天的 21:00 一次。
+  ///    **距截止不足 3 天（或已逾期）就不再排**——
+  ///    「还有 3 天到期」在只剩 2 天时说出来只会让人困惑。
+  ///
+  /// 为什么要单独暴露这个判定：卡片上如果无条件写「🔔 到期前提醒我」，
+  /// 一条早已逾期的计划也会显示这句话，而它其实**永远不会再响**。
+  /// 用户看到「我明明开了提醒，怎么不响」——这正是要消灭的那种困惑。
+  /// 界面据此如实显示，而不是显示一个做不到的承诺。
+  bool get reminderWillFire {
+    if (!reminderEnabled) return false;
+    if (kind == PlanKind.dailyMinutes) return true;
+    final days = daysUntilDue;
+    if (days == null) return false;
+    return days >= 3;
+  }
 }
 
 /// 一条计划的完成情况快照。**由实时数据算出来，不落库。**

@@ -3152,6 +3152,7 @@
   "planDueLabel": "Date limite",
   "planDueUnset": "Non fixée",
   "planRemind": "Me rappeler avant la date limite",
+  "planRemindNoLonger": "Date limite trop proche — plus de rappel",
   "planRemindOff": "Activer ceci demandera l'autorisation des notifications. Le rappel s'annule de lui-même une fois le plan terminé.",
   "planTitleLabel": "Nom du plan (facultatif)",
   "planTitleHint": "Laisse vide pour utiliser le nom par défaut",

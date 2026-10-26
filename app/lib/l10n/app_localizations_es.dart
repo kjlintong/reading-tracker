@@ -2377,6 +2377,9 @@ class SEs extends S {
   String get planRemind => 'Avisarme antes de la fecha límite';
 
   @override
+  String get planRemindNoLonger => 'Fecha límite demasiado cerca: sin aviso';
+
+  @override
   String get planRemindOff => 'Al activarlo se pedirá permiso para notificaciones. El recordatorio se cancela solo cuando el plan se completa.';
 
   @override

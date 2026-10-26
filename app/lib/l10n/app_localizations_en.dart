@@ -2377,6 +2377,9 @@ class SEn extends S {
   String get planRemind => 'Remind me before the deadline';
 
   @override
+  String get planRemindNoLonger => 'Deadline too close — no reminder';
+
+  @override
   String get planRemindOff => 'Turning this on asks for notification permission. The reminder cancels itself once the plan is done.';
 
   @override

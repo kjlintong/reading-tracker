@@ -588,14 +588,35 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
                           ),
                         ),
                       ),
+                    // 显示的是「这条计划**现在**到底还会不会响」，
+                    // 而不是「用户当初有没有开过提醒」。
+                    //
+                    // 一条早已逾期的书本型计划，系统里已经没有它的闹钟了，
+                    // 但卡片上还写着「🔔 到期前提醒我」——用户看到的是一句
+                    // 做不到的承诺，等不来提醒只会更困惑。
                     if (p.reminderEnabled) ...[
                       const SizedBox(width: 6),
-                      Icon(Icons.notifications_active_outlined,
-                          size: 15, color: cs.onSurfaceVariant),
+                      Icon(
+                        p.reminderWillFire
+                            ? Icons.notifications_active_outlined
+                            : Icons.notifications_off_outlined,
+                        size: 15,
+                        color: p.reminderWillFire
+                            ? cs.onSurfaceVariant
+                            : cs.onSurfaceVariant.withOpacity(0.6),
+                      ),
                       const SizedBox(width: 3),
-                      Text(appLoc.planRemind,
-                          style: TextStyle(
-                              fontSize: 11, color: cs.onSurfaceVariant)),
+                      Text(
+                        p.reminderWillFire
+                            ? appLoc.planRemind
+                            : appLoc.planRemindNoLonger,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: p.reminderWillFire
+                              ? cs.onSurfaceVariant
+                              : cs.onSurfaceVariant.withOpacity(0.6),
+                        ),
+                      ),
                     ],
                   ],
                 ),

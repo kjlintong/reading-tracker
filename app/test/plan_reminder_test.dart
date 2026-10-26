@@ -326,5 +326,140 @@ void main() {
       expect(d.ok, isFalse);
       expect(d.scheduledCount, 0);
     });
+  group('重排期筛选（needsReminder）', () {
+    // 这条筛选决定了「哪些计划该有系统闹钟」。
+    // 写错了两种表现都很隐蔽：
+    //  - 漏排：用户开了提醒却收不到（就是这次报的那个问题）；
+    //  - 多排：已经结束的计划还在响，或者用户自己关掉的提醒又冒出来。
+
+    ReadingPlan daily({
+      String id = 'p1',
+      bool remind = true,
+      bool done = false,
+    }) =>
+        ReadingPlan(
+          id: id,
+          kind: PlanKind.dailyMinutes,
+          createdAt: '2026-10-01T00:00:00.000',
+          dailyMinutes: 20,
+          reminderEnabled: remind,
+          done: done,
+        );
+
+    test('开了提醒且未结束 → 要排', () {
+      final out = PlanReminderService.needsReminder([daily()]);
+      expect(out.length, 1);
+      expect(out.first.id, 'p1');
+    });
+
+    test('没开提醒 → 不排', () {
+      final out = PlanReminderService.needsReminder([daily(remind: false)]);
+      expect(out, isEmpty);
+    });
+
+    test('已整体结束 → 不排', () {
+      final out = PlanReminderService.needsReminder([daily(done: true)]);
+      expect(out, isEmpty);
+    });
+
+    test('每日型打卡后仍要排——「今天读完」不等于计划结束', () {
+      // 这是最容易写错的一条：打卡只写 lastDoneOn，done 仍是 false。
+      // 若筛选误用 lastDoneOn 判断，用户的每日提醒会在打第一次卡后消失。
+      final p = daily().copyWith(lastDoneOn: '2026-10-26');
+      expect(p.done, isFalse);
+      expect(PlanReminderService.needsReminder([p]).length, 1);
+    });
+
+    test('混合批次里只挑出该排的那些', () {
+      final out = PlanReminderService.needsReminder([
+        daily(id: 'a'),
+        daily(id: 'b', remind: false),
+        daily(id: 'c', done: true),
+        daily(id: 'd'),
+      ]);
+      expect(out.map((p) => p.id).toList(), ['a', 'd']);
+    });
+
+    test('空批次不炸', () {
+      expect(PlanReminderService.needsReminder([]), isEmpty);
+    });
+  });
+  group('提醒是否真的会响（reminderWillFire）', () {
+    // 这条判定决定卡片上写「🔔 到期前提醒我」还是「已逾期，不会再提醒」。
+    //
+    // 写错的后果：一条早已逾期的计划照样显示「到期前提醒我」，
+    // 用户等不到提醒只会更困惑——「我明明开了提醒」。
+    // 反过来写错更糟：真的会响的计划显示成「不会再提醒」，用户就不管了。
+
+    String isoInDays(int days) {
+      final d = DateTime.now().add(Duration(days: days));
+      return '${d.year.toString().padLeft(4, '0')}-'
+          '${d.month.toString().padLeft(2, '0')}-'
+          '${d.day.toString().padLeft(2, '0')}';
+    }
+
+    ReadingPlan book({
+      String? due,
+      bool remind = true,
+    }) =>
+        ReadingPlan(
+          id: 'b1',
+          kind: PlanKind.finishBook,
+          createdAt: '2026-10-01T00:00:00.000',
+          bookId: 'book-1',
+          dueDate: due,
+          reminderEnabled: remind,
+        );
+
+    test('每日型：只要开着提醒就永远会响', () {
+      final p = ReadingPlan(
+        id: 'd1',
+        kind: PlanKind.dailyMinutes,
+        createdAt: '2026-10-01T00:00:00.000',
+        dailyMinutes: 20,
+        reminderEnabled: true,
+      );
+      expect(p.reminderWillFire, isTrue);
+    });
+
+    test('没开提醒 → 不会响', () {
+      final p = ReadingPlan(
+        id: 'd2',
+        kind: PlanKind.dailyMinutes,
+        createdAt: '2026-10-01T00:00:00.000',
+        dailyMinutes: 20,
+        reminderEnabled: false,
+      );
+      expect(p.reminderWillFire, isFalse);
+    });
+
+    test('书本型：距截止 5 天 → 会响（提醒排在截止前 3 天）', () {
+      expect(book(due: isoInDays(5)).reminderWillFire, isTrue);
+    });
+
+    test('书本型：距截止正好 3 天 → 会响（正是提醒时刻）', () {
+      expect(book(due: isoInDays(3)).reminderWillFire, isTrue);
+    });
+
+    test('书本型：距截止不足 3 天 → 不会响', () {
+      // 「还有 3 天到期」在只剩 2 天时说出来只会让人困惑，
+      // 所以系统干脆不排——卡片也必须如实说「不会再提醒」。
+      expect(book(due: isoInDays(2)).reminderWillFire, isFalse);
+      expect(book(due: isoInDays(1)).reminderWillFire, isFalse);
+    });
+
+    test('书本型：已逾期 → 不会响', () {
+      expect(book(due: isoInDays(-1)).reminderWillFire, isFalse);
+      expect(book(due: isoInDays(-30)).reminderWillFire, isFalse);
+    });
+
+    test('书本型：没设截止日 → 不会响（算不出提醒时刻）', () {
+      expect(book(due: null).reminderWillFire, isFalse);
+    });
+
+    test('书本型：截止日非法 → 不会响', () {
+      expect(book(due: '不是日期').reminderWillFire, isFalse);
+    });
+  });
   });
 }

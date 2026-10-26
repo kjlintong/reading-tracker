@@ -3152,6 +3152,7 @@
   "planDueLabel": "截止日期",
   "planDueUnset": "未设置",
   "planRemind": "到期前提醒我",
+  "planRemindNoLonger": "已逾期，不会再提醒",
   "planRemindOff": "开启后会请求通知权限。完成计划后提醒会自动取消。",
   "planTitleLabel": "计划名称（可选）",
   "planTitleHint": "留空则自动使用默认名称",

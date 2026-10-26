@@ -2377,6 +2377,9 @@ class SFr extends S {
   String get planRemind => 'Me rappeler avant la date limite';
 
   @override
+  String get planRemindNoLonger => 'Date limite trop proche — plus de rappel';
+
+  @override
   String get planRemindOff => 'Activer ceci demandera l\'autorisation des notifications. Le rappel s\'annule de lui-même une fois le plan terminé.';
 
   @override

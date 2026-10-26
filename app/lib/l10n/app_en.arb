@@ -3152,6 +3152,7 @@
   "planDueLabel": "Deadline",
   "planDueUnset": "Not set",
   "planRemind": "Remind me before the deadline",
+  "planRemindNoLonger": "Deadline too close — no reminder",
   "planRemindOff": "Turning this on asks for notification permission. The reminder cancels itself once the plan is done.",
   "planTitleLabel": "Plan name (optional)",
   "planTitleHint": "Leave empty to use the default name",

@@ -2377,6 +2377,9 @@ class SZh extends S {
   String get planRemind => '到期前提醒我';
 
   @override
+  String get planRemindNoLonger => '已逾期，不会再提醒';
+
+  @override
   String get planRemindOff => '开启后会请求通知权限。完成计划后提醒会自动取消。';
 
   @override

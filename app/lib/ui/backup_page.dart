@@ -139,6 +139,16 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     setState(() => _busy = true);
     try {
       final counts = await ref.read(repoProvider).restoreTables(parsed.data);
+      // 恢复的数据里包含阅读计划，而计划的提醒是**排进系统闹钟**的，
+      // 不会随数据库一起回来。恢复完必须重排一遍，
+      // 否则用户导入备份后所有提醒都是死的（界面上还显示「已开启提醒」）。
+      //
+      // resetFirst: 恢复是整库覆盖，备份里删掉的计划不该留下孤儿闹钟——
+      // 到了那个点照样弹提醒，而这条计划在备份里根本不存在。
+      //
+      // 放在 restoreTables 之后而不是之前：先落库再排期，
+      // 排期读到的才是恢复进来的新计划。
+      await resyncPlanReminders(ref, resetFirst: true);
       _set(true,
           appLoc.s_2296b134(first: parsed.exportedAt == null ? '' : appLoc.s_a537d6ac(first: parsed.exportedAt!.split('T').first), counts: _fmtCounts(counts)));
     } catch (e) {

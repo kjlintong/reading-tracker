@@ -4205,6 +4205,12 @@ abstract class S {
   /// **'Remind me before the deadline'**
   String get planRemind;
 
+  /// No description provided for @planRemindNoLonger.
+  ///
+  /// In en, this message translates to:
+  /// **'Deadline too close — no reminder'**
+  String get planRemindNoLonger;
+
   /// No description provided for @planRemindOff.
   ///
   /// In en, this message translates to:

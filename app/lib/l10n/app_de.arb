@@ -3152,6 +3152,7 @@
   "planDueLabel": "Termin",
   "planDueUnset": "Nicht eingestellt",
   "planRemind": "Erinnere mich vor Ablauf der Frist",
+  "planRemindNoLonger": "Frist zu nah — keine Erinnerung mehr",
   "planRemindOff": "Wenn Sie diese Option aktivieren, wird um Benachrichtigungsberechtigung gebeten. Die Erinnerung storniert sich selbst, sobald der Plan fertig ist.",
   "planTitleLabel": "Name (optional)",
   "planTitleHint": "Lasse das Feld leer, um die Standardrate zu verwenden.",
