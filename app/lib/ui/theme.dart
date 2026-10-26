@@ -245,83 +245,91 @@ String themeLabelOf(String labelKey) => switch (labelKey) {
 /// 后续用户自己设计皮肤的接入点就在这里。
 const List<AppTheme> appThemes = [
   // ══ 纯色皮肤（6 套）════════════════════════════════════════════
-  // 精简依据是**实测色相间距**，不是印象。之前 10 套里有三对
-  // 肉眼难分辨（blue/midnight 同为 214°、amber/citrus 差 8°、
-  // rose/berry 差 4°），每组只保留色相唯一的那套。
+  // 配色取自参考图：每套都是「雾面低彩度」的克制色，
+  // 纸色接近中性，主色是画面里唯一的彩色。
   //
-  //   green   93° 绿意（默认，图标与商店素材都是这个色系）
-  //   lagoon  173° 湖绿青
-  //   ink     200° 墨韵灰蓝
-  //   blue    214° 远山靛蓝
-  //   plum    287° 檀紫
-  //   berry   334° 莓果深玫红
+  //   green   149° 冷杉绿 #6E8378  灰绿
+  //   lagoon  195° 夜雾青 #54717B  青灰
+  //   ink     206° 乌木灰 #40484E  近中性
+  //   blue    213° 深海蓝 #233A56  靛
+  //   plum    242° 月影紫 #8D8CA8  灰紫
+  //   berry   358° 枯玫瑰 #B9999A  灰玫
+  //
+  // 六套的色相彼此很近（lagoon/ink/blue 只差 7°~18°），
+  // 区分靠的是**彩度与明度**而不是色相：ink 几乎无彩、blue 最浓、
+  // berry 最暖。参考图本来就是这样分的——乌木灰是灰的，深海蓝是蓝的，
+  // 两者色相接近但一眼能分辨，因为彩度差了四倍。
+  //
+  // 色相这么近的另一个后果：**色板不能共用**。
+  // 共用一套色板时，六套皮肤会同时出现同批颜色，
+  // 换肤就变成「只换了张纸」——所以每套自带色板（见文件末尾）。
 
   // ── 默认 ──────────────────────────────────────────────────────────
   // 默认：沿用产品最初的绿色（图标与商店素材都是这个色系）。
-  // paperTint 极低：纸色几乎中性，主色是画面里唯一的彩色。
+  // 换成参考图的冷杉绿后仍是绿的，但压掉了原来那点「草」的艳气。
   AppTheme(
     id: 'green',
     labelKey: 'themeGreen',
-    lightSeed: Color(0xFF3B6D11),
-    darkSeed: Color(0xFF97C459),
-    paperTint: 0.050,
-    chartPalette: _evergreen,
-    chartPaletteDark: _evergreenDark,
+    lightSeed: Color(0xFF6E8378),
+    darkSeed: Color(0xFFA8BCB2),
+    paperTint: 0.046,
+    chartPalette: _green,
+    chartPaletteDark: _greenDark,
   ),
 
   // ── 高级向：纸色接近中性，主色克制，像好纸配硬壳 ────────────────
-  // 墨韵：接近中性的深灰蓝，偏「纸质书/ 严肃阅读」。饱和度仅 18%，
-  // 是六套里最素的—— 高级感来自「几乎没有颜色」。
+  // 墨韵：接近中性的深灰蓝，偏「纸质书/ 严肃阅读」。
+  // 种子彩度只有 9.9%，是六套里最素的——高级感来自「几乎没有颜色」。
   AppTheme(
     id: 'ink',
     labelKey: 'themeInk',
-    lightSeed: Color(0xFF37474F),
-    darkSeed: Color(0xFF90A4AE),
+    lightSeed: Color(0xFF40484E),
+    darkSeed: Color(0xFFACB0B4),
     paperTint: 0.040,
-    chartPalette: _slate,
-    chartPaletteDark: _slateDark,
+    chartPalette: _ink,
+    chartPaletteDark: _inkDark,
   ),
-  // 远山：靛蓝，与墨韵同色相族但饱和度 64%（墨韵仅 18%），
-  // 两套并排能看出「素vs 浓」的差别，不至于糊成一套。
+  // 远山：深海蓝，彩度 42%——是六套里最浓的，
+  // 与墨韵并排能看出「近乎无彩 vs 明确是蓝」，不至于糊成一套。
   AppTheme(
     id: 'blue',
     labelKey: 'themeBlue',
-    lightSeed: Color(0xFF1F4E8C),
-    darkSeed: Color(0xFF7FA9E0),
-    paperTint: 0.045,
-    chartPalette: _indigo,
-    chartPaletteDark: _indigoDark,
+    lightSeed: Color(0xFF233A56),
+    darkSeed: Color(0xFF98A7C8),
+    paperTint: 0.052,
+    chartPalette: _blue,
+    chartPaletteDark: _blueDark,
   ),
-  // 檀紫：唯一的紫。287° 在冷色与暖色的分界上，是个稳重的中间色。
+  // 檀紫：唯一的紫。242° 在冷色与暖色的分界上，是个稳重的中间色。
   AppTheme(
     id: 'plum',
     labelKey: 'themePlum',
-    lightSeed: Color(0xFF5B3E63),
-    darkSeed: Color(0xFFB694C4),
+    lightSeed: Color(0xFF8D8CA8),
+    darkSeed: Color(0xFFBAB4CA),
     paperTint: 0.055,
     chartPalette: _plum,
     chartPaletteDark: _plumDark,
   ),
 
   // ── 活泼向：纸色带上氛围，整屏一个色系 ──────────────────────────
-  // 湖绿：青绿 173°，六套里唯一的冷色活泼色。
+  // 湖绿：夜雾青 195°，六套里唯一的冷色活泼色。
   AppTheme(
     id: 'lagoon',
     labelKey: 'themeLagoon',
-    lightSeed: Color(0xFF00695C),
-    darkSeed: Color(0xFF5FD3C0),
-    paperTint: 0.115,
+    lightSeed: Color(0xFF54717B),
+    darkSeed: Color(0xFFB6D0D3),
+    paperTint: 0.058,
     chartPalette: _lagoon,
     chartPaletteDark: _lagoonDark,
   ),
-  // 莓果：334° 深玫红。艳度 79%，是活泼组里唯一「浓」的，
-  // 填补了活泼组只有青绿、缺少暖色的空档。
+  // 莓果：枯玫瑰 358°。纸色 tint 0.130 是六套里唯一明显带色的
+  // ——整屏微微泛一层灰粉，是活泼组里最暖的一套。
   AppTheme(
     id: 'berry',
     labelKey: 'themeBerry',
-    lightSeed: Color(0xFFAD1457),
-    darkSeed: Color(0xFFFF8FB1),
-    paperTint: 0.125,
+    lightSeed: Color(0xFFB9999A),
+    darkSeed: Color(0xFFD5BEBF),
+    paperTint: 0.130,
     chartPalette: _berry,
     chartPaletteDark: _berryDark,
   ),
@@ -368,8 +376,8 @@ const List<AppTheme> appThemes = [
     lightSeed: Color(0xFF3F5A66),
     darkSeed: Color(0xFF9DBCC7),
     paperTint: 0.055,
-    chartPalette: _slate,
-    chartPaletteDark: _slateDark,
+    chartPalette: _bgMist,
+    chartPaletteDark: _bgMistDark,
     backgroundAsset: 'assets/backgrounds/bg_mist.webp',
     backgroundOpacity: 0.38,
     backgroundBlur: 0,
@@ -383,8 +391,8 @@ const List<AppTheme> appThemes = [
     lightSeed: Color(0xFF3F5A2E),
     darkSeed: Color(0xFFA3C77C),
     paperTint: 0.070,
-    chartPalette: _evergreen,
-    chartPaletteDark: _evergreenDark,
+    chartPalette: _bgMoss,
+    chartPaletteDark: _bgMossDark,
     backgroundAsset: 'assets/backgrounds/bg_moss.webp',
     backgroundOpacity: 0.40,
     backgroundBlur: 1.6,
@@ -459,106 +467,151 @@ const List<AppTheme> appThemes = [
 // 共用一套色板时，活泼皮肤（纸色被主色浸染）最容易出现
 // 「图上一个系列和背景几乎同色」的情况——那不是配色难看，是数据看不见了。
 //
-// 取色规则：同一色相族内取不同明度/饱和度，保证两两之间可区分；
-// 深浅两态用同一组色（图表背景随之切换明度，不需要两套）。
+// ## 为什么每套都是「雾面」的
+//
+// 旧色板的峰值彩度在 0.69~0.80（#36AC30、#222770、#3232B2…），
+// 那才是「艳」的真正来源——不是种子选错，是**色板本身**就选得太艳。
+// 新色板按参考图的雾面气质重解：峰值彩度压到 0.23~0.29、均值 0.15~0.20，
+// 正落在参考色 0.09~0.42 的中段。
+//
+// ## 12 色怎么在一条色相带里排开
+//
+// 判据是**两两曼哈顿距离 > 0.28**（8bit RGB 通道和 ≥ 72）。
+// 而黑到白的曼哈顿全程只有 765，12 色要 11 个间隔 × 72 = 792 ——
+// **单色相的一条路放不下**。所以每套色板都是两族分居种子两侧
+// （色相跨度 ~120°）：同族内靠明度梯拉开，跨族靠色相差拉开。
+//
+// 色相带宽也收不得更窄：收到 50° 时峰值彩度会被逼回 0.26~0.32，
+// 60° 是「彩度够低」与「看起来像一个色系」之间的折中。
+//
+// ## 明度窗口
+//
+// 浅色态 [0.16, 0.82]、深色态 [0.40, 0.92]。
+//
+// 上限是为了不出现「近白压在浅纸上」——旧解里混进过 #F0F1EF，
+// 而纸色是 #F5F6F5，两者亮度差 0.041，**刚过判据线，肉眼已经看不见**。
+//
+// 下限是为了不出现「近黑」：RGB 曼哈顿距离在暗端被高估，
+// 两个近黑色的 L1 能过 72，换算成 L* 却只差 13，肉眼根本分不出。
+//
+// ## 深浅两态各自求解
+//
+// 浅色态要求色板比纸色暗，深色态要求比纸色亮——方向相反，
+// 同一组 12 色没法同时满足，所以两态是两次独立求解。
+//
 
-// 绿意 / 常青：绿系为主，黄与青做对比
-const List<Color> _evergreen = [
-  Color(0xFFB0B250),
-  Color(0xFF70591F),
-  Color(0xFFA2853E),
-  Color(0xFF7A6E4E),
-  Color(0xFF82B232),
-  Color(0xFF4F8425),
-  Color(0xFF42B275),
-  Color(0xFF789278),
-  Color(0xFF36AC30),
-  Color(0xFF207035),
-  Color(0xFF92B090),
-  Color(0xFF299158),
+// 最小距 0.2980 峰S 0.246 均S 0.173 色相 89~208 (种子 148.6)
+const List<Color> _green = [
+  Color(0xFF272B26), Color(0xFFCFD4D3), Color(0xFF3E4541), Color(0xFFB8C9A6),
+  Color(0xFF445D6F), Color(0xFF9DB0C0), Color(0xFF596F49), Color(0xFF8FB486),
+  Color(0xFF597893), Color(0xFF629F62), Color(0xFF779AA8), Color(0xFF7E8578),
 ];
 
-/// 深色模式专用：同一色相家族，明度分布重新求解以适配深色纸。
-const List<Color> _evergreenDark = [
-  Color(0xFF97B292),
-  Color(0xFF70631F),
-  Color(0xFFB2A071),
-  Color(0xFF957A38),
-  Color(0xFF76A12D),
-  Color(0xFFB2B135),
-  Color(0xFF67B25F),
-  Color(0xFF5C705C),
-  Color(0xFF38B234),
-  Color(0xFF399562),
-  Color(0xFF78927C),
-  Color(0xFF1F701F),
+// 最小距 0.2980 峰S 0.277 均S 0.198 色相 89~208 (种子 148.6)
+const List<Color> _greenDark = [
+  Color(0xFF70766A), Color(0xFFEAECEB), Color(0xFF4B824A), Color(0xFFCCD3D4),
+  Color(0xFF4A6882), Color(0xFFB8CBA4), Color(0xFF5C9D7D), Color(0xFFA4B8CA),
+  Color(0xFF83A560), Color(0xFF76AFB0), Color(0xFF9BB387), Color(0xFF828B92),
 ];
 
-// 墨韵 / 石板：中性灰蓝为主，少数暖色点缀
-const List<Color> _slate = [
-  Color(0xFF2B9A5F),
-  Color(0xFF1F7045),
-  Color(0xFF52A78D),
-  Color(0xFF527060),
-  Color(0xFF349EB2),
-  Color(0xFF4A32AC),
-  Color(0xFF928BAA),
-  Color(0xFF6F887B),
-  Color(0xFF5F5586),
-  Color(0xFF2A7A92),
-  Color(0xFF5A71B2),
-  Color(0xFF1F4E70),
+// 最小距 0.2980 峰S 0.236 均S 0.170 色相 135~255 (种子 195.4)
+const List<Color> _lagoon = [
+  Color(0xFF54735D), Color(0xFFCFD4D1), Color(0xFF292A2E), Color(0xFFAFC4B5),
+  Color(0xFF375841), Color(0xFF9792B8), Color(0xFF48446E), Color(0xFF8DB497),
+  Color(0xFF605D8B), Color(0xFF629A9E), Color(0xFF7E71A6), Color(0xFF738578),
 ];
 
-/// 深色模式专用：同一色相家族，明度分布重新求解以适配深色纸。
-const List<Color> _slateDark = [
-  Color(0xFF32A6B2),
-  Color(0xFF30A266),
-  Color(0xFF50B28D),
-  Color(0xFF708883),
-  Color(0xFF3D447A),
-  Color(0xFF2A7996),
-  Color(0xFF7A6CB2),
-  Color(0xFF4E746B),
-  Color(0xFF4332B2),
-  Color(0xFF237C4C),
-  Color(0xFF86A4A3),
-  Color(0xFF5D509D),
+// 最小距 0.2980 峰S 0.273 均S 0.182 色相 136~255 (种子 195.4)
+const List<Color> _lagoonDark = [
+  Color(0xFF60A472), Color(0xFFEAEBEC), Color(0xFF4D4E7F), Color(0xFFCBD0CE),
+  Color(0xFF507C5C), Color(0xFFAFAAC2), Color(0xFF74717D), Color(0xFF9AC5A6),
+  Color(0xFF578697), Color(0xFF807BB3), Color(0xFF6CABAB), Color(0xFF8C978F),
 ];
 
-// 远山 / 靛蓝
-const List<Color> _indigo = [
-  Color(0xFF6190A2),
-  Color(0xFF248076),
-  Color(0xFF3AB29C),
-  Color(0xFF857791),
-  Color(0xFF3282B2),
-  Color(0xFF222770),
-  Color(0xFFA08AB2),
-  Color(0xFF5C706C),
-  Color(0xFF395382),
-  Color(0xFF5D298B),
-  Color(0xFF3232B2),
-  Color(0xFF6850B2),
+// 最小距 0.2980 峰S 0.260 均S 0.167 色相 147~265 (种子 205.7)
+const List<Color> _ink = [
+  Color(0xFF92909B), Color(0xFF27262B), Color(0xFFCED3D1), Color(0xFF3E4145),
+  Color(0xFFB2A8CA), Color(0xFF51487A), Color(0xFF9CC2AD), Color(0xFF49735E),
+  Color(0xFF6DA9A9), Color(0xFF77727E), Color(0xFF56928B), Color(0xFF5F5FA1),
 ];
 
-/// 深色模式专用：同一色相家族，明度分布重新求解以适配深色纸。
-const List<Color> _indigoDark = [
-  Color(0xFF71B0B2),
-  Color(0xFF288091),
-  Color(0xFF34B2A4),
-  Color(0xFF3B7066),
-  Color(0xFF466DAF),
-  Color(0xFF1F4A70),
-  Color(0xFF3632B2),
-  Color(0xFF5A938B),
-  Color(0xFFA492B2),
-  Color(0xFF533684),
-  Color(0xFF8971A5),
-  Color(0xFF6D5693),
+// 最小距 0.2980 峰S 0.276 均S 0.193 色相 146~266 (种子 205.7)
+const List<Color> _inkDark = [
+  Color(0xFF4B4B81), Color(0xFFEAECEB), Color(0xFF4A8262), Color(0xFFCFD4D2),
+  Color(0xFF6C6873), Color(0xFFB4A7CB), Color(0xFF5A7F9C), Color(0xFFA0C7B1),
+  Color(0xFF7F62A6), Color(0xFF73ACA9), Color(0xFF9887B7), Color(0xFF839089),
 ];
 
-// 黛蓝 / 午夜：更深沉，蓝紫与钢灰
+// 最小距 0.2980 峰S 0.248 均S 0.174 色相 153~272 (种子 212.9)
+const List<Color> _blue = [
+  Color(0xFF589077), Color(0xFFD1CFD4), Color(0xFF26262C), Color(0xFFB8A6C9),
+  Color(0xFF3B4346), Color(0xFF9FC5B4), Color(0xFF496A5E), Color(0xFF928AB0),
+  Color(0xFF5C4774), Color(0xFF6FA498), Color(0xFF6363A1), Color(0xFF7F7885),
+];
+
+// 最小距 0.2980 峰S 0.283 均S 0.197 色相 153~273 (种子 212.9)
+const List<Color> _blueDark = [
+  Color(0xFF4B826A), Color(0xFFEAEBEC), Color(0xFF4E4D84), Color(0xFFCECDD2),
+  Color(0xFF726B78), Color(0xFF9EC8BB), Color(0xFF59789E), Color(0xFFB69FC9),
+  Color(0xFF835CA4), Color(0xFF659F85), Color(0xFF928E99), Color(0xFF78ACB1),
+];
+
+// 最小距 0.2980 峰S 0.228 均S 0.173 色相 182~300 (种子 242.1)
+const List<Color> _plum = [
+  Color(0xFFD1CCD2), Color(0xFF27262B), Color(0xFF9FBEC2), Color(0xFF31494A),
+  Color(0xFFB993B9), Color(0xFF5D3C5D), Color(0xFF7BAAAC), Color(0xFF4B686B),
+  Color(0xFFA470A4), Color(0xFF785179), Color(0xFF81838D), Color(0xFF63659D),
+];
+
+// 最小距 0.2980 峰S 0.276 均S 0.192 色相 183~300 (种子 242.1)
+const List<Color> _plumDark = [
+  Color(0xFFBF96BF), Color(0xFF4C4C80), Color(0xFFEDE8ED), Color(0xFF625FA4),
+  Color(0xFFCFD0D4), Color(0xFF89548A), Color(0xFFA2C1C3), Color(0xFF707B7D),
+  Color(0xFFAB6BAB), Color(0xFF58989B), Color(0xFF7EACB0), Color(0xFF948C97),
+];
+
+// 最小距 0.2980 峰S 0.250 均S 0.158 色相 15~358 (种子 358.1)
+const List<Color> _berry = [
+  Color(0xFFC6C3A1), Color(0xFF2C272C), Color(0xFFD4D3CF), Color(0xFF484641),
+  Color(0xFFBB9CBB), Color(0xFF665B5D), Color(0xFFADAA77), Color(0xFF814E82),
+  Color(0xFFA875A8), Color(0xFF837E51), Color(0xFF918885), Color(0xFFA06769),
+];
+
+// 最小距 0.2980 峰S 0.277 均S 0.180 色相 0~357 (种子 358.1)
+const List<Color> _berryDark = [
+  Color(0xFF894E4E), Color(0xFFF5F5F3), Color(0xFF6C6B60), Color(0xFFD9D5D9),
+  Color(0xFFAA696C), Color(0xFFCBC9A6), Color(0xFF955A96), Color(0xFFC1A2C1),
+  Color(0xFF8D8981), Color(0xFFB0AC8F), Color(0xFFAB7FAB), Color(0xFFA19E5E),
+];
+
+// 最小距 0.2980 峰S 0.271 均S 0.154 色相 38~156 (种子 96.8)
+const List<Color> _bgMoss = [
+  Color(0xFF80B6A0), Color(0xFF262B27), Color(0xFFCFD4D0), Color(0xFF3F4640),
+  Color(0xFFBAB9B2), Color(0xFF47735B), Color(0xFFB1B177), Color(0xFF6F6247),
+  Color(0xFF98948D), Color(0xFF60A160), Color(0xFF8D8A52), Color(0xFF727E79),
+];
+
+// 最小距 0.2980 峰S 0.291 均S 0.188 色相 40~156 (种子 96.8)
+const List<Color> _bgMossDark = [
+  Color(0xFFA3ACA8), Color(0xFF49834A), Color(0xFFEAECEB), Color(0xFF626D67),
+  Color(0xFFD1D1CC), Color(0xFF89794E), Color(0xFFC3C292), Color(0xFF53977C),
+  Color(0xFFACA56C), Color(0xFF75B390), Color(0xFF8F8B83), Color(0xFF71A259),
+];
+
+// 最小距 0.2980 峰S 0.247 均S 0.172 色相 139~255 (种子 198.5)
+const List<Color> _bgMist = [
+  Color(0xFF6B8DA5), Color(0xFF262B2B), Color(0xFFCFD4D1), Color(0xFF34563F),
+  Color(0xFFB3BBB6), Color(0xFF423D64), Color(0xFF9595BF), Color(0xFF4E735A),
+  Color(0xFF89AE95), Color(0xFF535389), Color(0xFF5E9B72), Color(0xFF75727E),
+];
+
+// 最小距 0.2980 峰S 0.280 均S 0.197 色相 139~258 (种子 198.5)
+const List<Color> _bgMistDark = [
+  Color(0xFF71A9AF), Color(0xFFE6E8E9), Color(0xFF4D4E89), Color(0xFFCBD0D0),
+  Color(0xFF4A825C), Color(0xFFACA7C7), Color(0xFF6A6772), Color(0xFF9DC7AA),
+  Color(0xFF598199), Color(0xFF61A577), Color(0xFF7D6AAB), Color(0xFF94919C),
+];
+
 const List<Color> _midnight = [
   Color(0xFF56B2AD),
   Color(0xFF2B568B),
@@ -590,37 +643,7 @@ const List<Color> _midnightDark = [
   Color(0xFF6B657B),
 ];
 
-// 檀紫：紫与玫调
-const List<Color> _plum = [
-  Color(0xFF6F51B2),
-  Color(0xFF7B226C),
-  Color(0xFF612A98),
-  Color(0xFF8D4D7C),
-  Color(0xFF504270),
-  Color(0xFFB239B1),
-  Color(0xFFB28CB2),
-  Color(0xFF9D7196),
-  Color(0xFF70262A),
-  Color(0xFF705D5C),
-  Color(0xFFB23266),
-  Color(0xFF95423F),
-];
 
-/// 深色模式专用：同一色相家族，明度分布重新求解以适配深色纸。
-const List<Color> _plumDark = [
-  Color(0xFF7A738C),
-  Color(0xFF794AB2),
-  Color(0xFF9C92B2),
-  Color(0xFF564570),
-  Color(0xFF502DA1),
-  Color(0xFF892672),
-  Color(0xFFB26C9F),
-  Color(0xFF7A5554),
-  Color(0xFFB23450),
-  Color(0xFFA82FA6),
-  Color(0xFFA35974),
-  Color(0xFF703432),
-];
 
 // 暮色 / 黄昏胶片：橙黄与琥珀
 //
@@ -664,37 +687,7 @@ const List<Color> _blossomDark = [
   Color(0xFFDD4182), Color(0xFFFBD599), Color(0xFFFA9279),
 ];
 
-// 湖绿 / 湖蓝
-const List<Color> _lagoon = [
-  Color(0xFF61B264),
-  Color(0xFF32B236),
-  Color(0xFF32B298),
-  Color(0xFF829E83),
-  Color(0xFF92AFB2),
-  Color(0xFF237B25),
-  Color(0xFF4D8BA7),
-  Color(0xFF67717E),
-  Color(0xFF3262B2),
-  Color(0xFF415670),
-  Color(0xFF308967),
-  Color(0xFF284090),
-];
 
-/// 深色模式专用：同一色相家族，明度分布重新求解以适配深色纸。
-const List<Color> _lagoonDark = [
-  Color(0xFF6E9E6E),
-  Color(0xFF2FA64E),
-  Color(0xFF8FB28F),
-  Color(0xFF467846),
-  Color(0xFF2C8387),
-  Color(0xFF1F7026),
-  Color(0xFF8692B2),
-  Color(0xFF525F7E),
-  Color(0xFF3DB295),
-  Color(0xFF3254B2),
-  Color(0xFF6A7A98),
-  Color(0xFF2A4970),
-];
 
 // 犬窝 / 蜜黄
 //
@@ -715,37 +708,7 @@ const List<Color> _citrusDark = [
   Color(0xFFAC9533), Color(0xFF9E2D4E), Color(0xFF9EA263),
 ];
 
-// 莓果 / 亮玫
-const List<Color> _berry = [
-  Color(0xFFB292B1),
-  Color(0xFF6E3391),
-  Color(0xFF935BB2),
-  Color(0xFF82728B),
-  Color(0xFFAF31A5),
-  Color(0xFF701F45),
-  Color(0xFFB2886F),
-  Color(0xFF786255),
-  Color(0xFFB23454),
-  Color(0xFF923729),
-  Color(0xFF9D4C77),
-  Color(0xFFB26132),
-];
 
-/// 深色模式专用：同一色相家族，明度分布重新求解以适配深色纸。
-const List<Color> _berryDark = [
-  Color(0xFF9B7DA6),
-  Color(0xFF70384B),
-  Color(0xFF832525),
-  Color(0xFF73517C),
-  Color(0xFFB25B8E),
-  Color(0xFFB232B2),
-  Color(0xFFA84758),
-  Color(0xFF8D2771),
-  Color(0xFFB27947),
-  Color(0xFF92716C),
-  Color(0xFFB2957B),
-  Color(0xFF915B35),
-];
 
 /// 明暗模式选择。
 ///
@@ -855,7 +818,29 @@ Color panelColor(BuildContext context, Color paper) =>
 ThemeData buildTheme(AppTheme theme, Brightness brightness) {
   final seed =
       brightness == Brightness.light ? theme.lightSeed : theme.darkSeed;
-  final base = ColorScheme.fromSeed(seedColor: seed, brightness: brightness);
+  // ── 为什么用 fidelity 而不是默认的 tonalSpot ──────────────────────
+  //
+  // M3 默认变体是 `tonalSpot`，它**不保留种子的彩度**：把种子的色相
+  // 放到该色相能达到的最大彩度上。实测（Flutter 3.24.5）：
+  //
+  //   种子 #9CBBC0（冰川青，彩度 0.222）→ primary #006973（彩度 1.000）
+  //   种子 #8D8CA8（月影紫，彩度 0.139）→ dark primary #C1C1FF（彩度 1.000）
+  //
+  // 也就是说：喂进去一个雾面参考色，出来的是荧光色。
+  // 这正是这套皮肤一直「艳」的根因——不是种子选错了，
+  // 是**推导方式**把种子那份克制丢掉了。
+  //
+  // `fidelity` 的定义就是「匹配种子色，即使种子色很亮」——
+  // 它保留种子的彩度，雾面进去还是雾面。
+  //
+  // 代价：tonalSpot 的 secondary/tertiary 走的是「色相偏移」，
+  // fidelity 走的是「同色相微调」，于是 accent 色系更集中、
+  // 更成一家（这恰好是参考图的气质：同色相的深浅两档）。
+  final base = ColorScheme.fromSeed(
+    seedColor: seed,
+    brightness: brightness,
+    dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+  );
   final isLight = brightness == Brightness.light;
   // A quiet paper canvas gives the collection room to breathe without
   // replacing the selected theme's accent or changing its light/dark behavior.
