@@ -83,3 +83,6 @@ flutter:
     # 刻意不给整个 assets/ 目录：那样会把 seed 下的种子书库也
     # 当成可寻址资源打进 AssetManifest，白占索引。
     - assets/backgrounds/
+    # 分享图的品牌角标（mark.png，从应用图标母版裁出）。
+    # 声明成目录而非单文件：以后再加水印素材不必改 pubspec。
+    - assets/brand/

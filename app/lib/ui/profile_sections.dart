@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,8 +18,11 @@ import '../models/book.dart';
 import '../models/enums.dart';
 import '../providers.dart';
 import 'archive_section.dart';
+import 'brand_mark.dart';
 import 'bubble_chart.dart';
 import 'palette.dart';
+import 'profile_share_card.dart';
+import 'profile_share_style.dart';
 
 /// 「阅读档案」内联展示的两块：**偏好分布 → 性格标签**。
 ///
@@ -325,8 +328,13 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
   /// 把当前画像渲染成一张图片，然后让用户选：分享出去，还是存进相册。
   ///
   /// 渲染的是**离屏**的 [_ProfileShareCard]，不是截当前页面——页面里有
-  /// 滚动条、导航栏、按钮这些不该出现在分享图里的东西。卡片自带白底与
+  /// 滚动条、导航栏、按钮这些不该出现在分享图里的东西。卡片自带底色与
   /// 固定宽度，与 App 主题解耦，分享出去在谁那儿看都是干净的一张。
+  ///
+  /// 「与主题解耦」指的是**不让它自己去找主题**，不是「不跟皮肤走」：
+  /// 配色在渲染前算好（[ProfileShareStyle]）传进去，
+  /// 于是换皮肤时分享图也跟着换——之前那张写死绿底的图，
+  /// 和用户眼前的界面完全不像同一款产品。
   ///
   /// 为什么要给「保存到相册」一个独立出口：`Share.shareXFiles` 只是把图
   /// 交给别的 App，一旦用户想「先攒着，回头拼九宫格」就没有落点——
@@ -334,13 +342,22 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
   Future<void> _shareImage() async {
     if (_sharing) return;
     setState(() => _sharing = true);
+    ui.Image? mark;
     try {
+      // 品牌角标必须**先解码成 ui.Image**：离屏渲染的截图流程只等
+      // 「调度了 build」才重截，而 Image.asset 的异步解码只触发重绘，
+      // 第一帧截图里根本没有它。RawImage 贴已解码的图是同步绘制。
+      mark = await loadBrandMark();
+      if (!mounted) return;
+      final style = ProfileShareStyle.fromTheme(Theme.of(context));
       final bytes = await ScreenshotController().captureFromWidget(
-        _ProfileShareCard(
+        ProfileShareCard(
           profile: _profile,
           tags: _shownTags,
           rangeLabel: _range.label,
           bookCount: _books.length,
+          style: style,
+          mark: mark,
         ),
         pixelRatio: 3.0,
         context: context,
@@ -357,6 +374,8 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
     } catch (e) {
       if (mounted) _toast(appLoc.s_783e43af(e: e));
     } finally {
+      // 角标图是这轮临时解码出来的，不释放就一直占着 native 内存。
+      mark?.dispose();
       if (mounted) setState(() => _sharing = false);
     }
   }
@@ -553,132 +572,5 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(msg)));
-  }
-}
-
-/// 分享用的画像卡片。
-///
-/// 关键点：**不依赖 Theme**。它会被离屏渲染（截图时没有 MaterialApp 祖先），
-/// 所有颜色与字号都写死，白底深字，保证分享到任何地方都是同一张干净的图。
-class _ProfileShareCard extends StatelessWidget {
-  final ReadingProfile profile;
-  final List<ProfileTagItem> tags;
-  final String rangeLabel;
-  final int bookCount;
-
-  const _ProfileShareCard({
-    required this.profile,
-    required this.tags,
-    required this.rangeLabel,
-    required this.bookCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final prefs = profile.preferences;
-    final maxCount =
-        prefs.isEmpty ? 1 : prefs.map((p) => p.count).reduce(math.max);
-
-    return Material(
-      color: Colors.white,
-      child: Container(
-        width: 360,
-        padding: const EdgeInsets.fromLTRB(24, 26, 24, 22),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(appLoc.s_e97565e5,
-                style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1B5E20))),
-            const SizedBox(height: 4),
-            Text(appLoc.s_d9579b73(rangeLabel: rangeLabel, bookCount: bookCount),
-                style: const TextStyle(fontSize: 12, color: Colors.black54)),
-
-            if (tags.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              Text(appLoc.s_bfc50de8,
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final t in tags)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(t.text,
-                          style: const TextStyle(
-                              fontSize: 13, color: Color(0xFF2E7D32))),
-                    ),
-                ],
-              ),
-            ],
-
-            if (prefs.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              Text(appLoc.s_ab5cc063,
-                  style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87)),
-              const SizedBox(height: 10),
-              for (var i = 0; i < prefs.length && i < 8; i++) ...[
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 52,
-                      child: Text(categoryLabel(prefs[i].label),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.black87)),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: prefs[i].count / maxCount,
-                          minHeight: 10,
-                          backgroundColor: const Color(0xFFEEEEEE),
-                          valueColor:
-                              AlwaysStoppedAnimation(chartColorAt(i, context)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text('${prefs[i].count}',
-                        style: const TextStyle(
-                            fontSize: 12, color: Colors.black54)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-              ],
-            ],
-
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(Icons.menu_book, size: 14, color: Colors.black38),
-                const SizedBox(width: 6),
-                Text(appLoc.s_9de44e0f,
-                    style: const TextStyle(fontSize: 11, color: Colors.black38)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

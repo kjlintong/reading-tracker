@@ -68,12 +68,17 @@ List<Color> paletteOf([BuildContext? context]) {
 /// 只有拿不到 context 的场合（CustomPainter、纯函数测试）才省略它，
 /// 此时用全局默认色板。
 ///
-/// 超出调色板长度时按**黄金角**旋转色相生成。黄金角（137.5°）能让相邻
+/// 离屏渲染（分享图）拿不到 context，改用 [chartColorAtFrom] 显式传色板。
+Color chartColorAt(int i, [BuildContext? context]) =>
+    chartColorAtFrom(paletteOf(context), i);
+
+/// 第 [i] 个系列的颜色，取自指定色板 [palette]。
+///
+/// 超出色板长度时按**黄金角**旋转色相生成。黄金角（137.5°）能让相邻
 /// 色相始终拉得开，比 `i % length` 强：后者在第 13 个分类上会直接复用
 /// 第 1 个分类的颜色。
-Color chartColorAt(int i, [BuildContext? context]) {
-  final p = paletteOf(context);
-  if (i >= 0 && i < p.length) return p[i];
+Color chartColorAtFrom(List<Color> palette, int i) {
+  if (i >= 0 && i < palette.length) return palette[i];
   final hue = (i * 137.508) % 360;
   return HSLColor.fromAHSL(1, hue, 0.52, 0.52).toColor();
 }
