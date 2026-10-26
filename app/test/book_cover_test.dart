@@ -85,6 +85,9 @@ void main() {
     final img = tester.widget<Image>(find.byType(Image));
     expect(providerOf(img), isA<FileImage>(),
         reason: '本地封面必须压过远程 URL，否则用户换封面等于没换');
+    // 本地封面同样要限制解码尺寸（用户上传的原图往往几 MB）
+    expect(img.image, isA<ResizeImage>(),
+        reason: '本地封面不限制解码尺寸的话，一页十几张大图会把列表拖垮');
   });
 
   testWidgets('没有本地封面时退回远程 URL', (tester) async {
