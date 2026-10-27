@@ -63,8 +63,7 @@ void main() {
   ImageFilter? blurOf(WidgetTester tester) {
     final filtered = tester.widgetList<ImageFiltered>(find.byType(ImageFiltered));
     for (final f in filtered) {
-      final f2 = f.imageFilter;
-      if (f2 is ImageFilter) return f2;
+      return f.imageFilter;
     }
     return null;
   }

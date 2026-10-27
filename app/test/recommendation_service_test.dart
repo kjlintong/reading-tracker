@@ -600,4 +600,36 @@ void main() {
       );
     });
   });
+
+  group('加载阶段回调', () {
+    test('联网档按顺序发 local → online → enrich', () async {
+      final s = service();
+      final stages = <RecommendStage>[];
+      await s.recommend(
+        RecommendSource.online,
+        onStage: stages.add,
+      );
+      expect(stages, [
+        RecommendStage.local,
+        RecommendStage.online,
+        RecommendStage.enrich,
+      ]);
+    });
+
+    test('书架档不发任何阶段——它几十毫秒就完事，没得可报', () async {
+      await repo.insert(book('1', '置身事外'));
+      final s = service();
+      final stages = <RecommendStage>[];
+      await s.recommend(
+        RecommendSource.shelf,
+        onStage: stages.add,
+      );
+      expect(stages, isEmpty);
+    });
+
+    test('不给回调也照常工作', () async {
+      final out = (await service().recommend(RecommendSource.online)).items;
+      expect(out, isNotEmpty);
+    });
+  });
 }

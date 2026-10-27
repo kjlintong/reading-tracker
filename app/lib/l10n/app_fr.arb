@@ -3659,5 +3659,8 @@
   "discoverRefresh": "Relancer la recherche",
   "discoverShelfIntro": "Les livres de votre étagère que vous n'avez pas encore lus, du plus récent au plus ancien. Lisez-en un, puis le suivant.",
   "discoverLocalGroup": "Déjà dans votre étagère",
-  "discoverInShelf": "Dans votre étagère"
+  "discoverInShelf": "Dans votre étagère",
+  "discoverStageLocal": "Parcours de votre étagère…",
+  "discoverStageOnline": "Recherche des livres et rédaction des présentations, cela peut prendre du temps…",
+  "discoverStageEnrich": "Récupération des couvertures et des détails…"
 }

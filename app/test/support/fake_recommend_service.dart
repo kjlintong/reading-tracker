@@ -59,6 +59,7 @@ class FakeRecommendService extends RecommendationService {
     RecommendSource source, {
     String? keyword,
     int limit = 8,
+    void Function(RecommendStage stage)? onStage,
   }) async =>
       RecommendationBundle(intro: _intro, items: _result(source));
 }

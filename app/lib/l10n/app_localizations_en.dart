@@ -2981,4 +2981,13 @@ class SEn extends S {
 
   @override
   String get discoverInShelf => 'On your shelf';
+
+  @override
+  String get discoverStageLocal => 'Looking through your shelf…';
+
+  @override
+  String get discoverStageOnline => 'Asking booksellers and curators…';
+
+  @override
+  String get discoverStageEnrich => 'Fetching covers and details…';
 }

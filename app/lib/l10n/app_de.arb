@@ -3659,5 +3659,8 @@
   "discoverRefresh": "Erneut suchen",
   "discoverShelfIntro": "Bücher in deinem Regal, die du noch nicht gelesen hast – neueste zuerst. Lies eines, dann das nächste.",
   "discoverLocalGroup": "Bereits in deinem Regal",
-  "discoverInShelf": "Im Regal"
+  "discoverInShelf": "Im Regal",
+  "discoverStageLocal": "Dein Regal wird durchsucht…",
+  "discoverStageOnline": "Bücher werden gesucht und besprochen – das kann eine Weile dauern…",
+  "discoverStageEnrich": "Cover und Angaben werden geladen…"
 }

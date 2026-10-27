@@ -2981,4 +2981,13 @@ class SDe extends S {
 
   @override
   String get discoverInShelf => 'Im Regal';
+
+  @override
+  String get discoverStageLocal => 'Dein Regal wird durchsucht…';
+
+  @override
+  String get discoverStageOnline => 'Bücher werden gesucht und besprochen – das kann eine Weile dauern…';
+
+  @override
+  String get discoverStageEnrich => 'Cover und Angaben werden geladen…';
 }

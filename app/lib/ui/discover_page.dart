@@ -42,6 +42,13 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
   List<Recommendation> _items = const [];
   final Set<int> _selected = {};
 
+  /// 联网档当前进行到的阶段。
+  ///
+  /// 一次联网请求要几十秒，只给一个转圈用户分不清是在干活还是卡死了；
+  /// 把阶段翻成「在书架里找 / 正在问模型 / 正在补封面」挂在小字上。
+  /// 书架档不设——它几十毫秒就完事。
+  RecommendStage? _stage;
+
   /// 书单的**总体介绍 / 选书指南**。
   ///
   /// 联网档由大模型写——它知道这批书之间是什么关系（两条线？先读哪本？）。
@@ -82,6 +89,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     perfMark('Discover.refresh.start');
     setState(() {
       _busy = true;
+      _stage = null;
       _error = null;
       _notice = null;
     });
@@ -89,6 +97,9 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
       final bundle = await _svc.recommend(
         _source,
         keyword: _ctrl.text.trim(),
+        onStage: (s) {
+          if (mounted) setState(() => _stage = s);
+        },
       );
       perfMark('Discover.refresh.done');
       if (!mounted) return;
@@ -117,6 +128,7 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
       _items = const [];
       _guide = '';
       _loaded = false;
+      _stage = null;
       _error = null;
       _notice = null;
       _selected.clear();
@@ -387,6 +399,15 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
               appLoc.discoverLoading,
               style: TextStyle(fontSize: 12.5, color: cs.onSurfaceVariant),
             ),
+            // 阶段小字：模型在写导语的那几十秒里，
+            // 这行字是「还在干活」的唯一证据。
+            if (_stageText != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                _stageText!,
+                style: TextStyle(fontSize: 11.5, color: cs.onSurfaceVariant),
+              ),
+            ],
           ],
         ),
       );
@@ -412,6 +433,17 @@ class _DiscoverPageState extends ConsumerState<DiscoverPage> {
     if (t.isNotEmpty) return t;
     if (_source == RecommendSource.shelf) return appLoc.discoverShelfIntro;
     return '';
+  }
+
+  /// 当前阶段的界面文案。只在联网档有值。
+  String? get _stageText {
+    if (_source != RecommendSource.online) return null;
+    return switch (_stage) {
+      RecommendStage.local => appLoc.discoverStageLocal,
+      RecommendStage.online => appLoc.discoverStageOnline,
+      RecommendStage.enrich => appLoc.discoverStageEnrich,
+      null => null,
+    };
   }
 
   /// 书单正文。

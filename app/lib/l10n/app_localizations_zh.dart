@@ -2981,4 +2981,13 @@ class SZh extends S {
 
   @override
   String get discoverInShelf => '已在书架';
+
+  @override
+  String get discoverStageLocal => '正在翻你的书架…';
+
+  @override
+  String get discoverStageOnline => '正在找书、写介绍，可能要一两分钟…';
+
+  @override
+  String get discoverStageEnrich => '正在补封面和作者信息…';
 }

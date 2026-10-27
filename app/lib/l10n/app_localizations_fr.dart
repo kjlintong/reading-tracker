@@ -2981,4 +2981,13 @@ class SFr extends S {
 
   @override
   String get discoverInShelf => 'Dans votre étagère';
+
+  @override
+  String get discoverStageLocal => 'Parcours de votre étagère…';
+
+  @override
+  String get discoverStageOnline => 'Recherche des livres et rédaction des présentations, cela peut prendre du temps…';
+
+  @override
+  String get discoverStageEnrich => 'Récupération des couvertures et des détails…';
 }

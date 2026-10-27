@@ -5296,6 +5296,24 @@ abstract class S {
   /// In en, this message translates to:
   /// **'On your shelf'**
   String get discoverInShelf;
+
+  /// No description provided for @discoverStageLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking through your shelf…'**
+  String get discoverStageLocal;
+
+  /// No description provided for @discoverStageOnline.
+  ///
+  /// In en, this message translates to:
+  /// **'Asking booksellers and curators…'**
+  String get discoverStageOnline;
+
+  /// No description provided for @discoverStageEnrich.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching covers and details…'**
+  String get discoverStageEnrich;
 }
 
 class _SDelegate extends LocalizationsDelegate<S> {

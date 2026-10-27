@@ -74,6 +74,8 @@ class RecommendationService {
   ///
   /// [keyword] 是用户填的「感兴趣的东西」（可空——空了就按本地画像推）。
   /// [limit] 是最终返回条数上限。
+  /// [onStage] 在联网档的关键节点被调用，界面用它显示「正在干什么」；
+  /// 书架档全程本地查询，不会发任何阶段。
   ///
   /// 返回的是**一份书单**（导语 + 条目），不是一列书名——
   /// 只有书名的列表用户无从判断该从哪本开始。
@@ -81,6 +83,7 @@ class RecommendationService {
     RecommendSource source, {
     String? keyword,
     int limit = 8,
+    void Function(RecommendStage stage)? onStage,
   }) async {
     switch (source) {
       case RecommendSource.shelf:
@@ -88,7 +91,7 @@ class RecommendationService {
         if (drafts.isEmpty) return const RecommendationBundle();
         return _enrichShelf(drafts, limit: limit);
       case RecommendSource.online:
-        return _onlineBundle(keyword: keyword, limit: limit);
+        return _onlineBundle(keyword: keyword, limit: limit, onStage: onStage);
     }
   }
 
@@ -179,11 +182,14 @@ class RecommendationService {
   Future<RecommendationBundle> _onlineBundle({
     String? keyword,
     int limit = 8,
+    void Function(RecommendStage stage)? onStage,
   }) async {
     // 1. 本地书架里与主题相关的书。
+    onStage?.call(RecommendStage.local);
     final local = await _localMatches(keyword: keyword);
 
     // 2. 网上候选（带模型的导语）。
+    onStage?.call(RecommendStage.online);
     final remote = await _fromOnline(keyword: keyword, limit: limit);
 
     // 3. 剔除书架已有的网上候选；本批内也要去重
@@ -215,6 +221,7 @@ class RecommendationService {
     });
 
     // 5. 网上候选补元数据（并发）。
+    onStage?.call(RecommendStage.enrich);
     final books = await Future.wait(
       remoteDrafts.map((d) => _toBook(d, RecommendSource.online)),
     );

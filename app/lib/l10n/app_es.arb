@@ -3659,5 +3659,8 @@
   "discoverRefresh": "Buscar de nuevo",
   "discoverShelfIntro": "Libros de tu estantería que aún no has leído, del más reciente al más antiguo. Lee uno y luego el siguiente.",
   "discoverLocalGroup": "Ya en tu estantería",
-  "discoverInShelf": "En tu estantería"
+  "discoverInShelf": "En tu estantería",
+  "discoverStageLocal": "Revisando tu estantería…",
+  "discoverStageOnline": "Buscando libros y escribiendo reseñas, puede tardar un poco…",
+  "discoverStageEnrich": "Obteniendo portadas y datos…"
 }

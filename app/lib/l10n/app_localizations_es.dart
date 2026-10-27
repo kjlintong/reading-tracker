@@ -2981,4 +2981,13 @@ class SEs extends S {
 
   @override
   String get discoverInShelf => 'En tu estantería';
+
+  @override
+  String get discoverStageLocal => 'Revisando tu estantería…';
+
+  @override
+  String get discoverStageOnline => 'Buscando libros y escribiendo reseñas, puede tardar un poco…';
+
+  @override
+  String get discoverStageEnrich => 'Obteniendo portadas y datos…';
 }
