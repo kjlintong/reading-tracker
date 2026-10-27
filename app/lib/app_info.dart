@@ -20,7 +20,7 @@ class AppInfo {
   static const String name = 'Readnest';
 
   /// 与 `pubspec.yaml` 的 `version:` 对应。
-  static const String version = '1.0.1';
+  static const String version = '1.2.0';
   static const String buildNumber = '26';
 
   /// 完整的版本展示串，例如 `0.5.0 (5)`。
