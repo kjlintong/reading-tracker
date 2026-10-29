@@ -35,6 +35,12 @@ class ProfileShareCard extends StatelessWidget {
   /// 品牌角标。已解码成 [ui.Image]，用 [RawImage] 同步绘制。
   final ui.Image? mark;
 
+  /// 是否渲染「性格标签」区块。导出「阅读偏好分布」时关掉，只导气泡图。
+  final bool showTags;
+
+  /// 是否渲染「阅读偏好」区块。导出「性格标签」时关掉，只导标签。
+  final bool showPrefs;
+
   const ProfileShareCard({
     super.key,
     required this.profile,
@@ -43,6 +49,8 @@ class ProfileShareCard extends StatelessWidget {
     required this.bookCount,
     required this.style,
     this.mark,
+    this.showTags = true,
+    this.showPrefs = true,
   });
 
   @override
@@ -86,7 +94,7 @@ class ProfileShareCard extends StatelessWidget {
             Text(appLoc.s_d9579b73(rangeLabel: rangeLabel, bookCount: bookCount),
                 style: TextStyle(fontSize: 12, color: s.subtitle)),
 
-            if (tags.isNotEmpty) ...[
+            if (tags.isNotEmpty && showTags) ...[
               const SizedBox(height: 20),
               Text(appLoc.s_bfc50de8,
                   style: TextStyle(
@@ -113,7 +121,7 @@ class ProfileShareCard extends StatelessWidget {
               ),
             ],
 
-            if (prefs.isNotEmpty) ...[
+            if (prefs.isNotEmpty && showPrefs) ...[
               const SizedBox(height: 20),
               Text(appLoc.s_ab5cc063,
                   style: TextStyle(

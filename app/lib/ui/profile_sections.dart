@@ -47,6 +47,10 @@ class ProfileSections extends ConsumerStatefulWidget {
 /// 用 `String` 哨兵（`'share'` / `'save'`）容易拼错且编译期不查。
 enum _ShareAction { share, save }
 
+/// 「导出」按钮属于哪个区块。偏好分布区块只导出气泡图，
+/// 性格标签区块只导出标签——两个按钮各导出各的，不能串。
+enum _ProfilePart { preferences, tags }
+
 class _ProfileSectionsState extends ConsumerState<ProfileSections> {
   /// 画像固定按「全部时间」算。**必须每次现取**——`StatsRange.all`
   /// 的 label 是本地化字符串，`static final` 只求值一次会把语言钉死。
@@ -183,7 +187,7 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
           // 偏好分布也要能导出：用户想分享的常常正是这张气泡图
           // （「我的阅读口味长这样」），分享的是标签时才发现没有出口
           // 就太晚了。两张区块用同一个 [_shareButton]，行为完全一致。
-          trailing: _shareButton(),
+          trailing: _shareButton(_ProfilePart.preferences),
           child: _preferenceChart(cs),
         ),
         const SizedBox(height: 16),
@@ -193,7 +197,7 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
           theme,
           title: appLoc.s_6c64acc5,
           subtitle: appLoc.s_03bf36af(length: _books.length),
-          trailing: _shareButton(),
+          trailing: _shareButton(_ProfilePart.tags),
           child: _tags(cs),
         ),
       ],
@@ -204,7 +208,7 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
   ///
   /// 抽成一个方法而不是在两处各写一遍：这两颗按钮必须长得一样、
   /// 禁用条件一样——各写一份迟早只在其中一处改了 disabled 条件。
-  Widget _shareButton() => _sharing
+  Widget _shareButton(_ProfilePart part) => _sharing
       ? const Padding(
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: SizedBox(
@@ -217,7 +221,7 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
           tooltip: appLoc.s_14f92b04,
           iconSize: 18,
           visualDensity: VisualDensity.compact,
-          onPressed: _shareImage,
+          onPressed: () => _shareImage(part),
           icon: const Icon(Icons.ios_share),
         );
 
@@ -339,7 +343,7 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
   /// 为什么要给「保存到相册」一个独立出口：`Share.shareXFiles` 只是把图
   /// 交给别的 App，一旦用户想「先攒着，回头拼九宫格」就没有落点——
   /// 分享和保存是两件事，不能互相替代。
-  Future<void> _shareImage() async {
+  Future<void> _shareImage(_ProfilePart part) async {
     if (_sharing) return;
     setState(() => _sharing = true);
     ui.Image? mark;
@@ -358,6 +362,9 @@ class _ProfileSectionsState extends ConsumerState<ProfileSections> {
           bookCount: _books.length,
           style: style,
           mark: mark,
+          // 偏好分布按钮只导气泡图、性格标签按钮只导标签：各导出各的。
+          showPrefs: part == _ProfilePart.preferences,
+          showTags: part == _ProfilePart.tags,
         ),
         pixelRatio: 3.0,
         context: context,

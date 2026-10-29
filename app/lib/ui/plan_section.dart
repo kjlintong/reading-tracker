@@ -185,6 +185,21 @@ class _PlanSectionState extends ConsumerState<PlanSection> {
       ));
       // 一次性目标完成了就把提醒撤掉，否则提醒会在目标早已达成后继续响。
       await reminders.cancel(p.id);
+      // 书本型计划完成 = 这本书读完了：进度置 100%、状态置「已读完」，
+      // 并补上完成时间——否则统计里「今年读完 N 本」会漏算这一本，
+      // 书架上的书也还停在「在读 73%」这种半成品状态。
+      if (p.bookId != null) {
+        final book = _books[p.bookId];
+        if (book != null) {
+          await repo.update(book.copyWith(
+            progressPercent: 100,
+            status: BookStatus.finished,
+            finishedAt: book.finishedAt ?? DateTime.now().toIso8601String(),
+            lastReadAt: DateTime.now().toIso8601String(),
+            lastProgressAt: DateTime.now().toIso8601String(),
+          ));
+        }
+      }
       await _load();
       if (!mounted) return;
       HapticFeedback.mediumImpact();

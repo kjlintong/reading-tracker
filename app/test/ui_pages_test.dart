@@ -1524,7 +1524,7 @@ void main() {
     testWidgets('有新版时展示更新说明与下载入口，且不自动下载', (tester) async {
       bigViewport(tester);
       await render(tester, SettingsPage(
-        updateChecker: _stubChecker('v1.1.0',
+        updateChecker: _stubChecker('v9.9.9',
             body: '## 新版\n\n- 加了检查更新\n- 修了筛选抽屉'),
       ));
       await settleAsync(tester);
@@ -1539,13 +1539,13 @@ void main() {
       await settleAsync(tester);
 
       // 标题带上新版本号
-      expect(find.text('有 1.1.0 了'), findsOneWidget);
+      expect(find.text('有 9.9.9 了'), findsOneWidget);
       // 更新说明逐条列出——这是用户决定要不要更新的唯一依据
       expect(find.textContaining('加了检查更新'), findsOneWidget);
       expect(find.textContaining('修了筛选抽屉'), findsOneWidget);
       expect(find.text('这一版改了什么'), findsOneWidget);
       // 下载入口在，且**由用户点**才走
-      expect(find.text('下载 1.1.0'), findsOneWidget);
+      expect(find.text('下载 9.9.9'), findsOneWidget);
     });
 
     testWidgets('已是最新时不显示下载入口', (tester) async {

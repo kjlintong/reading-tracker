@@ -41,6 +41,7 @@ class _BookFormPageState extends State<BookFormPage> {
   late final TextEditingController _desc;
   late BookStatus _status;
   late BookFormat _format;
+  late BookSource _source;
   late double _rating;
   String? _coverLocalPath;
 
@@ -68,6 +69,7 @@ class _BookFormPageState extends State<BookFormPage> {
     // 已存的书若载体是 PDF / 漫画这类非可选值，保留原值但回退到纸质显示，
     // 不让下拉框选不中；保存时仍以 _format 为准
     _format = BookFormat.userVisible.contains(b?.format) ? b!.format : BookFormat.paper;
+    _source = b?.source ?? BookSource.manual;
     _rating = b?.rating ?? 0;
     _coverLocalPath = b?.coverLocalPath;
     _isBorrowed = b?.isBorrowed ?? false;
@@ -124,7 +126,7 @@ class _BookFormPageState extends State<BookFormPage> {
           _category.text.trim().isEmpty ? null : _category.text.trim(),
       description: _desc.text.trim().isEmpty ? null : _desc.text.trim(),
       format: _format,
-      source: base?.source ?? BookSource.manual,
+      source: _source,
       status: _status,
       rating: _rating,
       // 封面：本地选的优先；编辑时不要因为没重选就把原来的封面抹掉
@@ -252,6 +254,23 @@ class _BookFormPageState extends State<BookFormPage> {
                       DropdownMenuItem(value: f, child: Text(f.label)),
                   ],
                   onChanged: (v) => setState(() => _format = v ?? _format),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: DropdownButtonFormField<BookSource>(
+                  value: _source,
+                  isDense: true,
+                  decoration: InputDecoration(
+                    labelText: appLoc.s_ec977df0,
+                    isDense: true,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: [
+                    for (final s in BookSource.values)
+                      DropdownMenuItem(value: s, child: Text(s.label)),
+                  ],
+                  onChanged: (v) => setState(() => _source = v ?? _source),
                 ),
               ),
             ],
