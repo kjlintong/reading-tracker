@@ -331,11 +331,15 @@ class _StatsPageState extends ConsumerState<StatsPage> {
               height: 200,
               child: _categories.isEmpty
                   ? _empty()
-                  : Column(
+                  : Row(
+                      // 图与图例并排：竖向 Column 里 8 行图例会吃掉大部分高度，
+                      // 把柱状图挤到十几像素，y 轴刻度全压在一起重叠（即「乱码」）。
+                      // 改成 Row 后柱状图拿到整张卡的高度，刻度自然拉开。
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(child: _categoryBars()),
-                        const SizedBox(height: 8),
-                        _categoryLegend(),
+                        const SizedBox(width: 12),
+                        SizedBox(width: 158, child: _categoryLegend()),
                       ],
                     ),
             ),
@@ -594,11 +598,16 @@ class _StatsPageState extends ConsumerState<StatsPage> {
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 26,
+              reservedSize: 28,
               interval: (maxY + 1) <= 4 ? 1 : ((maxY + 1) / 4).ceilToDouble(),
-              getTitlesWidget: (v, meta) => Text(
-                v.toInt().toString(),
-                style: TextStyle(fontSize: 9, color: cs.onSurfaceVariant),
+              // 必须用 SideTitleWidget 包裹：裸 Text 在部分 fl_chart 版本里
+              // 不会按刻度定位，会全部堆在角落重叠。
+              getTitlesWidget: (v, meta) => SideTitleWidget(
+                axisSide: meta.axisSide,
+                child: Text(
+                  v.toInt().toString(),
+                  style: TextStyle(fontSize: 9, color: cs.onSurfaceVariant),
+                ),
               ),
             ),
           ),
