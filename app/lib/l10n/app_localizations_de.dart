@@ -2883,6 +2883,11 @@ class SDe extends S {
   String get autoBackupSubtitle => 'Wöchentlicher Export der ganzen Bibliothek in eine wiederherstellbare Datei. Übersteht eine Neuinstallation.';
 
   @override
+  String autoBackupKeepNote({required int count}) {
+    return 'Es werden nur die $count neuesten Kopien aufbewahrt; ältere werden automatisch überschrieben, sodass sich keine Dateien ansammeln.';
+  }
+
+  @override
   String get autoBackupInterval => 'Sicherungsintervall';
 
   @override

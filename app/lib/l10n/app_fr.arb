@@ -3591,6 +3591,16 @@
   "@autoBackupSubtitle": {
     "description": "Réglages : explication de la sauvegarde automatique"
   },
+  "autoBackupKeepNote": "Seules les {count} copies les plus récentes sont conservées ; les plus anciennes sont écrasées automatiquement, les fichiers ne s'accumulent donc pas.",
+  "@autoBackupKeepNote": {
+    "description": "Réglages : note sur le nombre de sauvegardes automatiques conservées",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
   "autoBackupInterval": "Fréquence de sauvegarde",
   "@autoBackupInterval": {
     "description": "Réglages : libellé du sélecteur d'intervalle"

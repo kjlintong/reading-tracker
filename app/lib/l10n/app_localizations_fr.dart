@@ -2883,6 +2883,11 @@ class SFr extends S {
   String get autoBackupSubtitle => 'Export hebdomadaire de toute votre bibliothèque dans un fichier réimportable. Survit à la réinstallation.';
 
   @override
+  String autoBackupKeepNote({required int count}) {
+    return 'Seules les $count copies les plus récentes sont conservées ; les plus anciennes sont écrasées automatiquement, les fichiers ne s\'accumulent donc pas.';
+  }
+
+  @override
   String get autoBackupInterval => 'Fréquence de sauvegarde';
 
   @override

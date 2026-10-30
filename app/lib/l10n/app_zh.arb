@@ -3591,6 +3591,16 @@
   "@autoBackupSubtitle": {
     "description": "设置：自动备份说明"
   },
+  "autoBackupKeepNote": "只保留最近 {count} 份，更早的会被自动覆盖，文件不会越攒越多。",
+  "@autoBackupKeepNote": {
+    "description": "设置：自动备份保留份数说明",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
   "autoBackupInterval": "备份周期",
   "@autoBackupInterval": {
     "description": "设置：备份周期选择器标签"

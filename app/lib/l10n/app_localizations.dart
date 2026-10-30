@@ -5117,6 +5117,12 @@ abstract class S {
   /// **'Weekly export of your whole library to a file you can re-import. It survives reinstalling the app.'**
   String get autoBackupSubtitle;
 
+  /// Settings: note about how many automatic backups are kept
+  ///
+  /// In en, this message translates to:
+  /// **'Only the {count} most recent copies are kept; older ones are overwritten automatically, so files never pile up.'**
+  String autoBackupKeepNote({required int count});
+
   /// Settings: label for the backup interval selector
   ///
   /// In en, this message translates to:

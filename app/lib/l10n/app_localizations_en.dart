@@ -2883,6 +2883,11 @@ class SEn extends S {
   String get autoBackupSubtitle => 'Weekly export of your whole library to a file you can re-import. It survives reinstalling the app.';
 
   @override
+  String autoBackupKeepNote({required int count}) {
+    return 'Only the $count most recent copies are kept; older ones are overwritten automatically, so files never pile up.';
+  }
+
+  @override
   String get autoBackupInterval => 'Backup interval';
 
   @override

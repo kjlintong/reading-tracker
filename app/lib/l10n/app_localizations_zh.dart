@@ -2883,6 +2883,11 @@ class SZh extends S {
   String get autoBackupSubtitle => '每周把整库导出成可重新导入的文件，重装 App 也不丢。';
 
   @override
+  String autoBackupKeepNote({required int count}) {
+    return '只保留最近 $count 份，更早的会被自动覆盖，文件不会越攒越多。';
+  }
+
+  @override
   String get autoBackupInterval => '备份周期';
 
   @override

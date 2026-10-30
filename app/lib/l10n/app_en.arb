@@ -3591,6 +3591,16 @@
   "@autoBackupSubtitle": {
     "description": "Settings: explanation of automatic backup"
   },
+  "autoBackupKeepNote": "Only the {count} most recent copies are kept; older ones are overwritten automatically, so files never pile up.",
+  "@autoBackupKeepNote": {
+    "description": "Settings: note about how many automatic backups are kept",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
   "autoBackupInterval": "Backup interval",
   "@autoBackupInterval": {
     "description": "Settings: label for the backup interval selector"

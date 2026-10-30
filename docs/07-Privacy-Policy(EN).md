@@ -84,6 +84,7 @@ We invoke the corresponding permission only when you actually use the related fe
 - Your data is stored in the device-private directory; both the app sandbox and the system keystore are protected by the OS.
 - Your API keys are stored in system-level secure storage (Android Keystore / iOS Keychain, via `flutter_secure_storage`) and are never written in plaintext to the app's SQLite database.
 - You may export your data as a JSON file via the in-app "Export / Restore" feature for backup. The file is stored where you choose and managed by you; the App does not upload it automatically.
+- You may also enable **automatic backup** under Settings → Data and choose an interval (daily, every 3 days, weekly, every 2 weeks, or monthly; weekly by default). When enabled, the App exports your whole database as a JSON file into the device folder `Download/Readnest/backups/`. That folder is managed by the system media library and **survives uninstalling the app**, so after reinstalling you can restore the full library via Settings → Data → Restore. Only the four most recent copies are kept; older ones are overwritten automatically, so files never accumulate without bound. You manage that folder yourself, and the App never uploads its contents.
 
 ---
 

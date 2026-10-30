@@ -34,6 +34,7 @@ Your books, notes, and reading plans stay on your phone in a SQLite database. Th
 - **Merge duplicates carefully** — ISBN is used when available; otherwise title plus first author is used. Missing fields are filled in, but user-entered ratings, summaries, and notes are not overwritten.
 - **Normalize categories** — platform-specific shelf names are mapped into a controlled category vocabulary so the same reading area does not split across statistics. Categories can be renamed, removed, or extended.
 - **Keep daily reading sustainable** — daily plans repeat until the whole plan is finished. Reminders are local notifications.
+- **Back up automatically** — Readnest can export your whole database to a file on a schedule you choose (daily, every 3 days, weekly, every 2 weeks, or monthly). The file is written to `Download/Readnest/backups/`, so it survives uninstalling the app: reinstall and restore the whole library from **Settings → Data → Restore**. Only the four most recent copies are kept, and older ones are overwritten automatically, so files never pile up.
 - **Look back honestly** — charts cover reading status, categories, monthly trends, ratings, progress, and source platforms. Readnest does not invent reading time or streak data it cannot measure.
 - **Make reading your own** — create a reading profile with preference bubbles and personality tags, then export or share it as an image.
 - **Optional AI reports** — when enabled, Readnest sends aggregated local statistics to a model you configure, together with the titles, authors, categories, reading status, and ratings of books relevant to the reporting period. Note text and highlights are never sent.
@@ -128,6 +129,7 @@ Readnest is local-first:
 - OCR is performed on-device.
 - Optional AI reports send aggregated statistics plus book metadata — titles, authors, categories, reading status, and ratings of books in the reporting period. Note text and highlights are not sent.
 - LLM keys are supplied by the user and used against the endpoint the user chooses.
+- Automatic backups are written to `Download/Readnest/backups/` on the device itself, in a folder the user can see and manage. They are never uploaded anywhere. This protects against losing data when the app is uninstalled or reinstalled — but the copy lives on the same device, so a lost or damaged device still takes the backup with it. Export important data to a computer or cloud storage separately if you need an off-device copy.
 
 See the [English privacy policy](docs/07-Privacy-Policy%28EN%29.md) for the full statement.
 

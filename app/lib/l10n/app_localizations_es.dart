@@ -2883,6 +2883,11 @@ class SEs extends S {
   String get autoBackupSubtitle => 'Exporta toda tu biblioteca cada semana a un archivo que puedes volver a importar. Sobrevive a la reinstalación.';
 
   @override
+  String autoBackupKeepNote({required int count}) {
+    return 'Solo se conservan las $count copias más recientes; las anteriores se sobrescriben automáticamente, así que los archivos no se acumulan.';
+  }
+
+  @override
   String get autoBackupInterval => 'Frecuencia de copia';
 
   @override

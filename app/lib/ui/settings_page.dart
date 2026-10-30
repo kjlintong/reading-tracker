@@ -1141,6 +1141,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                         ),
                       ],
                     ),
+                    const SizedBox(height: 6),
+                    Text(
+                      appLoc.autoBackupKeepNote(
+                          count: AutoBackup.keepCount),
+                      style: const TextStyle(fontSize: 11),
+                    ),
                     if (_backupNote != null) ...[
                       const SizedBox(height: 8),
                       Container(

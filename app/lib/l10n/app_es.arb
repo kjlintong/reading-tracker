@@ -3591,6 +3591,16 @@
   "@autoBackupSubtitle": {
     "description": "Ajustes: explicación de la copia automática"
   },
+  "autoBackupKeepNote": "Solo se conservan las {count} copias más recientes; las anteriores se sobrescriben automáticamente, así que los archivos no se acumulan.",
+  "@autoBackupKeepNote": {
+    "description": "Ajustes: nota sobre cuántas copias automáticas se conservan",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
   "autoBackupInterval": "Frecuencia de copia",
   "@autoBackupInterval": {
     "description": "Ajustes: etiqueta del selector de intervalo"

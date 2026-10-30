@@ -50,9 +50,58 @@ class MainActivity : FlutterActivity() {
                         result.success(isIgnoringBatteryOptimizations())
                     "romBrand" ->
                         result.success(romBrand())
+                    "listDownloadFiles" ->
+                        result.success(listDownloadFiles(call.argument("relativePath") ?: ""))
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    /**
+     * 列出 `Download/<relativePath>/` 下的文件名（不含路径）。
+     *
+     * ## 为什么需要这个方法
+     *
+     * 自动备份要保证「Download 里最多只有 N 份备份」，否则用户每备份一次
+     * 就多一个文件、还得手动清理。但 `media_store_plus` 插件只有
+     * save/delete/read，**没有「列目录」能力**——没法知道盘上到底有哪些文件，
+     * 于是只能靠数据库记账来推断，App 一旦被卸载重装，账本就丢了，
+     * 旧文件就成了没人认领、也删不掉的孤儿。
+     *
+     * 直接查 MediaStore 的 Download 集合就能拿到真实文件列表：
+     * 读的是系统媒体库自己维护的索引，**不需要任何存储权限**
+     * （App 自己写入的文件本来就在其中），也不受 App 生命周期影响。
+     *
+     * 返回文件名列表；查询失败时返回空列表（调用方据此退化为「不清理」，
+     * 宁可多留文件也不误删用户数据）。
+     */
+    private fun listDownloadFiles(relativePath: String): List<String> {
+        return try {
+            val names = ArrayList<String>()
+            val collection = android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI
+            val selection =
+                "${android.provider.MediaStore.MediaColumns.RELATIVE_PATH} = ?"
+            val selectionArgs = arrayOf("Download/$relativePath/")
+            val projection = arrayOf(android.provider.MediaStore.MediaColumns.DISPLAY_NAME)
+            contentResolver.query(
+                collection,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                val idx = cursor.getColumnIndex(android.provider.MediaStore.MediaColumns.DISPLAY_NAME)
+                if (idx >= 0) {
+                    while (cursor.moveToNext()) {
+                        val name = cursor.getString(idx)
+                        if (!name.isNullOrBlank()) names.add(name)
+                    }
+                }
+            }
+            names
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
     /** 本 App 的通知设置页（渠道列表 + 通知开关）。 */

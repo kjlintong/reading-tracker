@@ -3591,6 +3591,16 @@
   "@autoBackupSubtitle": {
     "description": "Einstellungen: Erklärung der automatischen Sicherung"
   },
+  "autoBackupKeepNote": "Es werden nur die {count} neuesten Kopien aufbewahrt; ältere werden automatisch überschrieben, sodass sich keine Dateien ansammeln.",
+  "@autoBackupKeepNote": {
+    "description": "Einstellungen: Hinweis zur Anzahl aufbewahrter automatischer Sicherungen",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
   "autoBackupInterval": "Sicherungsintervall",
   "@autoBackupInterval": {
     "description": "Einstellungen: Beschriftung für die Intervallauswahl"
