@@ -8,6 +8,7 @@ import 'l10n/app_loc.dart';
 import 'data/database.dart';
 import 'perf.dart';
 import 'providers.dart';
+import 'services/auto_backup.dart';
 import 'ui/shelf_page.dart';
 import 'ui/notes_page.dart';
 import 'ui/stats_page.dart';
@@ -33,6 +34,9 @@ Future<void> main() async {
   ));
 
   await AppDatabase.instance.init();
+
+  // 启动后静默跑一次自动备份（若开启且到点）。失败只记日志，绝不阻断启动。
+  unawaited(AutoBackup.runIfDue(BookRepository(AppDatabase.instance)));
 
   runApp(const ProviderScope(child: ReadingTrackerApp()));
 }

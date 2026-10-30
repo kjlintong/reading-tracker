@@ -1,7 +1,7 @@
 name: reading_tracker
 description: 个人阅读管理 App — 多平台书架导入、本地优先存储、AI 阅读分析
 publish_to: 'none'
-version: 1.2.1+5001
+version: 1.3.0+5002
 
 environment:
   sdk: '>=3.5.0 <4.0.0'
@@ -33,6 +33,9 @@ dependencies:
   image: ^4.2.0
   csv: ^6.0.0
   file_picker: ^9.0.0
+  # 自动备份写到 Download/Readnest/backups/：scoped storage 下只有走
+  # MediaStore 才能在「不申请存储权限」的前提下写出卸载后仍存活的文件。
+  media_store_plus: ^0.1.3
 
   # 网络与 AI
   dio: ^5.7.0

@@ -3583,6 +3583,73 @@
   "@autoShelveSubtitle": {
     "description": "Settings: explanation of auto-shelving idle books"
   },
+  "autoBackupTitle": "Automatic backup",
+  "@autoBackupTitle": {
+    "description": "Settings: master toggle for weekly automatic backup"
+  },
+  "autoBackupSubtitle": "Weekly export of your whole library to a file you can re-import. It survives reinstalling the app.",
+  "@autoBackupSubtitle": {
+    "description": "Settings: explanation of automatic backup"
+  },
+  "autoBackupInterval": "Backup interval",
+  "@autoBackupInterval": {
+    "description": "Settings: label for the backup interval selector"
+  },
+  "autoBackupEveryDay": "Daily",
+  "@autoBackupEveryDay": {
+    "description": "Backup interval option: daily"
+  },
+  "autoBackupEvery3Days": "Every 3 days",
+  "@autoBackupEvery3Days": {
+    "description": "Backup interval option: every 3 days"
+  },
+  "autoBackupEveryWeek": "Weekly",
+  "@autoBackupEveryWeek": {
+    "description": "Backup interval option: weekly"
+  },
+  "autoBackupEvery2Weeks": "Every 2 weeks",
+  "@autoBackupEvery2Weeks": {
+    "description": "Backup interval option: every 2 weeks"
+  },
+  "autoBackupEveryMonth": "Monthly",
+  "@autoBackupEveryMonth": {
+    "description": "Backup interval option: monthly"
+  },
+  "autoBackupLast": "Last backup: {time}",
+  "@autoBackupLast": {
+    "description": "Settings: last automatic backup time",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupNever": "Never",
+  "@autoBackupNever": {
+    "description": "Settings: never backed up yet"
+  },
+  "autoBackupNow": "Back up now",
+  "@autoBackupNow": {
+    "description": "Settings: button to trigger a backup immediately"
+  },
+  "autoBackupSaved": "Backup saved to {path}",
+  "@autoBackupSaved": {
+    "description": "Settings: toast after a successful backup",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupFailed": "Backup failed: {error}",
+  "@autoBackupFailed": {
+    "description": "Settings: toast after a failed backup",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "autoShelveDone": "{count} book(s) moved to 'shelved' automatically",
   "@autoShelveDone": {
     "description": "Shelf notice after auto-shelving",

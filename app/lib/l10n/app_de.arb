@@ -3583,6 +3583,73 @@
   "@autoShelveSubtitle": {
     "description": "Einstellungen: Erklärung des automatischen Ablegens"
   },
+  "autoBackupTitle": "Automatische Sicherung",
+  "@autoBackupTitle": {
+    "description": "Einstellungen: Hauptschalter für wöchentliche automatische Sicherung"
+  },
+  "autoBackupSubtitle": "Wöchentlicher Export der ganzen Bibliothek in eine wiederherstellbare Datei. Übersteht eine Neuinstallation.",
+  "@autoBackupSubtitle": {
+    "description": "Einstellungen: Erklärung der automatischen Sicherung"
+  },
+  "autoBackupInterval": "Sicherungsintervall",
+  "@autoBackupInterval": {
+    "description": "Einstellungen: Beschriftung für die Intervallauswahl"
+  },
+  "autoBackupEveryDay": "Täglich",
+  "@autoBackupEveryDay": {
+    "description": "Sicherungsintervall: täglich"
+  },
+  "autoBackupEvery3Days": "Alle 3 Tage",
+  "@autoBackupEvery3Days": {
+    "description": "Sicherungsintervall: alle 3 Tage"
+  },
+  "autoBackupEveryWeek": "Wöchentlich",
+  "@autoBackupEveryWeek": {
+    "description": "Sicherungsintervall: wöchentlich"
+  },
+  "autoBackupEvery2Weeks": "Alle 2 Wochen",
+  "@autoBackupEvery2Weeks": {
+    "description": "Sicherungsintervall: alle 2 Wochen"
+  },
+  "autoBackupEveryMonth": "Monatlich",
+  "@autoBackupEveryMonth": {
+    "description": "Sicherungsintervall: monatlich"
+  },
+  "autoBackupLast": "Letzte Sicherung: {time}",
+  "@autoBackupLast": {
+    "description": "Einstellungen: Zeitpunkt der letzten automatischen Sicherung",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupNever": "Nie",
+  "@autoBackupNever": {
+    "description": "Einstellungen: noch nie gesichert"
+  },
+  "autoBackupNow": "Jetzt sichern",
+  "@autoBackupNow": {
+    "description": "Einstellungen: sofortige Sicherung auslösen"
+  },
+  "autoBackupSaved": "Sicherung gespeichert unter {path}",
+  "@autoBackupSaved": {
+    "description": "Einstellungen: Hinweis nach erfolgreicher Sicherung",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupFailed": "Sicherung fehlgeschlagen: {error}",
+  "@autoBackupFailed": {
+    "description": "Einstellungen: Hinweis nach fehlgeschlagener Sicherung",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "autoShelveDone": "{count} Buch/Bücher automatisch nach „abgelegt“ verschoben",
   "@autoShelveDone": {
     "description": "Hinweis im Regal nach dem automatischen Ablegen",

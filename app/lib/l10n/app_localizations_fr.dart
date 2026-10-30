@@ -2877,6 +2877,51 @@ class SFr extends S {
   String get autoShelveSubtitle => 'Déplacer les livres « en lecture » ignorés depuis longtemps vers « archivé »';
 
   @override
+  String get autoBackupTitle => 'Sauvegarde automatique';
+
+  @override
+  String get autoBackupSubtitle => 'Export hebdomadaire de toute votre bibliothèque dans un fichier réimportable. Survit à la réinstallation.';
+
+  @override
+  String get autoBackupInterval => 'Fréquence de sauvegarde';
+
+  @override
+  String get autoBackupEveryDay => 'Quotidienne';
+
+  @override
+  String get autoBackupEvery3Days => 'Tous les 3 jours';
+
+  @override
+  String get autoBackupEveryWeek => 'Hebdomadaire';
+
+  @override
+  String get autoBackupEvery2Weeks => 'Toutes les 2 semaines';
+
+  @override
+  String get autoBackupEveryMonth => 'Mensuelle';
+
+  @override
+  String autoBackupLast({required String time}) {
+    return 'Dernière sauvegarde : $time';
+  }
+
+  @override
+  String get autoBackupNever => 'Jamais';
+
+  @override
+  String get autoBackupNow => 'Sauvegarder maintenant';
+
+  @override
+  String autoBackupSaved({required String path}) {
+    return 'Sauvegarde enregistrée dans $path';
+  }
+
+  @override
+  String autoBackupFailed({required String error}) {
+    return 'Échec de la sauvegarde : $error';
+  }
+
+  @override
   String autoShelveDone({required int count}) {
     return '$count livre(s) déplacé(s) vers « archivé » automatiquement';
   }

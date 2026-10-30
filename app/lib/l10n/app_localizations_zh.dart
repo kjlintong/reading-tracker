@@ -2877,6 +2877,51 @@ class SZh extends S {
   String get autoShelveSubtitle => '把长期没碰的「在读」书挪到「搁置」';
 
   @override
+  String get autoBackupTitle => '自动备份';
+
+  @override
+  String get autoBackupSubtitle => '每周把整库导出成可重新导入的文件，重装 App 也不丢。';
+
+  @override
+  String get autoBackupInterval => '备份周期';
+
+  @override
+  String get autoBackupEveryDay => '每天';
+
+  @override
+  String get autoBackupEvery3Days => '每 3 天';
+
+  @override
+  String get autoBackupEveryWeek => '每周';
+
+  @override
+  String get autoBackupEvery2Weeks => '每 2 周';
+
+  @override
+  String get autoBackupEveryMonth => '每月';
+
+  @override
+  String autoBackupLast({required String time}) {
+    return '上次备份：$time';
+  }
+
+  @override
+  String get autoBackupNever => '从未';
+
+  @override
+  String get autoBackupNow => '立即备份';
+
+  @override
+  String autoBackupSaved({required String path}) {
+    return '备份已保存到 $path';
+  }
+
+  @override
+  String autoBackupFailed({required String error}) {
+    return '备份失败：$error';
+  }
+
+  @override
   String autoShelveDone({required int count}) {
     return '$count 本书已自动挪到「搁置」';
   }

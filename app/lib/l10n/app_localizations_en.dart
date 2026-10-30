@@ -2877,6 +2877,51 @@ class SEn extends S {
   String get autoShelveSubtitle => 'Move \'reading\' books you haven\'t touched in a while to \'shelved\'';
 
   @override
+  String get autoBackupTitle => 'Automatic backup';
+
+  @override
+  String get autoBackupSubtitle => 'Weekly export of your whole library to a file you can re-import. It survives reinstalling the app.';
+
+  @override
+  String get autoBackupInterval => 'Backup interval';
+
+  @override
+  String get autoBackupEveryDay => 'Daily';
+
+  @override
+  String get autoBackupEvery3Days => 'Every 3 days';
+
+  @override
+  String get autoBackupEveryWeek => 'Weekly';
+
+  @override
+  String get autoBackupEvery2Weeks => 'Every 2 weeks';
+
+  @override
+  String get autoBackupEveryMonth => 'Monthly';
+
+  @override
+  String autoBackupLast({required String time}) {
+    return 'Last backup: $time';
+  }
+
+  @override
+  String get autoBackupNever => 'Never';
+
+  @override
+  String get autoBackupNow => 'Back up now';
+
+  @override
+  String autoBackupSaved({required String path}) {
+    return 'Backup saved to $path';
+  }
+
+  @override
+  String autoBackupFailed({required String error}) {
+    return 'Backup failed: $error';
+  }
+
+  @override
   String autoShelveDone({required int count}) {
     return '$count book(s) moved to \'shelved\' automatically';
   }

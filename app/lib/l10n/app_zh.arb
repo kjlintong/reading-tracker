@@ -3583,6 +3583,73 @@
   "@autoShelveSubtitle": {
     "description": "设置：闲置自动搁置的说明"
   },
+  "autoBackupTitle": "自动备份",
+  "@autoBackupTitle": {
+    "description": "设置：每周自动备份总开关"
+  },
+  "autoBackupSubtitle": "每周把整库导出成可重新导入的文件，重装 App 也不丢。",
+  "@autoBackupSubtitle": {
+    "description": "设置：自动备份说明"
+  },
+  "autoBackupInterval": "备份周期",
+  "@autoBackupInterval": {
+    "description": "设置：备份周期选择器标签"
+  },
+  "autoBackupEveryDay": "每天",
+  "@autoBackupEveryDay": {
+    "description": "备份周期选项：每天"
+  },
+  "autoBackupEvery3Days": "每 3 天",
+  "@autoBackupEvery3Days": {
+    "description": "备份周期选项：每 3 天"
+  },
+  "autoBackupEveryWeek": "每周",
+  "@autoBackupEveryWeek": {
+    "description": "备份周期选项：每周"
+  },
+  "autoBackupEvery2Weeks": "每 2 周",
+  "@autoBackupEvery2Weeks": {
+    "description": "备份周期选项：每 2 周"
+  },
+  "autoBackupEveryMonth": "每月",
+  "@autoBackupEveryMonth": {
+    "description": "备份周期选项：每月"
+  },
+  "autoBackupLast": "上次备份：{time}",
+  "@autoBackupLast": {
+    "description": "设置：上次自动备份时间",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupNever": "从未",
+  "@autoBackupNever": {
+    "description": "设置：尚未备份过"
+  },
+  "autoBackupNow": "立即备份",
+  "@autoBackupNow": {
+    "description": "设置：立即触发一次备份"
+  },
+  "autoBackupSaved": "备份已保存到 {path}",
+  "@autoBackupSaved": {
+    "description": "设置：备份成功提示",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupFailed": "备份失败：{error}",
+  "@autoBackupFailed": {
+    "description": "设置：备份失败提示",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "autoShelveDone": "{count} 本书已自动挪到「搁置」",
   "@autoShelveDone": {
     "description": "自动搁置后书架页提示条正文",

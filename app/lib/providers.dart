@@ -17,6 +17,7 @@ import 'services/auto_report_service.dart';
 import 'services/plan_reminder.dart';
 import 'services/secret_store.dart';
 import 'services/auto_shelve.dart';
+import 'services/auto_backup.dart';
 import 'models/enums.dart';
 import 'ui/theme.dart';
 
@@ -58,6 +59,12 @@ final ocrEnhanceProvider = StateProvider<bool>((ref) => true);
 
 /// 闲置「在读」书是否自动挪到「搁置」。默认开启。
 final autoShelveEnabledProvider = StateProvider<bool>((ref) => true);
+
+/// 是否启用每周自动备份。默认开启（用户曾因卸载重装丢过数据）。
+final autoBackupEnabledProvider = StateProvider<bool>((ref) => true);
+
+/// 自动备份间隔（天）。取值见 [AutoBackup.intervalPresets] 的键。
+final autoBackupIntervalProvider = StateProvider<int>((ref) => 7);
 
 /// 截图识别是否允许调用大模型整理 OCR 文本
 final ocrUseLlmProvider = StateProvider<bool>((ref) => true);
@@ -503,6 +510,11 @@ void _apply(WidgetRef ref, String key, String value) {
       ref.read(ocrUseLlmProvider.notifier).state = value == 'true';
     case AutoShelve.enabledKey:
       ref.read(autoShelveEnabledProvider.notifier).state = value == 'true';
+    case AutoBackup.enabledKey:
+      ref.read(autoBackupEnabledProvider.notifier).state = value == 'true';
+    case AutoBackup.intervalKey:
+      ref.read(autoBackupIntervalProvider.notifier).state =
+          int.tryParse(value) ?? 7;
     case 'ocr_vision_mode':
       ref.read(ocrVisionModeProvider.notifier).state = value;
     case 'image_llm_consent':

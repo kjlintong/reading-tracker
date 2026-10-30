@@ -2877,6 +2877,51 @@ class SDe extends S {
   String get autoShelveSubtitle => 'Lange ignorierte „lesend“-Bücher nach „abgelegt“ verschieben';
 
   @override
+  String get autoBackupTitle => 'Automatische Sicherung';
+
+  @override
+  String get autoBackupSubtitle => 'Wöchentlicher Export der ganzen Bibliothek in eine wiederherstellbare Datei. Übersteht eine Neuinstallation.';
+
+  @override
+  String get autoBackupInterval => 'Sicherungsintervall';
+
+  @override
+  String get autoBackupEveryDay => 'Täglich';
+
+  @override
+  String get autoBackupEvery3Days => 'Alle 3 Tage';
+
+  @override
+  String get autoBackupEveryWeek => 'Wöchentlich';
+
+  @override
+  String get autoBackupEvery2Weeks => 'Alle 2 Wochen';
+
+  @override
+  String get autoBackupEveryMonth => 'Monatlich';
+
+  @override
+  String autoBackupLast({required String time}) {
+    return 'Letzte Sicherung: $time';
+  }
+
+  @override
+  String get autoBackupNever => 'Nie';
+
+  @override
+  String get autoBackupNow => 'Jetzt sichern';
+
+  @override
+  String autoBackupSaved({required String path}) {
+    return 'Sicherung gespeichert unter $path';
+  }
+
+  @override
+  String autoBackupFailed({required String error}) {
+    return 'Sicherung fehlgeschlagen: $error';
+  }
+
+  @override
   String autoShelveDone({required int count}) {
     return '$count Buch/Bücher automatisch nach „abgelegt“ verschoben';
   }

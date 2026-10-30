@@ -5105,6 +5105,84 @@ abstract class S {
   /// **'Move \'reading\' books you haven\'t touched in a while to \'shelved\''**
   String get autoShelveSubtitle;
 
+  /// Settings: master toggle for weekly automatic backup
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backup'**
+  String get autoBackupTitle;
+
+  /// Settings: explanation of automatic backup
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly export of your whole library to a file you can re-import. It survives reinstalling the app.'**
+  String get autoBackupSubtitle;
+
+  /// Settings: label for the backup interval selector
+  ///
+  /// In en, this message translates to:
+  /// **'Backup interval'**
+  String get autoBackupInterval;
+
+  /// Backup interval option: daily
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get autoBackupEveryDay;
+
+  /// Backup interval option: every 3 days
+  ///
+  /// In en, this message translates to:
+  /// **'Every 3 days'**
+  String get autoBackupEvery3Days;
+
+  /// Backup interval option: weekly
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get autoBackupEveryWeek;
+
+  /// Backup interval option: every 2 weeks
+  ///
+  /// In en, this message translates to:
+  /// **'Every 2 weeks'**
+  String get autoBackupEvery2Weeks;
+
+  /// Backup interval option: monthly
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get autoBackupEveryMonth;
+
+  /// Settings: last automatic backup time
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup: {time}'**
+  String autoBackupLast({required String time});
+
+  /// Settings: never backed up yet
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get autoBackupNever;
+
+  /// Settings: button to trigger a backup immediately
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get autoBackupNow;
+
+  /// Settings: toast after a successful backup
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved to {path}'**
+  String autoBackupSaved({required String path});
+
+  /// Settings: toast after a failed backup
+  ///
+  /// In en, this message translates to:
+  /// **'Backup failed: {error}'**
+  String autoBackupFailed({required String error});
+
   /// Shelf notice after auto-shelving
   ///
   /// In en, this message translates to:

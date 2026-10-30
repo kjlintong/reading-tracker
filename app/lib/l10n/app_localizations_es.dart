@@ -2877,6 +2877,51 @@ class SEs extends S {
   String get autoShelveSubtitle => 'Mover los libros «leyendo» sin tocar hace tiempo a «archivado»';
 
   @override
+  String get autoBackupTitle => 'Copia de seguridad automática';
+
+  @override
+  String get autoBackupSubtitle => 'Exporta toda tu biblioteca cada semana a un archivo que puedes volver a importar. Sobrevive a la reinstalación.';
+
+  @override
+  String get autoBackupInterval => 'Frecuencia de copia';
+
+  @override
+  String get autoBackupEveryDay => 'Diaria';
+
+  @override
+  String get autoBackupEvery3Days => 'Cada 3 días';
+
+  @override
+  String get autoBackupEveryWeek => 'Semanal';
+
+  @override
+  String get autoBackupEvery2Weeks => 'Cada 2 semanas';
+
+  @override
+  String get autoBackupEveryMonth => 'Mensual';
+
+  @override
+  String autoBackupLast({required String time}) {
+    return 'Última copia: $time';
+  }
+
+  @override
+  String get autoBackupNever => 'Nunca';
+
+  @override
+  String get autoBackupNow => 'Hacer copia ahora';
+
+  @override
+  String autoBackupSaved({required String path}) {
+    return 'Copia guardada en $path';
+  }
+
+  @override
+  String autoBackupFailed({required String error}) {
+    return 'Error al hacer la copia: $error';
+  }
+
+  @override
   String autoShelveDone({required int count}) {
     return '$count libro(s) movido(s) a «archivado» automáticamente';
   }

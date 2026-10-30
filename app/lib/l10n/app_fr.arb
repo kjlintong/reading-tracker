@@ -3583,6 +3583,73 @@
   "@autoShelveSubtitle": {
     "description": "Réglages : explication du rangement automatique"
   },
+  "autoBackupTitle": "Sauvegarde automatique",
+  "@autoBackupTitle": {
+    "description": "Réglages : interrupteur principal de la sauvegarde hebdomadaire"
+  },
+  "autoBackupSubtitle": "Export hebdomadaire de toute votre bibliothèque dans un fichier réimportable. Survit à la réinstallation.",
+  "@autoBackupSubtitle": {
+    "description": "Réglages : explication de la sauvegarde automatique"
+  },
+  "autoBackupInterval": "Fréquence de sauvegarde",
+  "@autoBackupInterval": {
+    "description": "Réglages : libellé du sélecteur d'intervalle"
+  },
+  "autoBackupEveryDay": "Quotidienne",
+  "@autoBackupEveryDay": {
+    "description": "Fréquence : quotidienne"
+  },
+  "autoBackupEvery3Days": "Tous les 3 jours",
+  "@autoBackupEvery3Days": {
+    "description": "Fréquence : tous les 3 jours"
+  },
+  "autoBackupEveryWeek": "Hebdomadaire",
+  "@autoBackupEveryWeek": {
+    "description": "Fréquence : hebdomadaire"
+  },
+  "autoBackupEvery2Weeks": "Toutes les 2 semaines",
+  "@autoBackupEvery2Weeks": {
+    "description": "Fréquence : toutes les 2 semaines"
+  },
+  "autoBackupEveryMonth": "Mensuelle",
+  "@autoBackupEveryMonth": {
+    "description": "Fréquence : mensuelle"
+  },
+  "autoBackupLast": "Dernière sauvegarde : {time}",
+  "@autoBackupLast": {
+    "description": "Réglages : date de la dernière sauvegarde automatique",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupNever": "Jamais",
+  "@autoBackupNever": {
+    "description": "Réglages : jamais sauvegardé"
+  },
+  "autoBackupNow": "Sauvegarder maintenant",
+  "@autoBackupNow": {
+    "description": "Réglages : déclencher une sauvegarde immédiate"
+  },
+  "autoBackupSaved": "Sauvegarde enregistrée dans {path}",
+  "@autoBackupSaved": {
+    "description": "Réglages : confirmation après sauvegarde réussie",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupFailed": "Échec de la sauvegarde : {error}",
+  "@autoBackupFailed": {
+    "description": "Réglages : erreur après échec de sauvegarde",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "autoShelveDone": "{count} livre(s) déplacé(s) vers « archivé » automatiquement",
   "@autoShelveDone": {
     "description": "Avis sur la bibliothèque après le rangement automatique",

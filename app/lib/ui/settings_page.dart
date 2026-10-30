@@ -16,6 +16,7 @@ import '../l10n/app_localizations.dart';
 import '../models/enums.dart';
 import '../providers.dart';
 import '../services/auto_shelve.dart';
+import '../services/auto_backup.dart';
 import '../services/plan_reminder.dart';
 import '../services/system_settings.dart';
 import 'backup_page.dart';
@@ -73,6 +74,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
 
   String? _busy;
 
+  /// 自动备份：立即备份的忙状态 / 结果提示 / 上次备份展示
+  bool _backupBusy = false;
+  String? _backupNote;
+  bool _backupOk = true;
+  String? _lastBackupDisplay;
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +88,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
     // 自动搁置开关：把存储里的值同步进 provider，避免「上次关了但重开又显示开」。
     ref.read(repoProvider).getSetting(AutoShelve.enabledKey).then((v) {
       ref.read(autoShelveEnabledProvider.notifier).state = (v ?? 'true') == 'true';
+    });
+    // 自动备份开关与周期：同理，避免「上次关了重开又显示开」。
+    ref.read(repoProvider).getSetting(AutoBackup.enabledKey).then((v) {
+      ref.read(autoBackupEnabledProvider.notifier).state = (v ?? 'true') == 'true';
+    });
+    ref.read(repoProvider).getSetting(AutoBackup.intervalKey).then((v) {
+      ref.read(autoBackupIntervalProvider.notifier).state =
+          int.tryParse(v ?? '') ?? 7;
+    });
+    ref.read(repoProvider).getSetting(AutoBackup.lastRunKey).then((v) {
+      if (mounted) setState(() => _lastBackupDisplay = _fmtBackupTime(v));
     });
     _wereadKey = TextEditingController(text: ref.read(wereadKeyProvider) ?? '');
     _llmKey = TextEditingController(text: ref.read(llmKeyProvider) ?? '');
@@ -126,6 +144,76 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
       setState(() => _remindDiag = d);
     } catch (_) {
       // 查不到就保持「未知」，面板显示为不可用——总比报错好。
+    }
+  }
+
+  /// 把备份周期（天）映射成界面文案。
+  String _intervalLabel(int days) {
+    switch (days) {
+      case 1:
+        return appLoc.autoBackupEveryDay;
+      case 3:
+        return appLoc.autoBackupEvery3Days;
+      case 7:
+        return appLoc.autoBackupEveryWeek;
+      case 14:
+        return appLoc.autoBackupEvery2Weeks;
+      case 30:
+        return appLoc.autoBackupEveryMonth;
+      default:
+        return '$days';
+    }
+  }
+
+  /// 把存储里的 ISO 时间格式化成「YYYY-MM-DD HH:MM」，空则返回「从未」。
+  String _fmtBackupTime(String? iso) {
+    if (iso == null || iso.isEmpty) return appLoc.autoBackupNever;
+    final t = DateTime.tryParse(iso);
+    if (t == null) return appLoc.autoBackupNever;
+    final y = t.year;
+    final m = t.month.toString().padLeft(2, '0');
+    final d = t.day.toString().padLeft(2, '0');
+    final hh = t.hour.toString().padLeft(2, '0');
+    final mm = t.minute.toString().padLeft(2, '0');
+    return '$y-$m-$d $hh:$mm';
+  }
+
+  /// 立即触发一次备份（绕过间隔限制），并就地反馈结果。
+  Future<void> _backupNow() async {
+    setState(() => _backupBusy = true);
+    try {
+      final res = await AutoBackup.runIfDue(
+        ref.read(repoProvider),
+        force: true,
+      );
+      if (!mounted) return;
+      if (res.status == AutoBackupStatus.done) {
+        final iso =
+            await ref.read(repoProvider).getSetting(AutoBackup.lastRunKey);
+        setState(() {
+          _lastBackupDisplay = _fmtBackupTime(iso);
+          _backupNote = appLoc.autoBackupSaved(path: res.path ?? '');
+          _backupOk = true;
+        });
+      } else if (res.status == AutoBackupStatus.failed) {
+        setState(() {
+          _backupNote = appLoc.autoBackupFailed(error: res.error ?? '');
+          _backupOk = false;
+        });
+      } else {
+        setState(() {
+          _backupNote = appLoc.autoBackupSaved(path: res.path ?? '');
+          _backupOk = true;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _backupNote = appLoc.autoBackupFailed(error: e.toString());
+        _backupOk = false;
+      });
+    } finally {
+      if (mounted) setState(() => _backupBusy = false);
     }
   }
 
@@ -522,6 +610,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
     final presets = llmPresets;
     final ocrEnhance = ref.watch(ocrEnhanceProvider);
     final autoShelveEnabled = ref.watch(autoShelveEnabledProvider);
+    final autoBackupEnabledAB = ref.watch(autoBackupEnabledProvider);
+    final autoBackupIntervalAB = ref.watch(autoBackupIntervalProvider);
     final ocrUseLlm = ref.watch(ocrUseLlmProvider);
     final visionMode = ref.watch(ocrVisionModeProvider);
     final themeId = ref.watch(appThemeProvider);
@@ -988,6 +1078,100 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                       style: const TextStyle(fontSize: 11),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: autoBackupEnabledAB,
+                    onChanged: (v) async {
+                      await saveSetting(ref, AutoBackup.enabledKey, '$v');
+                    },
+                    title: Text(appLoc.autoBackupTitle,
+                        style: const TextStyle(fontSize: 14)),
+                    subtitle: Text(
+                      appLoc.autoBackupSubtitle,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                  if (autoBackupEnabledAB) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(appLoc.autoBackupInterval,
+                              style: const TextStyle(fontSize: 13)),
+                        ),
+                        DropdownButton<int>(
+                          value: autoBackupIntervalAB,
+                          items: AutoBackup.intervalPresets.keys
+                              .map((d) => DropdownMenuItem(
+                                    value: d,
+                                    child: Text(_intervalLabel(d)),
+                                  ))
+                              .toList(),
+                          onChanged: (v) async {
+                            if (v == null) return;
+                            await saveSetting(
+                                ref, AutoBackup.intervalKey, '$v');
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _lastBackupDisplay == null
+                                ? appLoc.autoBackupNever
+                                : appLoc.autoBackupLast(time: _lastBackupDisplay!),
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: _backupBusy ? null : _backupNow,
+                          icon: _backupBusy
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2),
+                                )
+                              : const Icon(Icons.backup_outlined, size: 18),
+                          label: Text(appLoc.autoBackupNow),
+                        ),
+                      ],
+                    ),
+                    if (_backupNote != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: _backupOk
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .errorContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: SelectableText(
+                          _backupNote!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _backupOk
+                                ? Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ],
               ),
 

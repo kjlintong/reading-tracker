@@ -3583,6 +3583,73 @@
   "@autoShelveSubtitle": {
     "description": "Ajustes: explicación del archivado automático"
   },
+  "autoBackupTitle": "Copia de seguridad automática",
+  "@autoBackupTitle": {
+    "description": "Ajustes: interruptor principal de la copia semanal"
+  },
+  "autoBackupSubtitle": "Exporta toda tu biblioteca cada semana a un archivo que puedes volver a importar. Sobrevive a la reinstalación.",
+  "@autoBackupSubtitle": {
+    "description": "Ajustes: explicación de la copia automática"
+  },
+  "autoBackupInterval": "Frecuencia de copia",
+  "@autoBackupInterval": {
+    "description": "Ajustes: etiqueta del selector de intervalo"
+  },
+  "autoBackupEveryDay": "Diaria",
+  "@autoBackupEveryDay": {
+    "description": "Frecuencia: diaria"
+  },
+  "autoBackupEvery3Days": "Cada 3 días",
+  "@autoBackupEvery3Days": {
+    "description": "Frecuencia: cada 3 días"
+  },
+  "autoBackupEveryWeek": "Semanal",
+  "@autoBackupEveryWeek": {
+    "description": "Frecuencia: semanal"
+  },
+  "autoBackupEvery2Weeks": "Cada 2 semanas",
+  "@autoBackupEvery2Weeks": {
+    "description": "Frecuencia: cada 2 semanas"
+  },
+  "autoBackupEveryMonth": "Mensual",
+  "@autoBackupEveryMonth": {
+    "description": "Frecuencia: mensual"
+  },
+  "autoBackupLast": "Última copia: {time}",
+  "@autoBackupLast": {
+    "description": "Ajustes: fecha de la última copia automática",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupNever": "Nunca",
+  "@autoBackupNever": {
+    "description": "Ajustes: todavía no se ha hecho copia"
+  },
+  "autoBackupNow": "Hacer copia ahora",
+  "@autoBackupNow": {
+    "description": "Ajustes: botón para copiar de inmediato"
+  },
+  "autoBackupSaved": "Copia guardada en {path}",
+  "@autoBackupSaved": {
+    "description": "Ajustes: aviso tras copia correcta",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupFailed": "Error al hacer la copia: {error}",
+  "@autoBackupFailed": {
+    "description": "Ajustes: aviso tras copia fallida",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "autoShelveDone": "{count} libro(s) movido(s) a «archivado» automáticamente",
   "@autoShelveDone": {
     "description": "Aviso en la estantería tras el archivado automático",
