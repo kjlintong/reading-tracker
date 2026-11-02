@@ -255,10 +255,6 @@
   "s_1a2e873e": "Mois de {month}",
   "s_5583162a": "Échec du prétraitement de l'image ; utilisation de l'original : {e}",
   "s_628c2132": "Échec de la conversion en JPEG : {e}",
-  "s_ebf4bdfb": "Analyse de la structure de la mise en page…",
-  "s_ba1038b1": "Nettoyage des résultats de reconnaissance avec le LLM…",
-  "s_6292a274": "Vérification des titres…",
-  "s_427e1f0d": "C",
   "s_af041a1b": "Titre complété",
   "s_988dd5cb": "{reason}, titre complété",
   "s_a746d189": "[、,，;/]",
@@ -431,13 +427,7 @@
   "s_28690759": "Amélioration de l'image…",
   "s_d5155b2d": "Aucun titre reconnu ; essaie une autre image",
   "s_e20dac78": "Lecture de l'image par un modèle multimodal…",
-  "s_5fea0487": "Le modèle multimodal n'a pas pu lire de titre sur cette image. Vérifie que le modèle sélectionné accepte les images (les modèles uniquement texte les refusent d'emblée), ou remets Réglages → Reconnaissance de captures → Mode de reconnaissance sur « Auto » pour retomber sur l'OCR de l'appareil.",
-  "s_cdda9381": "Le multimodal n'a rien renvoyé ; repli sur l'OCR de l'appareil…",
-  "s_b85e4cbc": "Envoi d'image non autorisé ; repli sur l'OCR de l'appareil…",
-  "s_a9698571": "Reconnaissance du texte…",
-  "s_7ef6b42d": "Aucun texte trouvé sur cette image. Essaie sous un autre angle, avec un texte plus net, ou fais directement une capture d'écran (les captures sont plus nettes que les photos).",
-  "s_319b9488": "Aucun texte ressemblant à un titre trouvé. S'il s'agit d'une page intérieure, le titre n'y figure généralement pas : essaie « Importer une capture d'étagère » ou photographie la couverture.",
-  "s_37588c9c": "Aucun titre n'a pu être lu sur cette image. Essaie de recadrer pour enlever l'interface superflue et recommence.",
+  "s_b85e4cbc": "L'import par capture ou photo nécessite l'autorisation d'envoyer des images. Activez-la dans Paramètres → Reconnaissance de captures.",
   "s_04a1b347": "Titre",
   "s_a9fe3793": "Colonne « Title » introuvable dans le CSV",
   "s_3db59388": "Progression",
@@ -575,13 +565,6 @@
   "s_3f5cbdbf": "Détermine la qualité de la reconnaissance des imports par photo et par capture.",
   "s_9130a4ed": "Prétraitement d'amélioration de l'image",
   "s_b79fc99c": "Agrandit et nette l'image d'abord, ce qui améliore la reconnaissance des petits titres.",
-  "s_9695a603": "Utiliser le LLM pour nettoyer les résultats",
-  "s_267118b5": "Laisse le LLM nettoyer les titres reconnus. Nécessite une clé LLM et consomme des tokens.",
-  "s_6d7e1f9f": "Mode de reconnaissance",
-  "s_ed144a76": "Auto (multimodal d'abord, repli sur l'appareil)",
-  "s_c7bab837": "Un LLM multimodal lit l'image directement",
-  "s_d8f3da2a": "OCR sur l'appareil (hors ligne, gratuit)",
-  "s_f22e4cd2": "L'OCR de l'appareil fonctionne hors ligne mais peut manquer des titres ; le modèle multimodal comprend la mise en page mais a besoin du réseau et peut inventer un titre. « Auto » combine les deux.",
   "s_67677b3d": "Données",
   "s_d596ba9b": "Exporte toute la base de données en JSON pour déménager sur un autre appareil. Une installation neuve démarre avec une étagère vide ; ajoute des livres depuis l'onglet Import pour commencer.",
   "s_39239742": "Export / restauration en un geste",
@@ -1611,18 +1594,6 @@
       "e": {}
     }
   },
-  "@s_ebf4bdfb": {
-    "description": "auto-extracted"
-  },
-  "@s_ba1038b1": {
-    "description": "auto-extracted"
-  },
-  "@s_6292a274": {
-    "description": "auto-extracted"
-  },
-  "@s_427e1f0d": {
-    "description": "auto-extracted"
-  },
   "@s_af041a1b": {
     "description": "auto-extracted"
   },
@@ -2257,26 +2228,8 @@
   "@s_e20dac78": {
     "description": "auto-extracted"
   },
-  "@s_5fea0487": {
-    "description": "auto-extracted"
-  },
-  "@s_cdda9381": {
-    "description": "auto-extracted"
-  },
   "@s_b85e4cbc": {
-    "description": "auto-extracted"
-  },
-  "@s_a9698571": {
-    "description": "auto-extracted"
-  },
-  "@s_7ef6b42d": {
-    "description": "auto-extracted"
-  },
-  "@s_319b9488": {
-    "description": "auto-extracted"
-  },
-  "@s_37588c9c": {
-    "description": "auto-extracted"
+    "description": "Affiché quand l'utilisateur refuse l'envoi d'images pour l'import par capture/photo."
   },
   "@s_04a1b347": {
     "description": "auto-extracted"
@@ -2787,27 +2740,6 @@
     "description": "auto-extracted"
   },
   "@s_b79fc99c": {
-    "description": "auto-extracted"
-  },
-  "@s_9695a603": {
-    "description": "auto-extracted"
-  },
-  "@s_267118b5": {
-    "description": "auto-extracted"
-  },
-  "@s_6d7e1f9f": {
-    "description": "auto-extracted"
-  },
-  "@s_ed144a76": {
-    "description": "auto-extracted"
-  },
-  "@s_c7bab837": {
-    "description": "auto-extracted"
-  },
-  "@s_d8f3da2a": {
-    "description": "auto-extracted"
-  },
-  "@s_f22e4cd2": {
     "description": "auto-extracted"
   },
   "@s_67677b3d": {

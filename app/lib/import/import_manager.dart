@@ -3,9 +3,6 @@ import '../l10n/app_loc.dart';
 import '../models/enums.dart';
 import '../data/database.dart';
 import '../ai/ai_client.dart';
-import 'llm_shelf_parser.dart';
-import 'ocr_line.dart';
-import 'shelf_layout.dart';
 import 'shelf_ocr_parser.dart';
 
 /// 导入结果统计
@@ -56,15 +53,11 @@ class ImportManager {
   /// 是否在公开源落空时用 LLM 兜底补全（会消耗 token，默认关闭）
   bool llmFallback;
 
-  /// 截图识别时是否允许调用大模型整理 OCR 文本
-  bool ocrUseLlm;
-
   ImportManager({
     required this.repo,
     required this.metadata,
     required this.llm,
     this.llmFallback = false,
-    this.ocrUseLlm = true,
   });
 
   /* ---------------------------- 截图识别链路 ---------------------------- */
@@ -72,101 +65,6 @@ class ImportManager {
   /// 截图 OCR 文本 → 书名候选（纯文本入口，保留给测试与降级路径）
   Future<List<TitleCandidate>> parseScreenshot(String ocrText) async {
     return ShelfOcrParser.extract(ocrText);
-  }
-
-  /// 完整识别链路：几何布局解析 → 大模型整理 → 权威源补齐截断标题。
-  ///
-  /// 三步的顺序是有讲究的：
-  /// 1. **布局解析**解决「这行文字属于哪本书」，纯文本做不到；
-  /// 2. 再让**大模型**挑出真正的书并补全书名，它擅长判断语义、不擅长数字；
-  /// 3. 最后用**微信读书书城**实测补齐被截断的标题——模型会说得很像真的，
-  ///    但只有权威源的搜索结果能证明这本书确实存在。
-  Future<({List<TitleCandidate> candidates, OcrDiagnostics diag})>
-      recognizeFromLines(
-    List<OcrLine> lines, {
-    OcrMode mode = OcrMode.shelf,
-    bool? useLlm,
-    void Function(String stage)? onStage,
-  }) async {
-    final totalLines = lines.length;
-
-    onStage?.call(appLoc.s_ebf4bdfb);
-    final layout = ShelfLayoutParser.parse(lines, mode: mode);
-    // 几何信息不可用时布局解析内部会自动退化成文本解析，
-    // 这里只在它彻底没结果时才再跑一次纯文本路径。
-    var candidates = layout.isNotEmpty
-        ? layout
-        : ShelfOcrParser.extract(lines.map((l) => l.text).join('\n'));
-
-    final wantLlm = (useLlm ?? ocrUseLlm) && llm.available && lines.isNotEmpty;
-    var usedLlm = false;
-    if (wantLlm) {
-      onStage?.call(appLoc.s_ba1038b1);
-      final smart = await LlmShelfParser(llm).structure(lines, mode: mode);
-      if (smart != null && smart.isNotEmpty) {
-        usedLlm = true;
-        candidates = _mergeCandidates(candidates, smart);
-      }
-    }
-
-    onStage?.call(appLoc.s_6292a274);
-    final repaired = await repairTitles(candidates);
-
-    return (
-      candidates: repaired,
-      diag: OcrDiagnostics(
-        totalLines: totalLines,
-        keptLines: candidates.length,
-        usedLlm: usedLlm,
-        usedLayout: layout.isNotEmpty,
-        repairedTitles: repaired.where((c) => c.inferred).length,
-      ),
-    );
-  }
-
-  /// 把大模型结果并回本地结果。
-  ///
-  /// 同一本书以**大模型的书名**为准（它会把「雅思口语深…」补成完整书名），
-  /// 但进度、状态这类结构化字段优先保留本地读到的值——那是从图里
-  /// 直接抽出来的数字，比模型的转述可靠。
-  static List<TitleCandidate> _mergeCandidates(
-    List<TitleCandidate> local,
-    List<TitleCandidate> smart,
-  ) {
-    String norm(String s) =>
-        s.replaceAll(RegExp(appLoc.s_427e1f0d), '').toLowerCase();
-
-    final out = <TitleCandidate>[...smart];
-    final used = <int>{};
-    for (final l in local) {
-      final key = norm(l.title);
-      var hit = -1;
-      for (var i = 0; i < out.length; i++) {
-        if (used.contains(i)) continue;
-        final k = norm(out[i].title);
-        if (k.isEmpty || key.isEmpty) continue;
-        if (k == key || k.startsWith(key) || key.startsWith(k)) {
-          hit = i;
-          break;
-        }
-      }
-      if (hit < 0) {
-        out.add(l);
-        continue;
-      }
-      used.add(hit);
-      final s = out[hit];
-      // 模型补出的书名以它为准，但原文更长的说明模型把噪音也读进去了
-      if (l.title.length > s.title.length && !s.inferred) {
-        s.title = l.title;
-      }
-      s.progressPercent ??= l.progressPercent;
-      s.statusHint ??= l.statusHint;
-      s.author ??= l.author;
-      s.truncated = s.truncated || l.truncated;
-      if (l.score > s.score) s.score = l.score;
-    }
-    return out;
   }
 
   /// 用权威源补齐「被界面截断」的书名。

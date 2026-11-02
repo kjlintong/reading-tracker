@@ -825,18 +825,6 @@ class SEs extends S {
   }
 
   @override
-  String get s_ebf4bdfb => 'Analizando la estructura de la maquetación…';
-
-  @override
-  String get s_ba1038b1 => 'Limpiando los resultados del reconocimiento con el LLM…';
-
-  @override
-  String get s_6292a274 => 'Verificando los títulos…';
-
-  @override
-  String get s_427e1f0d => '[\\s《》「」『』…⋯.\\-—_:：]';
-
-  @override
   String get s_af041a1b => 'Título completado';
 
   @override
@@ -1419,25 +1407,7 @@ class SEs extends S {
   String get s_e20dac78 => 'Leyendo la imagen con un modelo multimodal…';
 
   @override
-  String get s_5fea0487 => 'El modelo multimodal no pudo leer ningún título de esta imagen. Comprueba que el modelo seleccionado admita imágenes (los modelos solo de texto lo rechazan de inmediato) o vuelve a poner Ajustes → Reconocimiento de capturas → Modo de reconocimiento en «Automático» para recurrir al OCR del dispositivo.';
-
-  @override
-  String get s_cdda9381 => 'El modelo multimodal no devolvió nada; se recurre al OCR del dispositivo…';
-
-  @override
-  String get s_b85e4cbc => 'No se permite subir la imagen; se recurre al OCR del dispositivo…';
-
-  @override
-  String get s_a9698571 => 'Reconociendo texto…';
-
-  @override
-  String get s_7ef6b42d => 'No se encontró texto en esta imagen. Prueba desde otro ángulo, con el texto más nítido, o haz directamente una captura de pantalla (las capturas se leen mejor que las fotos).';
-
-  @override
-  String get s_319b9488 => 'No se encontró texto que parezca un título. Si es una página interior, el título normalmente no aparece: prueba con «Importar captura de la estantería» o fotografía la portada.';
-
-  @override
-  String get s_37588c9c => 'No se pudo leer ningún título de esta imagen. Prueba a recortar la interfaz sobrante y reinténtalo.';
+  String get s_b85e4cbc => 'La importación por captura o foto requiere permiso para subir imágenes. Actívalo en Ajustes → Reconocimiento de capturas.';
 
   @override
   String get s_04a1b347 => 'Título';
@@ -1907,27 +1877,6 @@ class SEs extends S {
 
   @override
   String get s_b79fc99c => 'Amplía y afila primero la imagen, así los títulos pequeños se reconocen mejor.';
-
-  @override
-  String get s_9695a603 => 'Usar el LLM para limpiar los resultados';
-
-  @override
-  String get s_267118b5 => 'Deja que el LLM limpie los títulos reconocidos. Necesita una API key de LLM y consume tokens.';
-
-  @override
-  String get s_6d7e1f9f => 'Modo de reconocimiento';
-
-  @override
-  String get s_ed144a76 => 'Automático (multimodal primero, con respaldo en el dispositivo)';
-
-  @override
-  String get s_c7bab837 => 'Un LLM multimodal lee la imagen directamente';
-
-  @override
-  String get s_d8f3da2a => 'OCR en el dispositivo (sin conexión, gratis)';
-
-  @override
-  String get s_f22e4cd2 => 'El OCR del dispositivo funciona sin conexión pero puede saltarse títulos; el modelo multimodal entiende la maquetación pero necesita red y puede inventarse un título. «Automático» usa ambos.';
 
   @override
   String get s_67677b3d => 'Datos';

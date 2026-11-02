@@ -825,18 +825,6 @@ class SFr extends S {
   }
 
   @override
-  String get s_ebf4bdfb => 'Analyse de la structure de la mise en page…';
-
-  @override
-  String get s_ba1038b1 => 'Nettoyage des résultats de reconnaissance avec le LLM…';
-
-  @override
-  String get s_6292a274 => 'Vérification des titres…';
-
-  @override
-  String get s_427e1f0d => 'C';
-
-  @override
   String get s_af041a1b => 'Titre complété';
 
   @override
@@ -1419,25 +1407,7 @@ class SFr extends S {
   String get s_e20dac78 => 'Lecture de l\'image par un modèle multimodal…';
 
   @override
-  String get s_5fea0487 => 'Le modèle multimodal n\'a pas pu lire de titre sur cette image. Vérifie que le modèle sélectionné accepte les images (les modèles uniquement texte les refusent d\'emblée), ou remets Réglages → Reconnaissance de captures → Mode de reconnaissance sur « Auto » pour retomber sur l\'OCR de l\'appareil.';
-
-  @override
-  String get s_cdda9381 => 'Le multimodal n\'a rien renvoyé ; repli sur l\'OCR de l\'appareil…';
-
-  @override
-  String get s_b85e4cbc => 'Envoi d\'image non autorisé ; repli sur l\'OCR de l\'appareil…';
-
-  @override
-  String get s_a9698571 => 'Reconnaissance du texte…';
-
-  @override
-  String get s_7ef6b42d => 'Aucun texte trouvé sur cette image. Essaie sous un autre angle, avec un texte plus net, ou fais directement une capture d\'écran (les captures sont plus nettes que les photos).';
-
-  @override
-  String get s_319b9488 => 'Aucun texte ressemblant à un titre trouvé. S\'il s\'agit d\'une page intérieure, le titre n\'y figure généralement pas : essaie « Importer une capture d\'étagère » ou photographie la couverture.';
-
-  @override
-  String get s_37588c9c => 'Aucun titre n\'a pu être lu sur cette image. Essaie de recadrer pour enlever l\'interface superflue et recommence.';
+  String get s_b85e4cbc => 'L\'import par capture ou photo nécessite l\'autorisation d\'envoyer des images. Activez-la dans Paramètres → Reconnaissance de captures.';
 
   @override
   String get s_04a1b347 => 'Titre';
@@ -1907,27 +1877,6 @@ class SFr extends S {
 
   @override
   String get s_b79fc99c => 'Agrandit et nette l\'image d\'abord, ce qui améliore la reconnaissance des petits titres.';
-
-  @override
-  String get s_9695a603 => 'Utiliser le LLM pour nettoyer les résultats';
-
-  @override
-  String get s_267118b5 => 'Laisse le LLM nettoyer les titres reconnus. Nécessite une clé LLM et consomme des tokens.';
-
-  @override
-  String get s_6d7e1f9f => 'Mode de reconnaissance';
-
-  @override
-  String get s_ed144a76 => 'Auto (multimodal d\'abord, repli sur l\'appareil)';
-
-  @override
-  String get s_c7bab837 => 'Un LLM multimodal lit l\'image directement';
-
-  @override
-  String get s_d8f3da2a => 'OCR sur l\'appareil (hors ligne, gratuit)';
-
-  @override
-  String get s_f22e4cd2 => 'L\'OCR de l\'appareil fonctionne hors ligne mais peut manquer des titres ; le modèle multimodal comprend la mise en page mais a besoin du réseau et peut inventer un titre. « Auto » combine les deux.';
 
   @override
   String get s_67677b3d => 'Données';

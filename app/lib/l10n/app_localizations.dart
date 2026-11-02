@@ -1472,30 +1472,6 @@ abstract class S {
   /// auto-extracted
   ///
   /// In en, this message translates to:
-  /// **'Parsing the layout structure…'**
-  String get s_ebf4bdfb;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Cleaning up recognition results with the LLM…'**
-  String get s_ba1038b1;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Verifying titles…'**
-  String get s_6292a274;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'[\\s《》「」『』…⋯.\\-—_:：]'**
-  String get s_427e1f0d;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
   /// **'Title completed'**
   String get s_af041a1b;
 
@@ -2525,47 +2501,11 @@ abstract class S {
   /// **'Reading the image with a multimodal model…'**
   String get s_e20dac78;
 
-  /// auto-extracted
+  /// Shown when the user denies image-upload consent for screenshot/photo import.
   ///
   /// In en, this message translates to:
-  /// **'The multimodal model couldn\'t read a title from this image. Check that the selected model accepts image input (text-only models reject it outright), or set Settings → Screenshot recognition → Recognition mode back to \"Auto\" to fall back to on-device OCR.'**
-  String get s_5fea0487;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Multimodal returned nothing; falling back to on-device OCR…'**
-  String get s_cdda9381;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Image upload not allowed; falling back to on-device OCR…'**
+  /// **'Screenshot or photo import needs image-upload permission. Enable it in Settings → Screenshot recognition.'**
   String get s_b85e4cbc;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Recognizing text…'**
-  String get s_a9698571;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'No text was found in this image. Try a different angle, get the text sharper, or just take a screenshot (screenshots are cleaner than photos).'**
-  String get s_7ef6b42d;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'No title-like text found. If this is an inside page the title usually isn\'t on it — try \"Import shelf screenshot\" or photograph the cover instead.'**
-  String get s_319b9488;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'No title could be read from this image. Try cropping out the surrounding UI and retry.'**
-  String get s_37588c9c;
 
   /// auto-extracted
   ///
@@ -3388,48 +3328,6 @@ abstract class S {
   /// In en, this message translates to:
   /// **'Enlarges and sharpens the image first, so small titles are recognized better.'**
   String get s_b79fc99c;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Use the LLM to clean up recognition results'**
-  String get s_9695a603;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Let the LLM clean up the recognized titles. Needs an LLM key and uses tokens.'**
-  String get s_267118b5;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Recognition mode'**
-  String get s_6d7e1f9f;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Auto (multimodal first, falls back to on-device)'**
-  String get s_ed144a76;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'Multimodal LLM reads the image directly'**
-  String get s_c7bab837;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'On-device OCR (offline, free)'**
-  String get s_d8f3da2a;
-
-  /// auto-extracted
-  ///
-  /// In en, this message translates to:
-  /// **'On-device OCR works offline but may miss titles; the multimodal model reads the layout but needs a network and may invent one. \"Auto\" uses both.'**
-  String get s_f22e4cd2;
 
   /// auto-extracted
   ///

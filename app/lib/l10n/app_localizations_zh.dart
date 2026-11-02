@@ -825,18 +825,6 @@ class SZh extends S {
   }
 
   @override
-  String get s_ebf4bdfb => '正在解析版面结构…';
-
-  @override
-  String get s_ba1038b1 => '正在用大模型整理识别结果…';
-
-  @override
-  String get s_6292a274 => '正在核对书名…';
-
-  @override
-  String get s_427e1f0d => '[\\s《》「」『』…⋯.\\-—_:：]';
-
-  @override
   String get s_af041a1b => '书名已补齐';
 
   @override
@@ -1419,25 +1407,7 @@ class SZh extends S {
   String get s_e20dac78 => '正在用多模态模型读图…';
 
   @override
-  String get s_5fea0487 => '多模态模型没能从这张图里读出书名。确认所选模型支持图片输入（纯文本模型会直接拒收），或把「设置 → 截图识别 → 识别方式」改回「自动」以回落到端侧 OCR。';
-
-  @override
-  String get s_cdda9381 => '多模态没结果，改用端侧 OCR…';
-
-  @override
-  String get s_b85e4cbc => '未授权图片上传，改用端侧 OCR…';
-
-  @override
-  String get s_a9698571 => '正在识别文字…';
-
-  @override
-  String get s_7ef6b42d => '这张图里没读到文字。换个角度、让文字更清晰，或直接截屏（截屏的文字比拍照更规整）。';
-
-  @override
-  String get s_319b9488 => '没读到像书名的文字。如果是书内页，书名通常不在页面上——试试点「截图导入书架」或直接拍封面。';
-
-  @override
-  String get s_37588c9c => '没能从图中识别出书名，试试裁掉多余界面元素后重试';
+  String get s_b85e4cbc => '截图或拍照导入需要先授权上传图片才能识别，请在「设置 → 截图识别」中开启。';
 
   @override
   String get s_04a1b347 => '书名';
@@ -1907,27 +1877,6 @@ class SZh extends S {
 
   @override
   String get s_b79fc99c => '先放大并增强图像，小字书名识别更准。';
-
-  @override
-  String get s_9695a603 => '用大模型整理识别结果';
-
-  @override
-  String get s_267118b5 => '用大模型整理识别出的书名。需要配置大模型 Key 并消耗 token。';
-
-  @override
-  String get s_6d7e1f9f => '识别方式';
-
-  @override
-  String get s_ed144a76 => '自动（多模态优先，失败回落端侧）';
-
-  @override
-  String get s_c7bab837 => '多模态大模型直接读图';
-
-  @override
-  String get s_d8f3da2a => '端侧 OCR（离线、免费）';
-
-  @override
-  String get s_f22e4cd2 => '端侧 OCR 离线可用但可能漏读；多模态模型能理解版面，但需联网且可能编书名。「自动」两者结合最稳。';
 
   @override
   String get s_67677b3d => '数据';

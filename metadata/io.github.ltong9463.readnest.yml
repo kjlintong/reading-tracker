@@ -52,7 +52,7 @@ Description: |-
 Builds:
   - versionName: 1.4.0
     versionCode: 5005
-    commit: fdroid-1.4.0
+    commit: v1.4.0
     srclibs:
       - flutter@3.24.5
     rm:

@@ -3,7 +3,6 @@ import '../l10n/app_loc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import '../l10n/app_localizations.dart';
@@ -16,7 +15,6 @@ import 'confirm_titles_page.dart';
 import '../import/image_preprocess.dart';
 import '../import/import_manager.dart';
 import '../import/llm_shelf_parser.dart';
-import '../import/ocr_line.dart';
 import '../import/shelf_layout.dart';
 import '../import/shelf_ocr_parser.dart';
 import 'theme.dart';
@@ -56,11 +54,6 @@ class AddBookSheet extends ConsumerStatefulWidget {
 class _AddBookSheetState extends ConsumerState<AddBookSheet> {
   final _picker = ImagePicker();
 
-  /// OCR 识别器创建一次就够了。
-  /// ML Kit 的 `TextRecognizer` 初始化要加载模型，每次识别都新建
-  /// 会让每张图多花几百毫秒，连续导入时体验很差。
-  TextRecognizer? _recognizer;
-
   bool _busy = false;
   String? _message;
   String? _stage;
@@ -77,12 +70,8 @@ class _AddBookSheetState extends ConsumerState<AddBookSheet> {
   /// 做成可展开的一条，需要的人点一下，不需要的人不受打扰。
   bool _noticeOpen = false;
 
-  TextRecognizer get _ocr => _recognizer ??=
-      TextRecognizer(script: TextRecognitionScript.chinese);
-
   @override
   void dispose() {
-    _recognizer?.close();
     super.dispose();
   }
 
@@ -127,12 +116,10 @@ class _AddBookSheetState extends ConsumerState<AddBookSheet> {
     Navigator.of(context).pop(true);
   }
 
-  /// 截图 / 拍照 → 识别 → 书名候选确认
+  /// 截图 / 拍照 → 多模态大模型识别 → 书名候选确认
   ///
-  /// 两条通道（见 `_recognize`）：端侧 OCR 与多模态大模型。
-  /// 选哪条由设置里的「识别方式」决定，默认 `auto` = 多模态优先、
-  /// 拿不到结果就回落到端侧——两条路的失败模式完全不同，
-  /// 叠加使用比单用任何一条都稳。
+  /// 仅走用户自填的多模态大模型视觉通道（见 `_recognize`）。
+  /// 需要联网与一次性数据出境授权；未授权时提示先去设置开启。
   Future<void> _fromImage(ImageSource source, BookSource platform) async {
     // imageQuality 给 100：OCR 要的是笔画完整，
     // 默认的压缩会把小字的细节抹掉，识别率直接下降
@@ -186,90 +173,58 @@ class _AddBookSheetState extends ConsumerState<AddBookSheet> {
     });
   }
 
-  /// 按设置的识别方式跑一条或两条通道，返回候选与诊断信息。
+  /// 仅走多模态大模型视觉通道识别书架截图 / 拍照。
   ///
-  /// [emptyReason] 一定要区分通道：多模态失败和 OCR 失败给用户的
-  /// 建议完全不同（前者是「模型不支持看图」，后者是「图里没文字」），
-  /// 混成一句等于没说。
+  /// 上传整张书架截图到用户自填的多模态大模型属于数据出机，
+  /// 必须先获得一次性明示同意（隐私政策 §数据出境）。
+  /// 用户拒绝授权时无法离线完成识别，提示需要先授权上传图片。
   Future<_RecognizeResult?> _recognize(String path) async {
-    final visionMode = ref.read(ocrVisionModeProvider);
-    final manager = ref.read(importManagerProvider);
-
-    if (visionMode != 'device') {
-      // 上传整张书架截图到用户自填的多模态大模型属于数据出机，
-      // 必须先获得一次性明示同意（隐私政策 §数据出境）。
-      final consented = await _ensureImageConsent();
-      if (consented) {
-        setState(() => _stage = appLoc.s_e20dac78);
-        final bytes = await ImagePreprocessor.toJpegBytes(path);
-        if (bytes != null) {
-          final parser = LlmShelfParser(ref.read(llmClientProvider));
-          final vision = await parser.readImage(bytes);
-          if (vision != null && vision.isNotEmpty) {
-            return _RecognizeResult(
-              candidates: vision,
-              mode: OcrMode.shelf,
-              rawText: vision.map((c) => c.rawText).join('\n'),
-              emptyReason: null,
-            );
-          }
-        }
-        if (visionMode == 'vision') {
-          return _RecognizeResult(
-            candidates: [],
-            mode: OcrMode.shelf,
-            rawText: '',
-            emptyReason: appLoc.s_5fea0487,
-          );
-        }
-        // auto：静默回落到端侧，不弹错误——用户要的是结果，不是通道名
-        setState(() => _stage = appLoc.s_cdda9381);
-      } else {
-        // 用户拒绝：直接走端侧 OCR，不再尝试上传
-        setState(() => _stage = appLoc.s_b85e4cbc);
-      }
-    }
-
-    setState(() => _stage = appLoc.s_a9698571);
-    final input = InputImage.fromFilePath(path);
-    final result = await _ocr.processImage(input);
-    final lines = _toLines(result);
-
-    if (lines.isEmpty) {
+    // 上传整张书架截图到用户自填的多模态大模型属于数据出机，
+    // 必须先获得一次性明示同意（隐私政策 §数据出境）。
+    final consented = await _ensureImageConsent();
+    if (!consented) {
       return _RecognizeResult(
         candidates: [],
         mode: OcrMode.shelf,
         rawText: '',
-        emptyReason: appLoc.s_7ef6b42d,
+        emptyReason: appLoc.s_b85e4cbc,
       );
     }
 
-    // 场景判定：先把图当成书架试一遍，落出 3 本以上就按书架处理；
-    // 否则当成单本图书（封面/书脊/内页），取字号最大的那行当书名。
-    final shelfTry = ShelfLayoutParser.parse(lines, mode: OcrMode.shelf);
-    final mode = shelfTry.length >= 3 ? OcrMode.shelf : OcrMode.cover;
+    setState(() => _stage = appLoc.s_e20dac78);
+    final bytes = await ImagePreprocessor.toJpegBytes(path);
+    if (bytes == null) {
+      return _RecognizeResult(
+        candidates: [],
+        mode: OcrMode.shelf,
+        rawText: '',
+        emptyReason: appLoc.s_d5155b2d,
+      );
+    }
 
-    final r = await manager.recognizeFromLines(
-      lines,
-      mode: mode,
-      onStage: (s) => setState(() => _stage = s),
-    );
+    final parser = LlmShelfParser(ref.read(llmClientProvider));
+    final vision = await parser.readImage(bytes);
+    if (vision != null && vision.isNotEmpty) {
+      return _RecognizeResult(
+        candidates: vision,
+        mode: OcrMode.shelf,
+        rawText: vision.map((c) => c.rawText).join('\n'),
+        emptyReason: null,
+      );
+    }
 
     return _RecognizeResult(
-      candidates: r.candidates,
-      diag: r.diag,
-      mode: mode,
-      rawText: lines.map((l) => l.text).join('\n'),
-      emptyReason: mode == OcrMode.cover
-          ? appLoc.s_319b9488
-          : appLoc.s_37588c9c,
+      candidates: [],
+      mode: OcrMode.shelf,
+      rawText: '',
+      emptyReason: appLoc.s_d5155b2d,
     );
   }
 
   /// 上传书架截图到多模态大模型前，确认用户已明示同意。
   ///
   /// 同意状态持久化（image_llm_consent），同一安装只需确认一次。
-  /// 返回 false 时调用方应回落到端侧 OCR，不离开本机。
+  /// 返回 false 时调用方无法继续识别，会提示需要先授权上传图片。
   Future<bool> _ensureImageConsent() async {
     if (ref.read(imageLlmConsentProvider)) return true;
     if (!mounted) return false;
@@ -297,29 +252,6 @@ class _AddBookSheetState extends ConsumerState<AddBookSheet> {
       return true;
     }
     return false;
-  }
-
-  /// ML Kit 结果 → 带坐标的行。
-  ///
-  /// 一定要用 `blocks → lines` 而不是 `result.text`：后者是纯文本，
-  /// 丢了每个字的坐标，多列书架里就无法判断「0.8%」属于哪本书。
-  static List<OcrLine> _toLines(RecognizedText result) {
-    final out = <OcrLine>[];
-    for (final block in result.blocks) {
-      for (final line in block.lines) {
-        final t = line.text.trim();
-        if (t.isEmpty) continue;
-        final box = line.boundingBox;
-        out.add(OcrLine(
-          text: t,
-          left: box.left,
-          top: box.top,
-          right: box.right,
-          bottom: box.bottom,
-        ));
-      }
-    }
-    return out;
   }
 
   /// CSV / Notion 导出导入
@@ -910,9 +842,8 @@ class _AddBookSheetState extends ConsumerState<AddBookSheet> {
 
 /// 一次识别的结果。
 ///
-/// 把 `diag`（OCR 诊断）与 `emptyReason`（给用户的空态解释）一起带出来，
-/// 是因为识别有两条通道，空结果的原因必须能区分——
-/// 「模型不支持看图」和「图里没有文字」是两件完全不同的事。
+/// `diag`（诊断）与 `emptyReason`（给用户的空态解释）一起带出，
+/// 便于在确认页展示识别依据，以及把空结果的原因告诉用户。
 class _RecognizeResult {
   final List<TitleCandidate> candidates;
   final OcrDiagnostics? diag;

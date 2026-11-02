@@ -825,18 +825,6 @@ class SDe extends S {
   }
 
   @override
-  String get s_ebf4bdfb => 'Parieren der Layout-Struktur...';
-
-  @override
-  String get s_ba1038b1 => 'Bereinigen der Erkennungsergebnisse mit dem LLM...';
-
-  @override
-  String get s_6292a274 => 'Titel werden überprüft...';
-
-  @override
-  String get s_427e1f0d => 'G';
-
-  @override
   String get s_af041a1b => 'Titel abgeschlossen';
 
   @override
@@ -1419,25 +1407,7 @@ class SDe extends S {
   String get s_e20dac78 => 'Lesen des Bildes mit einem multimodalen Modell...';
 
   @override
-  String get s_5fea0487 => 'Das multimodale Modell konnte keinen Titel aus diesem Bild lesen. Überprüfen Sie, ob das ausgewählte Modell Bildeingaben akzeptiert (Nur-Text-Modelle lehnen sie vollständig ab), oder setzen Sie Einstellungen → Screenshot-Erkennung Erkennungsmodus → zurück auf \"Auto\", um auf OCR auf dem Gerät zurückzugreifen.';
-
-  @override
-  String get s_cdda9381 => 'Multimodal gab nichts zurück; auf On-Device-OCR zurückgreifen...';
-
-  @override
-  String get s_b85e4cbc => 'Bild-Upload nicht erlaubt; Rückfall auf On-Device-OCR…';
-
-  @override
-  String get s_a9698571 => 'Text wird erkannt...';
-
-  @override
-  String get s_7ef6b42d => 'In diesem Bild wurde kein Text gefunden. Probiere einen anderen Blickwinkel aus, gestalte den Text schärfer oder mache einfach einen Screenshot (Screenshots sind sauberer als Fotos).';
-
-  @override
-  String get s_319b9488 => 'Kein titelähnlicher Text gefunden. Wenn es sich um eine Innenseite handelt, steht der Titel normalerweise nicht darauf — versuche es mit „Regal-Screenshot importieren“ oder fotografiere stattdessen das Cover.';
-
-  @override
-  String get s_37588c9c => 'Aus diesem Bild konnte kein Titel gelesen werden. Versuchen Sie, die umgebende Benutzeroberfläche zuzuschneiden, und versuchen Sie es erneut.';
+  String get s_b85e4cbc => 'Import über Screenshot oder Foto benötigt die Erlaubnis zum Hochladen von Bildern. Aktiviere sie unter Einstellungen → Screenshot-Erkennung.';
 
   @override
   String get s_04a1b347 => 'Titel';
@@ -1907,27 +1877,6 @@ class SDe extends S {
 
   @override
   String get s_b79fc99c => 'Vergrößert und schärft das Bild zuerst, so dass kleine Titel besser erkannt werden.';
-
-  @override
-  String get s_9695a603 => 'Verwenden Sie den LLM, um die Erkennungsergebnisse zu bereinigen';
-
-  @override
-  String get s_267118b5 => 'Lassen Sie den LLM die anerkannten Titel bereinigen. Benötigt einen LLM-Schlüssel und verwendet Token.';
-
-  @override
-  String get s_6d7e1f9f => 'Erkennungsmodus';
-
-  @override
-  String get s_ed144a76 => 'Auto (multimodal zuerst, fällt auf das Gerät zurück)';
-
-  @override
-  String get s_c7bab837 => 'Multimodaler LLM liest das Bild direkt';
-
-  @override
-  String get s_d8f3da2a => 'OCR auf dem Gerät (offline, kostenlos)';
-
-  @override
-  String get s_f22e4cd2 => 'Die On-Device-OCR funktioniert offline, kann aber Titel übersehen; das multimodale Modell liest das Layout, benötigt aber ein Netzwerk und kann eines erfinden. \"Auto\" verwendet beides.';
 
   @override
   String get s_67677b3d => 'Daten';

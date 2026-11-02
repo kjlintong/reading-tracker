@@ -255,10 +255,6 @@
   "s_1a2e873e": "Month {month}",
   "s_5583162a": "Image preprocessing failed; using the original image: {e}",
   "s_628c2132": "Failed to convert to JPEG: {e}",
-  "s_ebf4bdfb": "Parsing the layout structure…",
-  "s_ba1038b1": "Cleaning up recognition results with the LLM…",
-  "s_6292a274": "Verifying titles…",
-  "s_427e1f0d": "[\\s《》「」『』…⋯.\\-—_:：]",
   "s_af041a1b": "Title completed",
   "s_988dd5cb": "{reason}, title completed",
   "s_a746d189": "[、,，;/]",
@@ -431,13 +427,7 @@
   "s_28690759": "Enhancing image…",
   "s_d5155b2d": "No title recognized; try another image",
   "s_e20dac78": "Reading the image with a multimodal model…",
-  "s_5fea0487": "The multimodal model couldn't read a title from this image. Check that the selected model accepts image input (text-only models reject it outright), or set Settings → Screenshot recognition → Recognition mode back to \"Auto\" to fall back to on-device OCR.",
-  "s_cdda9381": "Multimodal returned nothing; falling back to on-device OCR…",
-  "s_b85e4cbc": "Image upload not allowed; falling back to on-device OCR…",
-  "s_a9698571": "Recognizing text…",
-  "s_7ef6b42d": "No text was found in this image. Try a different angle, get the text sharper, or just take a screenshot (screenshots are cleaner than photos).",
-  "s_319b9488": "No title-like text found. If this is an inside page the title usually isn't on it — try \"Import shelf screenshot\" or photograph the cover instead.",
-  "s_37588c9c": "No title could be read from this image. Try cropping out the surrounding UI and retry.",
+  "s_b85e4cbc": "Screenshot or photo import needs image-upload permission. Enable it in Settings → Screenshot recognition.",
   "s_04a1b347": "Title",
   "s_a9fe3793": "No \"Title\" column found in the CSV",
   "s_3db59388": "Progress",
@@ -575,13 +565,6 @@
   "s_3f5cbdbf": "Determines how well photo and screenshot imports are recognized.",
   "s_9130a4ed": "Image enhancement preprocessing",
   "s_b79fc99c": "Enlarges and sharpens the image first, so small titles are recognized better.",
-  "s_9695a603": "Use the LLM to clean up recognition results",
-  "s_267118b5": "Let the LLM clean up the recognized titles. Needs an LLM key and uses tokens.",
-  "s_6d7e1f9f": "Recognition mode",
-  "s_ed144a76": "Auto (multimodal first, falls back to on-device)",
-  "s_c7bab837": "Multimodal LLM reads the image directly",
-  "s_d8f3da2a": "On-device OCR (offline, free)",
-  "s_f22e4cd2": "On-device OCR works offline but may miss titles; the multimodal model reads the layout but needs a network and may invent one. \"Auto\" uses both.",
   "s_67677b3d": "Data",
   "s_d596ba9b": "Export the whole database as JSON to move to another device. A fresh install starts with an empty shelf; add books from the Import tab to get going.",
   "s_39239742": "One-tap export / restore",
@@ -1611,18 +1594,6 @@
       "e": {}
     }
   },
-  "@s_ebf4bdfb": {
-    "description": "auto-extracted"
-  },
-  "@s_ba1038b1": {
-    "description": "auto-extracted"
-  },
-  "@s_6292a274": {
-    "description": "auto-extracted"
-  },
-  "@s_427e1f0d": {
-    "description": "auto-extracted"
-  },
   "@s_af041a1b": {
     "description": "auto-extracted"
   },
@@ -2257,26 +2228,8 @@
   "@s_e20dac78": {
     "description": "auto-extracted"
   },
-  "@s_5fea0487": {
-    "description": "auto-extracted"
-  },
-  "@s_cdda9381": {
-    "description": "auto-extracted"
-  },
   "@s_b85e4cbc": {
-    "description": "auto-extracted"
-  },
-  "@s_a9698571": {
-    "description": "auto-extracted"
-  },
-  "@s_7ef6b42d": {
-    "description": "auto-extracted"
-  },
-  "@s_319b9488": {
-    "description": "auto-extracted"
-  },
-  "@s_37588c9c": {
-    "description": "auto-extracted"
+    "description": "Shown when the user denies image-upload consent for screenshot/photo import."
   },
   "@s_04a1b347": {
     "description": "auto-extracted"
@@ -2787,27 +2740,6 @@
     "description": "auto-extracted"
   },
   "@s_b79fc99c": {
-    "description": "auto-extracted"
-  },
-  "@s_9695a603": {
-    "description": "auto-extracted"
-  },
-  "@s_267118b5": {
-    "description": "auto-extracted"
-  },
-  "@s_6d7e1f9f": {
-    "description": "auto-extracted"
-  },
-  "@s_ed144a76": {
-    "description": "auto-extracted"
-  },
-  "@s_c7bab837": {
-    "description": "auto-extracted"
-  },
-  "@s_d8f3da2a": {
-    "description": "auto-extracted"
-  },
-  "@s_f22e4cd2": {
     "description": "auto-extracted"
   },
   "@s_67677b3d": {

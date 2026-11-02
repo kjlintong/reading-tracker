@@ -255,10 +255,6 @@
   "s_1a2e873e": "{month} 月",
   "s_5583162a": "图像预处理失败，改用原图：{e}",
   "s_628c2132": "转 JPEG 失败：{e}",
-  "s_ebf4bdfb": "正在解析版面结构…",
-  "s_ba1038b1": "正在用大模型整理识别结果…",
-  "s_6292a274": "正在核对书名…",
-  "s_427e1f0d": "[\\s《》「」『』…⋯.\\-—_:：]",
   "s_af041a1b": "书名已补齐",
   "s_988dd5cb": "{reason},书名已补齐",
   "s_a746d189": "[、,，;/]",
@@ -431,13 +427,7 @@
   "s_28690759": "正在增强图像…",
   "s_d5155b2d": "没能识别出书名，换一张图试试",
   "s_e20dac78": "正在用多模态模型读图…",
-  "s_5fea0487": "多模态模型没能从这张图里读出书名。确认所选模型支持图片输入（纯文本模型会直接拒收），或把「设置 → 截图识别 → 识别方式」改回「自动」以回落到端侧 OCR。",
-  "s_cdda9381": "多模态没结果，改用端侧 OCR…",
-  "s_b85e4cbc": "未授权图片上传，改用端侧 OCR…",
-  "s_a9698571": "正在识别文字…",
-  "s_7ef6b42d": "这张图里没读到文字。换个角度、让文字更清晰，或直接截屏（截屏的文字比拍照更规整）。",
-  "s_319b9488": "没读到像书名的文字。如果是书内页，书名通常不在页面上——试试点「截图导入书架」或直接拍封面。",
-  "s_37588c9c": "没能从图中识别出书名，试试裁掉多余界面元素后重试",
+  "s_b85e4cbc": "截图或拍照导入需要先授权上传图片才能识别，请在「设置 → 截图识别」中开启。",
   "s_04a1b347": "书名",
   "s_a9fe3793": "CSV 里找不到「书名」列",
   "s_3db59388": "进度",
@@ -575,13 +565,6 @@
   "s_3f5cbdbf": "决定拍照/截图导入的识别效果。",
   "s_9130a4ed": "图像增强预处理",
   "s_b79fc99c": "先放大并增强图像，小字书名识别更准。",
-  "s_9695a603": "用大模型整理识别结果",
-  "s_267118b5": "用大模型整理识别出的书名。需要配置大模型 Key 并消耗 token。",
-  "s_6d7e1f9f": "识别方式",
-  "s_ed144a76": "自动（多模态优先，失败回落端侧）",
-  "s_c7bab837": "多模态大模型直接读图",
-  "s_d8f3da2a": "端侧 OCR（离线、免费）",
-  "s_f22e4cd2": "端侧 OCR 离线可用但可能漏读；多模态模型能理解版面，但需联网且可能编书名。「自动」两者结合最稳。",
   "s_67677b3d": "数据",
   "s_d596ba9b": "导出整库 JSON 用于换设备迁移。全新安装的书架是空的，看书请从「导入」页同步或添加。",
   "s_39239742": "一键导出 / 恢复数据",
@@ -1611,18 +1594,6 @@
       "e": {}
     }
   },
-  "@s_ebf4bdfb": {
-    "description": "auto-extracted"
-  },
-  "@s_ba1038b1": {
-    "description": "auto-extracted"
-  },
-  "@s_6292a274": {
-    "description": "auto-extracted"
-  },
-  "@s_427e1f0d": {
-    "description": "auto-extracted"
-  },
   "@s_af041a1b": {
     "description": "auto-extracted"
   },
@@ -2257,26 +2228,8 @@
   "@s_e20dac78": {
     "description": "auto-extracted"
   },
-  "@s_5fea0487": {
-    "description": "auto-extracted"
-  },
-  "@s_cdda9381": {
-    "description": "auto-extracted"
-  },
   "@s_b85e4cbc": {
-    "description": "auto-extracted"
-  },
-  "@s_a9698571": {
-    "description": "auto-extracted"
-  },
-  "@s_7ef6b42d": {
-    "description": "auto-extracted"
-  },
-  "@s_319b9488": {
-    "description": "auto-extracted"
-  },
-  "@s_37588c9c": {
-    "description": "auto-extracted"
+    "description": "用户拒绝截图/拍照导入的图片上传授权时显示。"
   },
   "@s_04a1b347": {
     "description": "auto-extracted"
@@ -2787,27 +2740,6 @@
     "description": "auto-extracted"
   },
   "@s_b79fc99c": {
-    "description": "auto-extracted"
-  },
-  "@s_9695a603": {
-    "description": "auto-extracted"
-  },
-  "@s_267118b5": {
-    "description": "auto-extracted"
-  },
-  "@s_6d7e1f9f": {
-    "description": "auto-extracted"
-  },
-  "@s_ed144a76": {
-    "description": "auto-extracted"
-  },
-  "@s_c7bab837": {
-    "description": "auto-extracted"
-  },
-  "@s_d8f3da2a": {
-    "description": "auto-extracted"
-  },
-  "@s_f22e4cd2": {
     "description": "auto-extracted"
   },
   "@s_67677b3d": {

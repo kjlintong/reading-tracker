@@ -66,9 +66,6 @@ final autoBackupEnabledProvider = StateProvider<bool>((ref) => true);
 /// 自动备份间隔（天）。取值见 [AutoBackup.intervalPresets] 的键。
 final autoBackupIntervalProvider = StateProvider<int>((ref) => 7);
 
-/// 截图识别是否允许调用大模型整理 OCR 文本
-final ocrUseLlmProvider = StateProvider<bool>((ref) => true);
-
 /// 通用搜索服务的 API Key（推荐书单第 4 档用）。
 ///
 /// 用户自填，存系统密钥库——与微信读书 Key、大模型 Key 同一套处置。
@@ -86,14 +83,6 @@ final searchEndpointProvider =
 /// 某些服务要 `Ocp-Apim-Subscription-Key` 之外的别的头，
 /// 留个口子省得每次都要改代码。
 final searchHeadersProvider = StateProvider<String>((ref) => '');
-
-/// 图片识别通道：`auto` 多模态优先、失败回落端侧 OCR；
-/// `device` 只用端侧 OCR；`vision` 只走多模态大模型。
-///
-/// 默认 `auto` 而不是 `device`：端侧 OCR 对竖排书名、封面美术字、
-/// 被截断的标题几乎无解，而多模态模型能读懂版面。
-/// 但端侧通道必须保留——离线、没配 Key、模型不支持图片时它是唯一出路。
-final ocrVisionModeProvider = StateProvider<String>((ref) => 'auto');
 
 /// 系统密钥库（Android Keystore / iOS Keychain）封装。
 ///
@@ -344,7 +333,6 @@ final importManagerProvider = Provider<ImportManager>((ref) {
     repo: ref.watch(repoProvider),
     metadata: ref.watch(metadataClientProvider),
     llm: ref.watch(llmClientProvider),
-    ocrUseLlm: ref.watch(ocrUseLlmProvider),
   );
 });
 
@@ -416,8 +404,6 @@ const _settingKeys = <String>[
   'llm_model',
   'llm_protocol',
   'ocr_enhance',
-  'ocr_use_llm',
-  'ocr_vision_mode',
   'image_llm_consent',
   'app_theme',
   'app_brightness',
@@ -506,8 +492,6 @@ void _apply(WidgetRef ref, String key, String value) {
       ref.read(searchHeadersProvider.notifier).state = value;
     case 'ocr_enhance':
       ref.read(ocrEnhanceProvider.notifier).state = value == 'true';
-    case 'ocr_use_llm':
-      ref.read(ocrUseLlmProvider.notifier).state = value == 'true';
     case AutoShelve.enabledKey:
       ref.read(autoShelveEnabledProvider.notifier).state = value == 'true';
     case AutoBackup.enabledKey:
@@ -515,8 +499,6 @@ void _apply(WidgetRef ref, String key, String value) {
     case AutoBackup.intervalKey:
       ref.read(autoBackupIntervalProvider.notifier).state =
           int.tryParse(value) ?? 7;
-    case 'ocr_vision_mode':
-      ref.read(ocrVisionModeProvider.notifier).state = value;
     case 'image_llm_consent':
       ref.read(imageLlmConsentProvider.notifier).state = value == 'true';
     case 'app_theme':

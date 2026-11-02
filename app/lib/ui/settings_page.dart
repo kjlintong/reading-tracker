@@ -612,8 +612,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
     final autoShelveEnabled = ref.watch(autoShelveEnabledProvider);
     final autoBackupEnabledAB = ref.watch(autoBackupEnabledProvider);
     final autoBackupIntervalAB = ref.watch(autoBackupIntervalProvider);
-    final ocrUseLlm = ref.watch(ocrUseLlmProvider);
-    final visionMode = ref.watch(ocrVisionModeProvider);
     final themeId = ref.watch(appThemeProvider);
     final brightness = ref.watch(appBrightnessProvider);
     final locale = ref.watch(appLocaleProvider);
@@ -862,53 +860,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage>
                       appLoc.s_b79fc99c,
                       style: TextStyle(fontSize: 11),
                     ),
-                  ),
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: ocrUseLlm,
-                    onChanged: (v) async {
-                      await saveSetting(ref, 'ocr_use_llm', '$v');
-                      if (mounted) setState(() {});
-                    },
-                    title:  Text(appLoc.s_9695a603, style: TextStyle(fontSize: 14)),
-                    subtitle:  Text(
-                      appLoc.s_267118b5,
-                      style: TextStyle(fontSize: 11),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                   Text(appLoc.s_6d7e1f9f, style: TextStyle(fontSize: 14)),
-                  const SizedBox(height: 4),
-                  DropdownButtonFormField<String>(
-                    value: visionMode,
-                    isExpanded: true,
-                    isDense: true,
-                    decoration: const InputDecoration(
-                        isDense: true, border: OutlineInputBorder()),
-                    items:  [
-                      DropdownMenuItem(
-                          value: 'auto',
-                          child: Text(appLoc.s_ed144a76,
-                              overflow: TextOverflow.ellipsis)),
-                      DropdownMenuItem(
-                          value: 'vision',
-                          child: Text(appLoc.s_c7bab837,
-                              overflow: TextOverflow.ellipsis)),
-                      DropdownMenuItem(
-                          value: 'device',
-                          child: Text(appLoc.s_d8f3da2a,
-                              overflow: TextOverflow.ellipsis)),
-                    ],
-                    onChanged: (v) async {
-                      if (v == null) return;
-                      await saveSetting(ref, 'ocr_vision_mode', v);
-                      if (mounted) setState(() {});
-                    },
-                  ),
-                  const SizedBox(height: 6),
-                   Text(
-                    appLoc.s_f22e4cd2,
-                    style: TextStyle(fontSize: 11, color: Colors.grey),
                   ),
                 ],
               ),

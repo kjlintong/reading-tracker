@@ -255,10 +255,6 @@
   "s_1a2e873e": "Monat @@PH0@@",
   "s_5583162a": "Bildvorverarbeitung fehlgeschlagen; Verwendung des Originalbildes: @@PH0@@",
   "s_628c2132": "Konvertierung in JPEG fehlgeschlagen: @@PH0@@",
-  "s_ebf4bdfb": "Parieren der Layout-Struktur...",
-  "s_ba1038b1": "Bereinigen der Erkennungsergebnisse mit dem LLM...",
-  "s_6292a274": "Titel werden überprüft...",
-  "s_427e1f0d": "G",
   "s_af041a1b": "Titel abgeschlossen",
   "s_988dd5cb": "@@PH0@@, Titel abgeschlossen",
   "s_a746d189": "[、,，;/]",
@@ -431,13 +427,7 @@
   "s_28690759": "Bild wird verbessert...",
   "s_d5155b2d": "Kein Titel erkannt; versuchen Sie es mit einem anderen Bild",
   "s_e20dac78": "Lesen des Bildes mit einem multimodalen Modell...",
-  "s_5fea0487": "Das multimodale Modell konnte keinen Titel aus diesem Bild lesen. Überprüfen Sie, ob das ausgewählte Modell Bildeingaben akzeptiert (Nur-Text-Modelle lehnen sie vollständig ab), oder setzen Sie Einstellungen → Screenshot-Erkennung Erkennungsmodus → zurück auf \"Auto\", um auf OCR auf dem Gerät zurückzugreifen.",
-  "s_cdda9381": "Multimodal gab nichts zurück; auf On-Device-OCR zurückgreifen...",
-  "s_b85e4cbc": "Bild-Upload nicht erlaubt; Rückfall auf On-Device-OCR…",
-  "s_a9698571": "Text wird erkannt...",
-  "s_7ef6b42d": "In diesem Bild wurde kein Text gefunden. Probiere einen anderen Blickwinkel aus, gestalte den Text schärfer oder mache einfach einen Screenshot (Screenshots sind sauberer als Fotos).",
-  "s_319b9488": "Kein titelähnlicher Text gefunden. Wenn es sich um eine Innenseite handelt, steht der Titel normalerweise nicht darauf — versuche es mit „Regal-Screenshot importieren“ oder fotografiere stattdessen das Cover.",
-  "s_37588c9c": "Aus diesem Bild konnte kein Titel gelesen werden. Versuchen Sie, die umgebende Benutzeroberfläche zuzuschneiden, und versuchen Sie es erneut.",
+  "s_b85e4cbc": "Import über Screenshot oder Foto benötigt die Erlaubnis zum Hochladen von Bildern. Aktiviere sie unter Einstellungen → Screenshot-Erkennung.",
   "s_04a1b347": "Titel",
   "s_a9fe3793": "Keine \"Titel\" -Spalte in der CSV gefunden",
   "s_3db59388": "Fortschritt",
@@ -575,13 +565,6 @@
   "s_3f5cbdbf": "Legt fest, wie gut Foto- und Screenshot-Importe erkannt werden.",
   "s_9130a4ed": "Bildverbesserungsvorverarbeitung",
   "s_b79fc99c": "Vergrößert und schärft das Bild zuerst, so dass kleine Titel besser erkannt werden.",
-  "s_9695a603": "Verwenden Sie den LLM, um die Erkennungsergebnisse zu bereinigen",
-  "s_267118b5": "Lassen Sie den LLM die anerkannten Titel bereinigen. Benötigt einen LLM-Schlüssel und verwendet Token.",
-  "s_6d7e1f9f": "Erkennungsmodus",
-  "s_ed144a76": "Auto (multimodal zuerst, fällt auf das Gerät zurück)",
-  "s_c7bab837": "Multimodaler LLM liest das Bild direkt",
-  "s_d8f3da2a": "OCR auf dem Gerät (offline, kostenlos)",
-  "s_f22e4cd2": "Die On-Device-OCR funktioniert offline, kann aber Titel übersehen; das multimodale Modell liest das Layout, benötigt aber ein Netzwerk und kann eines erfinden. \"Auto\" verwendet beides.",
   "s_67677b3d": "Daten",
   "s_d596ba9b": "Exportieren Sie die gesamte Datenbank als json, um sie auf ein anderes Gerät zu verschieben. Eine Neuinstallation beginnt mit einem leeren Regal; fügen Sie Bücher über die Registerkarte Importieren hinzu, um loszulegen.",
   "s_39239742": "Ein-Tipp-Export/ Wiederherstellung",
@@ -1611,18 +1594,6 @@
       "e": {}
     }
   },
-  "@s_ebf4bdfb": {
-    "description": "auto-extracted"
-  },
-  "@s_ba1038b1": {
-    "description": "auto-extracted"
-  },
-  "@s_6292a274": {
-    "description": "auto-extracted"
-  },
-  "@s_427e1f0d": {
-    "description": "auto-extracted"
-  },
   "@s_af041a1b": {
     "description": "auto-extracted"
   },
@@ -2257,26 +2228,8 @@
   "@s_e20dac78": {
     "description": "auto-extracted"
   },
-  "@s_5fea0487": {
-    "description": "auto-extracted"
-  },
-  "@s_cdda9381": {
-    "description": "auto-extracted"
-  },
   "@s_b85e4cbc": {
-    "description": "auto-extracted"
-  },
-  "@s_a9698571": {
-    "description": "auto-extracted"
-  },
-  "@s_7ef6b42d": {
-    "description": "auto-extracted"
-  },
-  "@s_319b9488": {
-    "description": "auto-extracted"
-  },
-  "@s_37588c9c": {
-    "description": "auto-extracted"
+    "description": "Wird angezeigt, wenn der Nutzer dem Hochladen von Bildern für den Import per Screenshot/Foto nicht zustimmt."
   },
   "@s_04a1b347": {
     "description": "auto-extracted"
@@ -2787,27 +2740,6 @@
     "description": "auto-extracted"
   },
   "@s_b79fc99c": {
-    "description": "auto-extracted"
-  },
-  "@s_9695a603": {
-    "description": "auto-extracted"
-  },
-  "@s_267118b5": {
-    "description": "auto-extracted"
-  },
-  "@s_6d7e1f9f": {
-    "description": "auto-extracted"
-  },
-  "@s_ed144a76": {
-    "description": "auto-extracted"
-  },
-  "@s_c7bab837": {
-    "description": "auto-extracted"
-  },
-  "@s_d8f3da2a": {
-    "description": "auto-extracted"
-  },
-  "@s_f22e4cd2": {
     "description": "auto-extracted"
   },
   "@s_67677b3d": {

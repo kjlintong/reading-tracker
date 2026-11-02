@@ -825,18 +825,6 @@ class SEn extends S {
   }
 
   @override
-  String get s_ebf4bdfb => 'Parsing the layout structure…';
-
-  @override
-  String get s_ba1038b1 => 'Cleaning up recognition results with the LLM…';
-
-  @override
-  String get s_6292a274 => 'Verifying titles…';
-
-  @override
-  String get s_427e1f0d => '[\\s《》「」『』…⋯.\\-—_:：]';
-
-  @override
   String get s_af041a1b => 'Title completed';
 
   @override
@@ -1419,25 +1407,7 @@ class SEn extends S {
   String get s_e20dac78 => 'Reading the image with a multimodal model…';
 
   @override
-  String get s_5fea0487 => 'The multimodal model couldn\'t read a title from this image. Check that the selected model accepts image input (text-only models reject it outright), or set Settings → Screenshot recognition → Recognition mode back to \"Auto\" to fall back to on-device OCR.';
-
-  @override
-  String get s_cdda9381 => 'Multimodal returned nothing; falling back to on-device OCR…';
-
-  @override
-  String get s_b85e4cbc => 'Image upload not allowed; falling back to on-device OCR…';
-
-  @override
-  String get s_a9698571 => 'Recognizing text…';
-
-  @override
-  String get s_7ef6b42d => 'No text was found in this image. Try a different angle, get the text sharper, or just take a screenshot (screenshots are cleaner than photos).';
-
-  @override
-  String get s_319b9488 => 'No title-like text found. If this is an inside page the title usually isn\'t on it — try \"Import shelf screenshot\" or photograph the cover instead.';
-
-  @override
-  String get s_37588c9c => 'No title could be read from this image. Try cropping out the surrounding UI and retry.';
+  String get s_b85e4cbc => 'Screenshot or photo import needs image-upload permission. Enable it in Settings → Screenshot recognition.';
 
   @override
   String get s_04a1b347 => 'Title';
@@ -1907,27 +1877,6 @@ class SEn extends S {
 
   @override
   String get s_b79fc99c => 'Enlarges and sharpens the image first, so small titles are recognized better.';
-
-  @override
-  String get s_9695a603 => 'Use the LLM to clean up recognition results';
-
-  @override
-  String get s_267118b5 => 'Let the LLM clean up the recognized titles. Needs an LLM key and uses tokens.';
-
-  @override
-  String get s_6d7e1f9f => 'Recognition mode';
-
-  @override
-  String get s_ed144a76 => 'Auto (multimodal first, falls back to on-device)';
-
-  @override
-  String get s_c7bab837 => 'Multimodal LLM reads the image directly';
-
-  @override
-  String get s_d8f3da2a => 'On-device OCR (offline, free)';
-
-  @override
-  String get s_f22e4cd2 => 'On-device OCR works offline but may miss titles; the multimodal model reads the layout but needs a network and may invent one. \"Auto\" uses both.';
 
   @override
   String get s_67677b3d => 'Data';
