@@ -20,8 +20,8 @@ class AppInfo {
   static const String name = 'Readnest';
 
   /// 与 `pubspec.yaml` 的 `version:` 对应。
-  static const String version = '1.3.1';
-  static const String buildNumber = '5003';
+  static const String version = '1.3.2';
+  static const String buildNumber = '5004';
 
   /// 完整的版本展示串，例如 `0.5.0 (5)`。
   static String get versionLabel => '$version ($buildNumber)';
@@ -34,14 +34,18 @@ class AppInfo {
 
   /// 应用介绍页（商店的「营销网址」用这个，应用内「关于」也链到它）。
   ///
-  /// 由 `store/tools/build_site.py` 生成，产物在 `store/web/readnest/`，
-  /// 部署方式见 `store/web/README.md`。**中文页**——应用内「关于」的
-  /// 用户按界面语言分流没有意义（他就在应用里，语言已经确定），
-  /// 而中文页顶部有到英文页的互跳，英文用户多点一次即可。
-  static const String appPage = 'https://kjlintong.github.io/readnest/';
+  /// ⚠️ 实际产物是**单文件** `readnest.html`（源在 `store/web/readnest-site/index.html`，
+  /// 直接部署为站点根目录下的 `readnest.html`）。曾经这里写的是 `/readnest/`，
+  /// 那个目录从未存在过——点了就是 404，商店后台填它也一样会被审核员点开发现死链。
+  ///
+  /// 页面是**纯中文单页**，没有独立的英文版；英文界面用户看到中文页属预期。
+  static const String appPage = 'https://kjlintong.github.io/readnest.html';
 
-  /// 介绍页的英文版，供英文界面直接打开。中文页与它是双向互跳的。
-  static const String appPageEn = 'https://kjlintong.github.io/readnest/en.html';
+  /// 介绍页的英文版。
+  ///
+  /// 目前站点只有中文单页（`readnest.html`），没有 `readnest/en.html`——
+  /// 之前这里写的地址是 404。与其留一个死链，不如指向唯一存在的页面。
+  static const String appPageEn = 'https://kjlintong.github.io/readnest.html';
 
   /// 打赏页（国外）。免费 + 打赏是既定的变现方式，因此**内置**而不是让用户自己填——
   /// 早期版本把打赏链接做成可编辑字段，导致全新安装点按钮只会提示「请先填写链接」，

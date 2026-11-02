@@ -93,3 +93,8 @@ app/assets/backgrounds/0_raw/
 
 # 一次性界面预览图（出完即弃，不该进版本库）
 store/update-preview/
+
+# 国内静态托管包的构建产物（store/tools/build_domestic_site.py 生成）。
+# 它是 store/web/ 下源文件的副本（含 8.5MB 截图），重复入库没有意义——
+# 需要时跑一次脚本即可重建。
+store/web/domestic/
