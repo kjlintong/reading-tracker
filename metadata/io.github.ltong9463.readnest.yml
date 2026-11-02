@@ -1,0 +1,85 @@
+Categories:
+  - Reading
+  - Productivity
+License: MIT
+AuthorName: Tong Lin
+AuthorEmail: ltong9463@gmail.com
+SourceCode: https://github.com/kjlintong/reading-tracker
+IssueTracker: https://github.com/kjlintong/reading-tracker/issues
+Translation: https://github.com/kjlintong/reading-tracker
+Changelog: https://github.com/kjlintong/reading-tracker/releases
+Donate: https://ko-fi.com/ryanlin65969
+Donate: https://afdian.com/a/ryanlintong
+WebSite: https://kjlintong.github.io/readnest.html
+RepoType: git
+Repo: https://github.com/kjlintong/reading-tracker.git
+
+AutoName: Readnest
+
+# Book-metadata lookup, WeRead sync and the optional AI features talk to
+# non-free network services. They are all opt-in and the core tracking
+# works fully offline, but we declare the anti-feature for transparency.
+AntiFeatures:
+  - NonFreeNet
+
+Summary: Local-first reading tracker with AI insights
+
+Description: |-
+  Readnest is a privacy-first reading tracker for people who keep a lot of
+  books across physical shelves, e-readers and apps. Everything is stored
+  locally on your device — no account, no cloud, no server — so your reading
+  data never leaves your phone unless you decide to back it up.
+
+  Highlights:
+  - Multi-source import: add books by manual entry, CSV (Goodreads and generic),
+    WeRead sync (your own credentials), camera/screenshot capture, or public
+    catalogue search.
+  - Local-first storage with automatic, rotating backups to your Downloads
+    folder that survive an uninstall and reinstall.
+  - Reading insights: track progress, status and time spent, with charts and a
+    yearly review.
+  - Optional AI features: generate a reading report or parse a shelf photo using
+    your own LLM endpoint (Bring-Your-Own-Key). Nothing is sent anywhere
+    without your explicit consent.
+  - Five languages: English, 中文, Deutsch, Français, Español.
+
+  Network access is optional and opt-in. Book-metadata lookup, WeRead sync and
+  the AI features all require your explicit action or credentials; the core
+  tracking works fully offline.
+
+  .
+
+Builds:
+  - versionName: 1.4.0
+    versionCode: 5005
+    commit: fdroid-1.4.0
+    srclibs:
+      - flutter@3.24.5
+    rm:
+      - app/ios
+      - app/linux
+      - app/macos
+      - app/web
+      - app/windows
+    prebuild:
+      - cd app
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - ../.flutter/bin/flutter config --no-analytics
+      - ../.flutter/bin/flutter pub get
+      - ../.flutter/bin/flutter gen-l10n
+    scanignore:
+      - .flutter/bin/cache
+    scandelete:
+      - .flutter
+      - app/.pub-cache
+    build:
+      - cd app
+      - export PUB_CACHE=$(pwd)/.pub-cache
+      - ../.flutter/bin/flutter build apk --release
+    output: app/build/app/outputs/flutter-apk/app-release.apk
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+UpdateCheckData: app/pubspec.yaml|version:\s.+\+(\d+)|.|version:\s(.+)\+
+CurrentVersion: 1.4.0
+CurrentVersionCode: 5005

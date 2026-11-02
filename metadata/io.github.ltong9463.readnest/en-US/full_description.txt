@@ -1,0 +1,10 @@
+Readnest is a privacy-first reading tracker for people who keep a lot of books across physical shelves, e-readers and apps. Everything is stored locally on your device — no account, no cloud, no server — so your reading data never leaves your phone unless you decide to back it up.
+
+Highlights:
+• Multi-source import: add books by manual entry, CSV (Goodreads and generic), WeRead sync (your own credentials), camera/screenshot capture, or public catalogue search.
+• Local-first storage with automatic, rotating backups to your Downloads folder that survive an uninstall and reinstall.
+• Reading insights: track progress, status and time spent, with charts and a yearly review.
+• Optional AI features: generate a reading report or parse a shelf photo using your own LLM endpoint (Bring-Your-Own-Key). Nothing is sent anywhere without your explicit consent.
+• Five languages: English, 中文, Deutsch, Français, Español.
+
+Network access is optional and opt-in. Book-metadata lookup, WeRead sync and the AI features all require your explicit action or credentials; the core tracking works fully offline.
