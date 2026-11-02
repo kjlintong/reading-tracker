@@ -58,6 +58,33 @@ class SEs extends S {
   String get privacyPolicy => 'Política de privacidad';
 
   @override
+  String get privacyDialogTitle => 'Política de privacidad y tratamiento de datos';
+
+  @override
+  String get privacyDialogIntro => 'Te damos la bienvenida a Readnest. Antes de empezar, así tratamos tu información:';
+
+  @override
+  String get privacyDialogLocal => 'Tu estantería, tus notas y tu historial de lectura se quedan en este dispositivo. No los recopilamos ni los enviamos.';
+
+  @override
+  String get privacyDialogOptional => 'Los datos salen de tu dispositivo solo cuando configuras y usas la sincronización, los informes de IA o la importación por foto, y solo hacia el endpoint que tú eliges.';
+
+  @override
+  String get privacyDialogPermission => 'Los permisos de cámara y fotos se solicitan solo al importar una foto de tu estantería y puedes revocarlos en cualquier momento.';
+
+  @override
+  String get privacyDialogFullPolicy => 'Leer la política de privacidad completa';
+
+  @override
+  String get privacyDialogAgree => 'Aceptar y continuar';
+
+  @override
+  String get privacyDialogDisagree => 'No aceptar';
+
+  @override
+  String get privacyDeclinedNotice => 'Has elegido no aceptar. La aplicación sigue funcionando sin conexión; si más adelante quieres usar la sincronización y la IA, puedes volver a consultar la política de privacidad en Ajustes → Acerca de.';
+
+  @override
   String get reportDeleteConfirm => '¿Eliminar este informe? No se puede deshacer.';
 
   @override

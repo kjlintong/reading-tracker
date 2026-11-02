@@ -58,6 +58,33 @@ class SEn extends S {
   String get privacyPolicy => 'Privacy Policy';
 
   @override
+  String get privacyDialogTitle => 'Privacy policy and data handling';
+
+  @override
+  String get privacyDialogIntro => 'Welcome to Readnest. Before you start, here is how we handle your information:';
+
+  @override
+  String get privacyDialogLocal => 'Your shelf, notes and reading history stay on this device. We do not collect or upload them.';
+
+  @override
+  String get privacyDialogOptional => 'Data leaves your device only after you configure and actually use sync, AI reports or photo-based import, and only to the endpoint you choose.';
+
+  @override
+  String get privacyDialogPermission => 'Camera and photo permissions are requested only when you import a shelf photo, and can be revoked in system settings at any time.';
+
+  @override
+  String get privacyDialogFullPolicy => 'Read the full privacy policy';
+
+  @override
+  String get privacyDialogAgree => 'Agree and continue';
+
+  @override
+  String get privacyDialogDisagree => 'Disagree';
+
+  @override
+  String get privacyDeclinedNotice => 'You chose not to agree. The app still works offline; if you later want sync and AI features, you can review the privacy policy again under Settings → About.';
+
+  @override
   String get reportDeleteConfirm => 'Delete this report? This can\'t be undone.';
 
   @override

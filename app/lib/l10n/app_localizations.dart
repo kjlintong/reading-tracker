@@ -203,6 +203,60 @@ abstract class S {
   /// **'Privacy Policy'**
   String get privacyPolicy;
 
+  /// Title of the first-launch privacy consent dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy and data handling'**
+  String get privacyDialogTitle;
+
+  /// Intro line of the privacy consent dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Readnest. Before you start, here is how we handle your information:'**
+  String get privacyDialogIntro;
+
+  /// Bullet: data stays on device
+  ///
+  /// In en, this message translates to:
+  /// **'Your shelf, notes and reading history stay on this device. We do not collect or upload them.'**
+  String get privacyDialogLocal;
+
+  /// Bullet: optional network features
+  ///
+  /// In en, this message translates to:
+  /// **'Data leaves your device only after you configure and actually use sync, AI reports or photo-based import, and only to the endpoint you choose.'**
+  String get privacyDialogOptional;
+
+  /// Bullet: permission usage
+  ///
+  /// In en, this message translates to:
+  /// **'Camera and photo permissions are requested only when you import a shelf photo, and can be revoked in system settings at any time.'**
+  String get privacyDialogPermission;
+
+  /// Link label to the full privacy policy
+  ///
+  /// In en, this message translates to:
+  /// **'Read the full privacy policy'**
+  String get privacyDialogFullPolicy;
+
+  /// Confirm button: agree to privacy policy
+  ///
+  /// In en, this message translates to:
+  /// **'Agree and continue'**
+  String get privacyDialogAgree;
+
+  /// Button: decline privacy policy
+  ///
+  /// In en, this message translates to:
+  /// **'Disagree'**
+  String get privacyDialogDisagree;
+
+  /// Notice shown after the user declines
+  ///
+  /// In en, this message translates to:
+  /// **'You chose not to agree. The app still works offline; if you later want sync and AI features, you can review the privacy policy again under Settings → About.'**
+  String get privacyDeclinedNotice;
+
   /// No description provided for @reportDeleteConfirm.
   ///
   /// In en, this message translates to:

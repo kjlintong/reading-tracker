@@ -17,6 +17,42 @@
   "appIntroPage": "Sobre esta app",
   "developerHomepage": "Web del desarrollador",
   "privacyPolicy": "Política de privacidad",
+  "privacyDialogTitle": "Política de privacidad y tratamiento de datos",
+  "@privacyDialogTitle": {
+    "description": "Title of the first-launch privacy consent dialog"
+  },
+  "privacyDialogIntro": "Te damos la bienvenida a Readnest. Antes de empezar, así tratamos tu información:",
+  "@privacyDialogIntro": {
+    "description": "Intro line of the privacy consent dialog"
+  },
+  "privacyDialogLocal": "Tu estantería, tus notas y tu historial de lectura se quedan en este dispositivo. No los recopilamos ni los enviamos.",
+  "@privacyDialogLocal": {
+    "description": "Bullet: data stays on device"
+  },
+  "privacyDialogOptional": "Los datos salen de tu dispositivo solo cuando configuras y usas la sincronización, los informes de IA o la importación por foto, y solo hacia el endpoint que tú eliges.",
+  "@privacyDialogOptional": {
+    "description": "Bullet: optional network features"
+  },
+  "privacyDialogPermission": "Los permisos de cámara y fotos se solicitan solo al importar una foto de tu estantería y puedes revocarlos en cualquier momento.",
+  "@privacyDialogPermission": {
+    "description": "Bullet: permission usage"
+  },
+  "privacyDialogFullPolicy": "Leer la política de privacidad completa",
+  "@privacyDialogFullPolicy": {
+    "description": "Link label to the full privacy policy"
+  },
+  "privacyDialogAgree": "Aceptar y continuar",
+  "@privacyDialogAgree": {
+    "description": "Confirm button: agree to privacy policy"
+  },
+  "privacyDialogDisagree": "No aceptar",
+  "@privacyDialogDisagree": {
+    "description": "Button: decline privacy policy"
+  },
+  "privacyDeclinedNotice": "Has elegido no aceptar. La aplicación sigue funcionando sin conexión; si más adelante quieres usar la sincronización y la IA, puedes volver a consultar la política de privacidad en Ajustes → Acerca de.",
+  "@privacyDeclinedNotice": {
+    "description": "Notice shown after the user declines"
+  },
   "reportDeleteConfirm": "¿Eliminar este informe? No se puede deshacer.",
   "reportDelete": "Eliminar",
   "appVersionLabel": "Versión {version}",

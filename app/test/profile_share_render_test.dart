@@ -30,6 +30,7 @@ import 'support/localized_app.dart';
 /// 截图流程内部有 `Future.delayed`（等重绘），在 FakeAsync 里会死锁。
 /// 项目铁律：真实 I/O 必须走 `tester.runAsync`。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   testWidgets('离屏截图的右上角有品牌角标（不是一张空图）', (tester) async {
     late BuildContext hostCtx;
     await tester.pumpWidget(localizedApp(

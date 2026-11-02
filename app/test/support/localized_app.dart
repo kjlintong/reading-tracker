@@ -4,6 +4,28 @@ import 'package:reading_tracker/l10n/app_loc.dart';
 import 'package:reading_tracker/l10n/app_localizations.dart';
 import 'package:reading_tracker/ui/app_background.dart';
 import 'package:reading_tracker/ui/theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// 预置「用户已同意隐私政策」。
+///
+/// ## 为什么测试需要这个
+///
+/// 首次启动会弹隐私同意弹窗（国内应用商店审核硬性要求）。弹窗一旦出现，
+/// 底部导航就被遮住，所有截图测试的 `tap(find.byIcon(...))` 都会找不到图标，
+/// 基准图也会变成「弹窗遮住界面」的图——那不是我们要的截图。
+///
+/// 所以**除了专门测弹窗的那个测试文件**（`privacy_consent_test.dart`），
+/// 其余测试都应该默认用户「已经同意过」。这既符合真实使用场景
+/// （用户第二次打开 App 不会再被拦），也让测试意图更清晰：
+/// 截图测试要的是「同意之后的界面」。
+///
+/// 必须在 `setUp` 里调用，且要在 `SharedPreferences.setMockInitialValues`
+/// **之后**——后者会重置整个 mock 存储。
+void presetPrivacyAccepted() {
+  SharedPreferences.setMockInitialValues({
+    'privacy_consent_v1': true,
+  });
+}
 
 /// 测试用的 [MaterialApp] 外壳：补齐与 `lib/main.dart` **完全一致**的本地化接线。
 ///

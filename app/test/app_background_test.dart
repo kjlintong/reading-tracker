@@ -30,6 +30,7 @@ import 'support/localized_app.dart';
 ///
 /// 所以这里钉住第 2 条：**同一个 sigma 必须拿到同一个 ImageFilter 实例**。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   Future<void> loadFonts() async {
     final bytes = File('test/fixtures/simhei.ttf').readAsBytesSync();
     await (FontLoader('TestLatin')

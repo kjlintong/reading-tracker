@@ -58,6 +58,33 @@ class SFr extends S {
   String get privacyPolicy => 'Politique de confidentialité';
 
   @override
+  String get privacyDialogTitle => 'Politique de confidentialité et traitement des données';
+
+  @override
+  String get privacyDialogIntro => 'Bienvenue dans Readnest. Avant de commencer, voici comment nous traitons vos informations :';
+
+  @override
+  String get privacyDialogLocal => 'Votre bibliothèque, vos notes et votre historique de lecture restent sur cet appareil. Nous ne les collectons ni ne les transmettons.';
+
+  @override
+  String get privacyDialogOptional => 'Des données quittent votre appareil uniquement après avoir configuré et utilisé la synchronisation, les rapports IA ou l\'import par photo, et uniquement vers le point d\'accès que vous choisissez.';
+
+  @override
+  String get privacyDialogPermission => 'Les autorisations d\'appareil photo et de galerie sont demandées uniquement lorsque vous importez une photo de bibliothèque, et restent révocables à tout moment.';
+
+  @override
+  String get privacyDialogFullPolicy => 'Lire la politique de confidentialité complète';
+
+  @override
+  String get privacyDialogAgree => 'Accepter et continuer';
+
+  @override
+  String get privacyDialogDisagree => 'Refuser';
+
+  @override
+  String get privacyDeclinedNotice => 'Vous avez refusé. L\'application fonctionne toujours hors ligne ; si vous souhaitez utiliser la synchronisation et l\'IA, vous pourrez relire la politique de confidentialité dans Paramètres → À propos.';
+
+  @override
   String get reportDeleteConfirm => 'Supprimer ce rapport ? Action irréversible.';
 
   @override

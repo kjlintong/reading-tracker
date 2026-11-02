@@ -20,6 +20,7 @@ import 'support/localized_app.dart';
 /// 症状是「分享图永远是那张绿底」——功能上完全正常，测试也全绿，
 /// 只有用户看到才发现。换句话说，这几条断言守的是**一个已经发生过的 bug**。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   group('分享卡配色（纯函数）', () {
     test('12 套皮肤 × 明暗都能算出配色，不抛异常', () {
       for (final t in appThemes) {

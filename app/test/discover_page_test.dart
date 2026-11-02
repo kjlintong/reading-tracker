@@ -30,6 +30,7 @@ import 'support/localized_app.dart';
 /// 8. 联网档给出**阅读顺序**（序号徽章 + 「按这个顺序读」提示）；
 ///    书架档不给——那只是「最近加入的」，说成阅读顺序是误导。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfiNoIsolate;
 

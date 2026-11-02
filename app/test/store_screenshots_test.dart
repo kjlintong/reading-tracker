@@ -61,6 +61,7 @@ import 'package:reading_tracker/models/reading_plan.dart';
 /// **默认（`flutter test`）完全跳过渲染**：36 张图逐张跑 settleAsync 会拖慢
 /// 每一次日常测试。没有 `STORE_SHOTS=1` 时这些用例直接返回，不做任何事。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfiNoIsolate;

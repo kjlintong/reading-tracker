@@ -40,6 +40,7 @@ import 'support/localized_app.dart';
 /// 测试失败，冒烟价值一分没少。只有 scripts/screenshot.sh 会设 GOLDEN=1，
 /// 那时才真正比对/写盘。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfiNoIsolate;

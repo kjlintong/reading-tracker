@@ -17,6 +17,42 @@
   "appIntroPage": "À propos de cette app",
   "developerHomepage": "Site du développeur",
   "privacyPolicy": "Politique de confidentialité",
+  "privacyDialogTitle": "Politique de confidentialité et traitement des données",
+  "@privacyDialogTitle": {
+    "description": "Title of the first-launch privacy consent dialog"
+  },
+  "privacyDialogIntro": "Bienvenue dans Readnest. Avant de commencer, voici comment nous traitons vos informations :",
+  "@privacyDialogIntro": {
+    "description": "Intro line of the privacy consent dialog"
+  },
+  "privacyDialogLocal": "Votre bibliothèque, vos notes et votre historique de lecture restent sur cet appareil. Nous ne les collectons ni ne les transmettons.",
+  "@privacyDialogLocal": {
+    "description": "Bullet: data stays on device"
+  },
+  "privacyDialogOptional": "Des données quittent votre appareil uniquement après avoir configuré et utilisé la synchronisation, les rapports IA ou l'import par photo, et uniquement vers le point d'accès que vous choisissez.",
+  "@privacyDialogOptional": {
+    "description": "Bullet: optional network features"
+  },
+  "privacyDialogPermission": "Les autorisations d'appareil photo et de galerie sont demandées uniquement lorsque vous importez une photo de bibliothèque, et restent révocables à tout moment.",
+  "@privacyDialogPermission": {
+    "description": "Bullet: permission usage"
+  },
+  "privacyDialogFullPolicy": "Lire la politique de confidentialité complète",
+  "@privacyDialogFullPolicy": {
+    "description": "Link label to the full privacy policy"
+  },
+  "privacyDialogAgree": "Accepter et continuer",
+  "@privacyDialogAgree": {
+    "description": "Confirm button: agree to privacy policy"
+  },
+  "privacyDialogDisagree": "Refuser",
+  "@privacyDialogDisagree": {
+    "description": "Button: decline privacy policy"
+  },
+  "privacyDeclinedNotice": "Vous avez refusé. L'application fonctionne toujours hors ligne ; si vous souhaitez utiliser la synchronisation et l'IA, vous pourrez relire la politique de confidentialité dans Paramètres → À propos.",
+  "@privacyDeclinedNotice": {
+    "description": "Notice shown after the user declines"
+  },
   "reportDeleteConfirm": "Supprimer ce rapport ? Action irréversible.",
   "reportDelete": "Supprimer",
   "appVersionLabel": "Version {version}",

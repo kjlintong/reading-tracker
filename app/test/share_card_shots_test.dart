@@ -42,6 +42,7 @@ import 'support/localized_app.dart';
 /// 产物：store/shots/share-*.png
 /// ```
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   TestWidgetsFlutterBinding.ensureInitialized();
 
   final enabled = Platform.environment['SHOTS'] == '1';

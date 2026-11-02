@@ -25,6 +25,7 @@ List<Color> _paletteInUse(AppTheme t, Brightness b) =>
     buildTheme(t, b).extension<ChartPalette>()!.colors;
 
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   group('皮肤注册表', () {
     test('id 唯一且非空——id 要落库，重复会让用户选中的皮肤错乱', () {
       final ids = appThemes.map((t) => t.id).toList();

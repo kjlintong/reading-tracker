@@ -17,6 +17,42 @@
   "appIntroPage": "About this app",
   "developerHomepage": "Developer website",
   "privacyPolicy": "Privacy Policy",
+  "privacyDialogTitle": "Privacy policy and data handling",
+  "@privacyDialogTitle": {
+    "description": "Title of the first-launch privacy consent dialog"
+  },
+  "privacyDialogIntro": "Welcome to Readnest. Before you start, here is how we handle your information:",
+  "@privacyDialogIntro": {
+    "description": "Intro line of the privacy consent dialog"
+  },
+  "privacyDialogLocal": "Your shelf, notes and reading history stay on this device. We do not collect or upload them.",
+  "@privacyDialogLocal": {
+    "description": "Bullet: data stays on device"
+  },
+  "privacyDialogOptional": "Data leaves your device only after you configure and actually use sync, AI reports or photo-based import, and only to the endpoint you choose.",
+  "@privacyDialogOptional": {
+    "description": "Bullet: optional network features"
+  },
+  "privacyDialogPermission": "Camera and photo permissions are requested only when you import a shelf photo, and can be revoked in system settings at any time.",
+  "@privacyDialogPermission": {
+    "description": "Bullet: permission usage"
+  },
+  "privacyDialogFullPolicy": "Read the full privacy policy",
+  "@privacyDialogFullPolicy": {
+    "description": "Link label to the full privacy policy"
+  },
+  "privacyDialogAgree": "Agree and continue",
+  "@privacyDialogAgree": {
+    "description": "Confirm button: agree to privacy policy"
+  },
+  "privacyDialogDisagree": "Disagree",
+  "@privacyDialogDisagree": {
+    "description": "Button: decline privacy policy"
+  },
+  "privacyDeclinedNotice": "You chose not to agree. The app still works offline; if you later want sync and AI features, you can review the privacy policy again under Settings → About.",
+  "@privacyDeclinedNotice": {
+    "description": "Notice shown after the user declines"
+  },
   "reportDeleteConfirm": "Delete this report? This can't be undone.",
   "reportDelete": "Delete",
   "appVersionLabel": "Version {version}",

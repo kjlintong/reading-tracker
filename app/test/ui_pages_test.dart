@@ -34,6 +34,7 @@ import 'support/localized_app.dart';
 /// 页面级冒烟：静态分析查不出运行时崩溃（空数据、异步竞态、provider 未注入），
 /// 这里用内存库把每个主页面真正渲染一遍，确保打开即能看到内容。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   // 关键：UI 测试必须用 NoIsolate 版本的 factory。
   // 默认的 databaseFactoryFfi 把 SQL 执行放到独立 isolate，而 testWidgets 运行在
   // FakeAsync zone 内，isolate 回信永远等不到 → 页面 Future 永不完成 →

@@ -26,6 +26,7 @@ import 'support/localized_app.dart';
 ///
 /// 所以这里既要点得开（不能崩），也要看得对（停在已存日期上）。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfiNoIsolate;
 

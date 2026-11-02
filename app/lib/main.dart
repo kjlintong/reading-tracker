@@ -9,6 +9,8 @@ import 'data/database.dart';
 import 'perf.dart';
 import 'providers.dart';
 import 'services/auto_backup.dart';
+import 'services/privacy_consent.dart';
+import 'ui/privacy_consent_dialog.dart';
 import 'ui/shelf_page.dart';
 import 'ui/notes_page.dart';
 import 'ui/stats_page.dart';
@@ -34,9 +36,6 @@ Future<void> main() async {
   ));
 
   await AppDatabase.instance.init();
-
-  // 启动后静默跑一次自动备份（若开启且到点）。失败只记日志，绝不阻断启动。
-  unawaited(AutoBackup.runIfDue(BookRepository(AppDatabase.instance)));
 
   runApp(const ProviderScope(child: ReadingTrackerApp()));
 }
@@ -117,6 +116,14 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     // （国产 ROM 的后台清理），回来时补一次最省事。
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // 首次启动的隐私同意。
+      //
+      // 这里**必须 await**——弹窗出来之前不能读用户数据、不能联网、
+      // 不能写备份。审核规范要求「同意前不得处理个人信息」，
+      // 而 App 本身在启动阶段本来就不联网，所以卡住首屏不影响体验。
+      await _ensurePrivacyConsent();
+      if (!mounted) return;
+
       await loadSettings(ref);
       if (mounted) setState(() => _loaded = true);
 
@@ -138,7 +145,46 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
       // 从前只有用户手动改计划才重排，于是「提醒只在打开 App 时才有」。
       // 同样不 await、失败自己吞掉。
       unawaited(resyncPlanReminders(ref).catchError((_) {}));
+
+      // 启动后静默跑一次自动备份（若开启且到点）。
+      //
+      // 放在最后：备份要把整库写到 Download 目录，属于对用户数据的
+      // 实质性处理，必须等用户已经同意隐私政策之后才做。
+      // 失败只记日志，绝不阻断启动。
+      unawaited(
+        AutoBackup.runIfDue(BookRepository(AppDatabase.instance))
+            .catchError((Object _) => AutoBackupResult(
+                  status: AutoBackupStatus.failed,
+                  error: 'startup backup failed',
+                )),
+      );
     });
+  }
+
+  /// 首次启动时弹出隐私政策知情同意。
+  ///
+  /// 已同意过则直接返回（卸载重装才会重新问）。用户拒绝时**不阻断使用**：
+  /// App 本地功能完全可用，只是不做自动备份这类主动写盘的操作。
+  Future<void> _ensurePrivacyConsent() async {
+    if (await PrivacyConsent.isAccepted()) return;
+    if (!mounted) return;
+    final agreed = await PrivacyConsentDialog.show(
+      context,
+      onAgreed: () async {
+        await PrivacyConsent.accept();
+      },
+    );
+    if (!mounted) return;
+    if (!agreed) {
+      // 用户明确不同意：如实告知，不静默、不重复骚扰。
+      // 用 SnackBar 是合适的——这不是「确认反馈」，只是一次告知。
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.of(context).privacyDeclinedNotice),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
   @override

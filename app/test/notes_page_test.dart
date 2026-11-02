@@ -19,6 +19,7 @@ import 'support/localized_app.dart';
 /// 2. 「按时间 / 按书」两种分组是否真的换了分组方式，而不是换个标题；
 /// 3. 点笔记能不能跳回它的书——这是本页唯一的动作出口。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   // UI 测试必须用 NoIsolate 版本：默认的 databaseFactoryFfi 把 SQL 放到独立
   // isolate，而 testWidgets 跑在 FakeAsync zone 内，回信永远等不到。
   sqfliteFfiInit();

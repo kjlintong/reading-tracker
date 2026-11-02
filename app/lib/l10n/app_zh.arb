@@ -17,6 +17,42 @@
   "appIntroPage": "应用介绍页",
   "developerHomepage": "开发者主页",
   "privacyPolicy": "隐私政策",
+  "privacyDialogTitle": "隐私政策与数据处理说明",
+  "@privacyDialogTitle": {
+    "description": "Title of the first-launch privacy consent dialog"
+  },
+  "privacyDialogIntro": "欢迎使用 Readnest。请在使用前了解我们如何处理你的信息：",
+  "@privacyDialogIntro": {
+    "description": "Intro line of the privacy consent dialog"
+  },
+  "privacyDialogLocal": "你的书架、笔记与阅读记录全部保存在本机，我们不收集、不上传。",
+  "@privacyDialogLocal": {
+    "description": "Bullet: data stays on device"
+  },
+  "privacyDialogOptional": "仅在你主动配置并使用同步、AI 报告、截图识别等功能时，才会向你指定的接口发送必要数据。",
+  "@privacyDialogOptional": {
+    "description": "Bullet: optional network features"
+  },
+  "privacyDialogPermission": "相机与相册权限仅在你主动导入书架照片时请求，可随时在系统设置中关闭。",
+  "@privacyDialogPermission": {
+    "description": "Bullet: permission usage"
+  },
+  "privacyDialogFullPolicy": "阅读完整隐私政策",
+  "@privacyDialogFullPolicy": {
+    "description": "Link label to the full privacy policy"
+  },
+  "privacyDialogAgree": "同意并继续",
+  "@privacyDialogAgree": {
+    "description": "Confirm button: agree to privacy policy"
+  },
+  "privacyDialogDisagree": "不同意",
+  "@privacyDialogDisagree": {
+    "description": "Button: decline privacy policy"
+  },
+  "privacyDeclinedNotice": "你选择了不同意。应用仍可离线使用；若之后想启用同步与 AI 功能，可在「设置 → 关于」中重新查看隐私政策。",
+  "@privacyDeclinedNotice": {
+    "description": "Notice shown after the user declines"
+  },
   "reportDeleteConfirm": "确定删除这份报告？删除后无法恢复。",
   "reportDelete": "删除",
   "appVersionLabel": "版本 {version}",

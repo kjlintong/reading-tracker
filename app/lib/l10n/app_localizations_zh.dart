@@ -58,6 +58,33 @@ class SZh extends S {
   String get privacyPolicy => '隐私政策';
 
   @override
+  String get privacyDialogTitle => '隐私政策与数据处理说明';
+
+  @override
+  String get privacyDialogIntro => '欢迎使用 Readnest。请在使用前了解我们如何处理你的信息：';
+
+  @override
+  String get privacyDialogLocal => '你的书架、笔记与阅读记录全部保存在本机，我们不收集、不上传。';
+
+  @override
+  String get privacyDialogOptional => '仅在你主动配置并使用同步、AI 报告、截图识别等功能时，才会向你指定的接口发送必要数据。';
+
+  @override
+  String get privacyDialogPermission => '相机与相册权限仅在你主动导入书架照片时请求，可随时在系统设置中关闭。';
+
+  @override
+  String get privacyDialogFullPolicy => '阅读完整隐私政策';
+
+  @override
+  String get privacyDialogAgree => '同意并继续';
+
+  @override
+  String get privacyDialogDisagree => '不同意';
+
+  @override
+  String get privacyDeclinedNotice => '你选择了不同意。应用仍可离线使用；若之后想启用同步与 AI 功能，可在「设置 → 关于」中重新查看隐私政策。';
+
+  @override
   String get reportDeleteConfirm => '确定删除这份报告？删除后无法恢复。';
 
   @override

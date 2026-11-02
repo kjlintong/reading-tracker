@@ -58,6 +58,33 @@ class SDe extends S {
   String get privacyPolicy => 'Datenschutz';
 
   @override
+  String get privacyDialogTitle => 'Datenschutzrichtlinie und Datenverarbeitung';
+
+  @override
+  String get privacyDialogIntro => 'Willkommen bei Readnest. Vor dem Start ein Überblick über den Umgang mit Ihren Daten:';
+
+  @override
+  String get privacyDialogLocal => 'Ihr Regal, Ihre Notizen und Ihre Lesedaten bleiben auf diesem Gerät. Wir erheben und übertragen sie nicht.';
+
+  @override
+  String get privacyDialogOptional => 'Daten verlassen Ihr Gerät erst, wenn Sie Synchronisierung, KI-Berichte oder den Foto-Import aktiv nutzen – und auch dann nur an den von Ihnen gewählten Endpunkt.';
+
+  @override
+  String get privacyDialogPermission => 'Kamera- und Foto-Berechtigungen werden nur beim Importieren eines Regal-Fotos angefragt und können jederzeit in den Systemeinstellungen widerrufen werden.';
+
+  @override
+  String get privacyDialogFullPolicy => 'Vollständige Datenschutzrichtlinie lesen';
+
+  @override
+  String get privacyDialogAgree => 'Zustimmen und fortfahren';
+
+  @override
+  String get privacyDialogDisagree => 'Nicht zustimmen';
+
+  @override
+  String get privacyDeclinedNotice => 'Sie haben nicht zugestimmt. Die App funktioniert weiterhin offline; falls Sie später Synchronisierung und KI-Funktionen nutzen möchten, können Sie die Datenschutzrichtlinie unter Einstellungen → Über erneut aufrufen.';
+
+  @override
   String get reportDeleteConfirm => 'Diesen Bericht löschen? Dies kann nicht rückgängig gemacht werden.';
 
   @override

@@ -17,6 +17,42 @@
   "appIntroPage": "Über diese App",
   "developerHomepage": "Website für Entwickler",
   "privacyPolicy": "Datenschutz",
+  "privacyDialogTitle": "Datenschutzrichtlinie und Datenverarbeitung",
+  "@privacyDialogTitle": {
+    "description": "Title of the first-launch privacy consent dialog"
+  },
+  "privacyDialogIntro": "Willkommen bei Readnest. Vor dem Start ein Überblick über den Umgang mit Ihren Daten:",
+  "@privacyDialogIntro": {
+    "description": "Intro line of the privacy consent dialog"
+  },
+  "privacyDialogLocal": "Ihr Regal, Ihre Notizen und Ihre Lesedaten bleiben auf diesem Gerät. Wir erheben und übertragen sie nicht.",
+  "@privacyDialogLocal": {
+    "description": "Bullet: data stays on device"
+  },
+  "privacyDialogOptional": "Daten verlassen Ihr Gerät erst, wenn Sie Synchronisierung, KI-Berichte oder den Foto-Import aktiv nutzen – und auch dann nur an den von Ihnen gewählten Endpunkt.",
+  "@privacyDialogOptional": {
+    "description": "Bullet: optional network features"
+  },
+  "privacyDialogPermission": "Kamera- und Foto-Berechtigungen werden nur beim Importieren eines Regal-Fotos angefragt und können jederzeit in den Systemeinstellungen widerrufen werden.",
+  "@privacyDialogPermission": {
+    "description": "Bullet: permission usage"
+  },
+  "privacyDialogFullPolicy": "Vollständige Datenschutzrichtlinie lesen",
+  "@privacyDialogFullPolicy": {
+    "description": "Link label to the full privacy policy"
+  },
+  "privacyDialogAgree": "Zustimmen und fortfahren",
+  "@privacyDialogAgree": {
+    "description": "Confirm button: agree to privacy policy"
+  },
+  "privacyDialogDisagree": "Nicht zustimmen",
+  "@privacyDialogDisagree": {
+    "description": "Button: decline privacy policy"
+  },
+  "privacyDeclinedNotice": "Sie haben nicht zugestimmt. Die App funktioniert weiterhin offline; falls Sie später Synchronisierung und KI-Funktionen nutzen möchten, können Sie die Datenschutzrichtlinie unter Einstellungen → Über erneut aufrufen.",
+  "@privacyDeclinedNotice": {
+    "description": "Notice shown after the user declines"
+  },
   "reportDeleteConfirm": "Diesen Bericht löschen? Dies kann nicht rückgängig gemacht werden.",
   "reportDelete": "Löschen",
   "appVersionLabel": "Version @@PH0@@",

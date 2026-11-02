@@ -16,6 +16,7 @@ import 'support/localized_app.dart';
 /// 本地封面写进了库却从没被读过。优先级一旦被改回「远程优先」，
 /// 用户的换封面操作会静默失效——界面上看不出错，只是「没反应」。
 void main() {
+  presetPrivacyAccepted(); // 预置已同意隐私政策，避免首次启动弹窗遮挡界面
   Future<void> loadFonts() async {
     final bytes = File('test/fixtures/simhei.ttf').readAsBytesSync();
     await (FontLoader('TestLatin')
